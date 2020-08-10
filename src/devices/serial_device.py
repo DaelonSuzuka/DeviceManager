@@ -52,16 +52,13 @@ class MessageTree(dict):
 
 class DeviceContextLogFilter(logging.Filter):
     def __init__(self, device):
-        self.port = device.port
-        self.guid = device.guid
-        self.baud = device.baud
-        self.profile_name = device.profile_name
+        self.device = device
 
     def filter(self, record):
-        record.port = self.port
-        record.guid = self.guid
-        record.baud = self.baud
-        record.profile_name = self.profile_name
+        record.port = self.device.port
+        record.guid = self.device.guid
+        record.baud = self.device.baud
+        record.profile_name = self.device.profile_name
         return True
 
 
@@ -83,10 +80,9 @@ class SerialDevice(SerialDeviceBase):
 
         super().__init__(port=self.port, baud=self.baud)
 
-        self.log_filter = DeviceContextLogFilter(self)
         # self.log = logging.getLogger(f'{__name__}.{self.profile_name}.{self.guid}')
         self.log = logging.getLogger(f'{__name__}.{self.profile_name}')
-        self.log.addFilter(self.log_filter)
+        self.log.addFilter(DeviceContextLogFilter(self))
         self.log.info(f'Creating device')
 
         self.signals = None

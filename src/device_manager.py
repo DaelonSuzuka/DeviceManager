@@ -8,6 +8,7 @@ from settings import Settings
 import typing
 
 
+
 class Settings(Settings):
     scan_period: int = 250
     update_period: int = 10
@@ -18,10 +19,40 @@ class Settings(Settings):
         'VariableDummyLoad:/dev/ttyS3',
     ]
 
+
 settings = Settings().register('Devices')
 
+
 class DeviceManager:
-    def __init__(self):
+    signals = {
+        'add_device':[SerialDevice],
+        'remove_device': [str]
+    }
+    slots = {
+        'device_added': [SerialDevice], 
+        'device_removed': [str],
+        'subscribed': [None],
+    }
+    new_subscribers = []
+
+    @classmethod
+    def subscribe(cls, target):
+        old_init = target.__init__
+
+        def new_init(obj, *args):
+            old_init(obj, *args)
+            
+            obj.signals = SigBundle(cls.signals)
+            obj.slots = SlotBundle(cls.slots)
+            obj.slots.link_to(obj)
+            
+            cls.new_subscribers.append(obj)
+
+        target.__init__ = new_init
+
+        return target
+
+    def __init__(self, parent=None):
         self.settings = settings
         self.log = logging.getLogger(__name__)
         self.log.info("Initializing DeviceManager...")
@@ -29,6 +60,8 @@ class DeviceManager:
         self.signals = SigBundle({'device_added':[SerialDevice], 'device_removed': [str]})
         self.slots = SlotBundle({'add_device':[SerialDevice], 'remove_device': [str]})
         self.slots.link_to(self)
+
+        self.subscribers = []
 
         self.devices = {}
         self.new_devices = []
@@ -42,18 +75,32 @@ class DeviceManager:
         self.update_timer = QTimer()
         self.update_timer.timeout.connect(lambda: self.update())
         self.update_timer.start(self.settings.update_period())
+        
+        self.check_for_new_subscribers()
 
-    def connect_to(self, things):
-        for thing in things:
-            if hasattr(thing, 'slots'):
-                if hasattr(thing.slots, 'device_added') and hasattr(thing.slots, 'device_removed'):
-                    self.signals.device_added.connect(thing.slots.device_added)
-                    self.signals.device_removed.connect(thing.slots.device_removed)
+    def check_for_new_subscribers(self):
+        for new_sub in self.new_subscribers:
+            if new_sub not in self.subscribers:
+                self.connect_subscriber(new_sub)
+                
+            self.new_subscribers.remove(new_sub)
 
-            if hasattr(thing, 'signals'):
-                if hasattr(thing.signals, 'add_device') and hasattr(thing.signals, 'remove_device'):
-                    thing.signals.add_device.connect(self.slots.add_device)
-                    thing.signals.remove_device.connect(self.slots.remove_device)
+    def connect_subscriber(self, subscriber):
+        if hasattr(subscriber, 'slots'):
+            if hasattr(subscriber.slots, 'device_added') and hasattr(subscriber.slots, 'device_removed'):
+                self.signals.device_added.connect(subscriber.slots.device_added)
+                self.signals.device_removed.connect(subscriber.slots.device_removed)
+                
+                for device in self.devices:
+                    subscriber.slots.device_added(self.devices[device])
+        
+            if hasattr(subscriber.slots, 'subscribed'):
+                subscriber.slots.subscribed()
+
+        if hasattr(subscriber, 'signals'):
+            if hasattr(subscriber.signals, 'add_device') and hasattr(subscriber.signals, 'remove_device'):
+                subscriber.signals.add_device.connect(self.slots.add_device)
+                subscriber.signals.remove_device.connect(self.slots.remove_device)
 
     def on_add_device(self, device):
         self.devices[device.guid] = device
@@ -65,6 +112,8 @@ class DeviceManager:
         self.devices.pop(guid)
 
     def scan(self):
+        self.check_for_new_subscribers()
+
         new_ports = [p.device for p in sorted(comports())]
 
         if self.first_scan:

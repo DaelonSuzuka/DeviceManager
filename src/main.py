@@ -8,6 +8,7 @@ import signal
 import logging
 from log_monitor import log_handler
 from settings import SettingsManager
+import qtawesome as qta
 
 
 class MyApplication(QApplication):
@@ -18,6 +19,11 @@ class MyApplication(QApplication):
         self.default_palette = QGuiApplication.palette()
         self.setStyle('Fusion')
         self.setPalette(darkPalette)
+        self.setWindowIcon(qta.icon('mdi.card-text-outline'))
+        
+        font = self.font()
+        font.setPointSize(10)
+        self.setFont(font)
 
         self.settings_manager = SettingsManager()
 
@@ -70,13 +76,20 @@ def run():
     QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
     
     QCoreApplication.setOrganizationName("LDG Electronics")
+    QCoreApplication.setOrganizationDomain("LDG Electronics")
     QCoreApplication.setApplicationName("Device Manager")
+    QCoreApplication.setApplicationVersion("v0.1")
 
     # Create the Qt Application
     app = MyApplication()
 
+    def ctrlc_handler(sig, frame):
+        print('exiting')
+        app.window.close()
+        app.shutdown()
+
     # grab the keyboard interrupt signal 
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    signal.signal(signal.SIGINT, ctrlc_handler)
 
     # Run the main Qt loop
     result = app.exec_()

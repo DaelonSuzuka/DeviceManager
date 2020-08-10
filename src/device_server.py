@@ -1,5 +1,6 @@
 from qt import *
 from devices import SerialDevice, profiles, profile_names
+from device_manager import DeviceManager
 import time
 import logging
 import json
@@ -19,15 +20,13 @@ class Settings(Settings):
 settings = Settings().register('Server')
 
 
+@DeviceManager.subscribe
 class DeviceServer(QObject):
     def __init__(self):
         super().__init__()
         self.settings = settings
         self.log = logging.getLogger(__name__)
         self.devices = {}
-        
-        self.slots = SlotBundle({'device_added':[SerialDevice], 'device_removed': [str]})
-        self.slots.link_to(self)
 
         if self.settings.secure():
             mode = QWebSocketServer.SecureMode

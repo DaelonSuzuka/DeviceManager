@@ -202,9 +202,9 @@ def SettingsManager():
     return _SettingsManager._instance
 
 
-class SettingsDialog(QDialog):    
-    def __init__(self, sections):
-        super().__init__()
+class SettingsDialog(QDialog):
+    def __init__(self, sections, parent=None):
+        super().__init__(parent)
         self.setModal(True)
         self.setMinimumSize(500, 500)
         

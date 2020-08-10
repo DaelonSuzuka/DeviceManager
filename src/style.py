@@ -208,8 +208,8 @@ class PaletteEditor(QDialog):
     palette_updated = Signal(object)
     palette_reset = Signal()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
 
         self.table = PaletteTable()
         self.resize(650, 1000)

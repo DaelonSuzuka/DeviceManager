@@ -1,5 +1,6 @@
 from qt import *
 from devices import SerialDevice, profiles, profile_names
+from device_manager import DeviceManager
 from serial.tools.list_ports import comports
 from bundles import SigBundle, SlotBundle
 
@@ -23,8 +24,8 @@ class DeviceTree(QTreeWidget):
     settings_requested = Signal(object)
     remove_requested = Signal(object)
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.setUniformRowHeights(True)
         self.setExpandsOnDoubleClick(False)
         self.setItemsExpandable(False)
@@ -40,7 +41,7 @@ class DeviceTree(QTreeWidget):
         self.remote_device_root = QTreeWidgetItem(self)
         self.remote_device_root.setText(0, "Remote Devices")
 
-    def add_device(self, device):
+    def add_node(self, device):
         if device.port[:5] == 'ws://':
             parent = self.remote_device_root
         else:
@@ -49,7 +50,7 @@ class DeviceTree(QTreeWidget):
         self.nodes[device.guid] = DeviceTreeWidgetItem(parent, device)
         self.expandAll()
 
-    def remove_device(self, guid):
+    def remove_node(self, guid):
         if guid in self.nodes:
             item = self.nodes[guid]
             parent = item.parent()
@@ -83,33 +84,11 @@ class DeviceTree(QTreeWidget):
             print('remove:', item.device.profile_name)
 
 
-class DeviceCreatorPanel(QWidget):
-    def __init__(self):
-        super().__init__()
-        ports = ["DummyPort", "RemoteSerial", *[port.device for port in sorted(comports())]]
-        self.profile = ComboBox(items=profile_names)
-        self.port = ComboBox(editable=True, items=ports)
-        self.add = QPushButton("Add")
-        
-        grid = QGridLayout()
-        grid.setContentsMargins(0, 0, 0, 0)
-
-        grid.addWidget(QLabel("Available Profiles:"), 4, 0, 1, 3)
-        grid.addWidget(self.profile, 5, 0, 1, 3)
-        grid.addWidget(self.port, 6, 0, 1, 2)
-        grid.addWidget(self.add, 6, 2)
-        self.setLayout(grid)
-
-
+@DeviceManager.subscribe
 class DeviceControls(QDockWidget):
-    def __init__(self, client):
+    def __init__(self):
         super().__init__('Available Devices:')
         self.setObjectName('DeviceControls')
-        self.signals = SigBundle({'add_device':[SerialDevice], 'remove_device': [str]})
-        self.slots = SlotBundle({'device_added':[SerialDevice], 'device_removed': [str]})
-        self.slots.link_to(self)
-
-        self.client = client
 
         self.devices = {}
         self.widgets = {}
@@ -120,16 +99,7 @@ class DeviceControls(QDockWidget):
         self.closeEvent = lambda x: self.hide()
         self.dockLocationChanged.connect(lambda: QTimer.singleShot(0, self.adjust_size))
 
-        self.device_tree = DeviceTree()
-
-        self.setStyleSheet("""
-            QPushButton { font-size: 10pt; } 
-            QLabel { font-size: 10pt; } 
-            QLineEdit { font-size: 10pt; } 
-            QComboBox { font-size: 10pt; } 
-            QListItem { font-size: 10pt; }
-            DeviceListWidget { font-size: 10pt; }
-        """)
+        self.device_tree = DeviceTree(self)
 
         grid = QGridLayout()
         grid.addWidget(self.device_tree, 0, 0)
@@ -159,12 +129,14 @@ class DeviceControls(QDockWidget):
                         self.parent().addDockWidget(widget.starting_area, widget)
 
     def on_device_added(self, device):
-        self.device_tree.add_device(device)
-        self.devices[device.guid] = device
+        if device.guid not in self.devices:
+            self.device_tree.add_node(device)
+            self.devices[device.guid] = device
 
     def on_device_removed(self, guid):
-        self.device_tree.remove_device(guid)
-        self.devices.pop(guid)
+        if guid in self.devices:
+            self.devices.pop(guid)
+            self.device_tree.remove_node(guid)
 
         if guid in self.widgets:
             self.widgets[guid].deleteLater()

@@ -1,5 +1,6 @@
 from qt import *
 from devices import SerialDevice, RFSensor, VariableInductor, VariableCapacitor, Alpha4510A
+from device_manager import DeviceManager
 from bundles import SigBundle, SlotBundle
 
 
@@ -73,11 +74,10 @@ class TuningWorker(QObject):
         self.last_results = results
 
 
+@DeviceManager.subscribe
 class Tuner(QObject):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.slots = SlotBundle({'device_added':[SerialDevice], 'device_removed': [str]})
-        self.slots.link_to(self)
 
         self.caps = VariableCapacitor()
         self.inds = VariableInductor()

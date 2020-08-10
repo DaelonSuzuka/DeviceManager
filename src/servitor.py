@@ -2,6 +2,7 @@ from qt import *
 from devices import SerialDevice
 from functools import partial
 from bundles import SlotBundle
+from device_manager import DeviceManager
 
 
 class RadioInfo(Grid):        
@@ -315,9 +316,10 @@ class ControlPanel(Grid):
         self.setRowStretch(2, 1)
 
 
+@DeviceManager.subscribe
 class Servitor(QMdiSubWindow):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.setWindowIcon(QIcon(QPixmap(1,1)))
         self.setWindowTitle('Servitor Controls')
         self.setStyleSheet("""
@@ -333,13 +335,11 @@ class Servitor(QMdiSubWindow):
             }
         """)
 
-        self.slots = SlotBundle({'device_added':[SerialDevice], 'device_removed': [str]})
-        self.slots.link_to(self)
-
         self.devices = {}
         self.radio = None
         self.meter = None
         self.switch = None
+        self.dummy_load = None
 
         self.create_widgets()
         self.build_layout()
@@ -411,6 +411,11 @@ class Servitor(QMdiSubWindow):
         self.control_panel.radio.mode.clear()
         self.control_panel.radio.mode.addItems([m for m in radio.modes if m != ""])
         enable_children(self.control_panel.radio)
+        
+        if not self.switch:
+            disable_children(self.control_panel.switch)
+        if not self.dummy_load:
+            disable_children(self.control_panel.dummy_load)
 
         radio.unkey()
         radio.get_power_level()

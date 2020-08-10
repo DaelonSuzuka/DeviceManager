@@ -1,5 +1,7 @@
+from re import sub
 from qt import *
 from devices import SerialDevice, profiles
+from device_manager import DeviceManager
 import time
 import logging
 import json
@@ -27,8 +29,8 @@ def get_ip():
 
 
 class Settings(Settings):
-    connect_on_startup: bool = True
-    address: str = '10.0.0.207'
+    connect_on_startup: bool = False
+    address: str = '73.86.101.13'
     port: int = 43000
     previous_connections: typing.List[str] = [
         '10.0.0.207',
@@ -54,6 +56,8 @@ class StatusBarWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.setObjectName('NetworkStatusBarItem')
+        
+        self.setAttribute(Qt.WA_AcceptTouchEvents, True)
     
         self.status = QLabel('Not Connected')
         self.address = QLabel(settings.address())
@@ -87,6 +91,26 @@ class StatusBarWidget(QWidget):
         menu.addMenu(settings_menu)
         self.menu = menu
 
+        CommandPalette().register_action('Set Address', self.set_address)
+
+    #     self.installEventFilter(self)
+
+    # def eventFilter(self, watched: PySide2.QtCore.QObject, event: PySide2.QtCore.QEvent) -> bool:
+    #     types = [ QEvent.TouchBegin, QEvent.TouchCancel, QEvent.TouchEnd, QEvent.TouchUpdate ]
+
+    #     if event.type() in types:
+    #         if event.type() in [QEvent.TouchBegin, QEvent.TouchUpdate]:
+    #             event.accept()
+    #             return True
+    #         elif event.type() == QEvent.TouchEnd:
+    #             event.accept()
+    #             pos = event.touchPoints()[0].screenPos().toPoint()
+    #             print(pos)
+    #             self.menu.exec_(pos)
+    #             return True
+
+    #     return super().eventFilter(watched, event)
+
     def contextMenuEvent(self, event):
         self.menu.exec_(event.globalPos())
 
@@ -109,21 +133,25 @@ class StatusBarWidget(QWidget):
         settings.connect_on_startup = self.act_startup.isChecked()
 
     def set_address(self):
-        CommandPalette().open(placeholder='Enter a new IP Address', cb=self.address_result)
+        oct = "(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])"
+        regexp = QRegExp(f"^{oct}\\.{oct}\\.{oct}\\.{oct}$")
+        CommandPalette().open(
+            placeholder='Enter a new IP Address',
+            cb=self.address_result,
+            # mask='000.000.000.000; ',
+            validator=QRegExpValidator(regexp)
+        )
 
     def address_result(self, result):
         self.address.setText(result)
 
 
+@DeviceManager.subscribe
 class DeviceClient(QObject):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.settings = settings
         self.log = logging.getLogger(__name__)
-
-        self.signals = SigBundle({'add_device':[SerialDevice], 'remove_device': [str]})
-        self.slots = SlotBundle({'device_added':[SerialDevice], 'device_removed': [str]})
-        self.slots.link_to(self)
 
         self.devices = {}
         self.linked_devices = {}
@@ -142,6 +170,7 @@ class DeviceClient(QObject):
         self.status_widget.open_socket.connect(self.open_socket)
         self.status_widget.close_socket.connect(self.close_socket)
 
+    def on_subscribed(self):
         if self.settings.connect_on_startup():
             if urlparse(self.settings.address()).path != urlparse(get_ip()).path:
                 self.open_socket()

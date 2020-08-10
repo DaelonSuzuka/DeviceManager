@@ -3,8 +3,8 @@ from bundles import SigBundle, SlotBundle
 
 
 class Worker(QObject):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         signals = {
             'started': [], 
             'stopped': [], 
@@ -43,8 +43,8 @@ class Worker(QObject):
 
 
 class WorkerControls(QDockWidget):
-    def __init__(self):
-        super().__init__('Worker Controls')
+    def __init__(self, parent=None):
+        super().__init__('Worker Controls', parent)
         self.setObjectName('WorkerControls')
         self.thread = QThread()
         self.worker = Worker()
