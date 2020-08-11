@@ -148,8 +148,8 @@ class LoggerTreeWidgetItem(QTreeWidgetItem):
 class LoggerTreeWidget(QTreeWidget):
     filter_updated = Signal()
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self):
+        super().__init__()
         
         self.setItemDelegate(LoggerDelegate())
         self.setSelectionMode(QAbstractItemView.NoSelection)
@@ -292,8 +292,8 @@ class ProfileSelector(QWidget):
     removed = Signal(str)
     changed = Signal(str)
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self):
+        super().__init__()
         self.setStyleSheet('QPushButton { max-width: 20px; }')
 
         self.selector = QComboBox()
@@ -366,8 +366,8 @@ class FilterControls(QStackedWidget):
         'text': '',
     }
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self):
+        super().__init__()
 
         self.setStyleSheet("""
             QTreeWidget {
@@ -513,8 +513,8 @@ class Column:
 
 
 class TableHeader(QObject):
-    def __init__(self, header_view, parent=None):
-        super().__init__(parent)
+    def __init__(self, header_view):
+        super().__init__()
         self.header_view = header_view
         self.columns = [
             Column('asctime', 'Time', width=150),

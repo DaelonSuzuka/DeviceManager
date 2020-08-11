@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 from serial.tools.list_ports import comports
 from bundles import SigBundle, SlotBundle
 from settings import Settings
+from command_palette import Command
 
 
 class Settings(Settings):
@@ -27,6 +28,14 @@ class DeviceServer(QObject):
         self.settings = settings
         self.log = logging.getLogger(__name__)
         self.devices = {}
+
+        self.commands = [
+            Command("Device Server: Foo", self),
+            Command("Device Server: Bar", self),
+            Command("Device Server: Baz", self),
+            Command("Device Server: Fizz", self),
+            Command("Device Server: Buzz", self),
+        ]
 
         if self.settings.secure():
             mode = QWebSocketServer.SecureMode

@@ -11,7 +11,7 @@ from settings import Settings
 import typing
 from urllib.parse import urlparse
 import qtawesome as qta
-from command_palette import CommandPalette
+from command_palette import CommandPalette, Command
 
 
 import socket
@@ -78,38 +78,25 @@ class StatusBarWidget(QWidget):
         self.act_disconnect = QAction("Disconnect", self, triggered=self.close)
         self.act_startup = QAction("Connect at Startup", self, checkable=True, triggered=self.startup)
         self.act_startup.setChecked(settings.connect_on_startup())
-        self.act_address = QAction("Set Address", self, triggered=self.set_address)
+        self.act_address = QAction("Set Address", self, triggered=self.open_address_prompt)
         self.act_settings = QAction("Network Settings", self, triggered=lambda: print('Settings'))
 
         menu = QMenu()
         menu.addAction(self.act_connect)
+
+        self.connect_to_menu = QMenu('Connect To:')
+        for address in settings.previous_connections():
+            self.connect_to_menu.addAction(QAction(address, self))
+        menu.addMenu(self.connect_to_menu)
+
         menu.addAction(self.act_disconnect)
         settings_menu = QMenu('Settings')
         settings_menu.addAction(self.act_startup)
         settings_menu.addAction(self.act_address)
         settings_menu.addAction(self.act_settings)
         menu.addMenu(settings_menu)
+
         self.menu = menu
-
-        CommandPalette().register_action('Set Address', self.set_address)
-
-    #     self.installEventFilter(self)
-
-    # def eventFilter(self, watched: PySide2.QtCore.QObject, event: PySide2.QtCore.QEvent) -> bool:
-    #     types = [ QEvent.TouchBegin, QEvent.TouchCancel, QEvent.TouchEnd, QEvent.TouchUpdate ]
-
-    #     if event.type() in types:
-    #         if event.type() in [QEvent.TouchBegin, QEvent.TouchUpdate]:
-    #             event.accept()
-    #             return True
-    #         elif event.type() == QEvent.TouchEnd:
-    #             event.accept()
-    #             pos = event.touchPoints()[0].screenPos().toPoint()
-    #             print(pos)
-    #             self.menu.exec_(pos)
-    #             return True
-
-    #     return super().eventFilter(watched, event)
 
     def contextMenuEvent(self, event):
         self.menu.exec_(event.globalPos())
@@ -132,7 +119,7 @@ class StatusBarWidget(QWidget):
     def startup(self):
         settings.connect_on_startup = self.act_startup.isChecked()
 
-    def set_address(self):
+    def open_address_prompt(self):
         oct = "(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])"
         regexp = QRegExp(f"^{oct}\\.{oct}\\.{oct}\\.{oct}$")
         CommandPalette().open(
@@ -157,6 +144,20 @@ class DeviceClient(QObject):
         self.linked_devices = {}
         self.remote_devices = {}
         self.remote_profiles = []
+        
+        self.commands = [
+            Command('Device Client: Connect', self, shortcut='Ctrl+Shift+C'),
+            Command('Device Client: Disconnect', self, shortcut='Ctrl+Shift+D'),
+            Command('Device Client: Set Address', self),
+            Command('Device Client: Connect on startup', self),
+            Command("Device Client: Don't connect on startup", self),
+            Command("Device Client: Some other thing", self),
+            Command("Device Client: Foo", self),
+            Command("Device Client: Bar", self),
+            Command("Device Client: Baz", self),
+            Command("Device Client: Fizz", self),
+            Command("Device Client: Buzz", self),
+        ]
 
         self.socket = QWebSocket()
         self.socket.connected.connect(lambda: self.log.info("Connected to server"))

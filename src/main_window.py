@@ -56,9 +56,6 @@ class MainWindow(QMainWindow):
 
         # print_all_children(self)
 
-    def moveEvent(self, event):
-        self.command_palette.center()
-
     def closeEvent(self, event):
         self.dm.scan_timer.stop()
         self.dm.update_timer.stop()
