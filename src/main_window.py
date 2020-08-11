@@ -9,7 +9,7 @@ from servitor import Servitor
 from tuner import Tuner
 from settings import Settings, SettingsManager
 from thread import WorkerControls
-from command_palette import CommandPalette
+from command_palette import CommandPalette, Command
 
 from log_monitor import LogMonitor
 import logging
@@ -48,6 +48,15 @@ class MainWindow(QMainWindow):
         self.init_toolbar()
 
         self.load_settings() # do this last
+
+        self.commands = [
+            Command("Preferences: Open Settings (JSON)", self),
+            Command("Preferences: Open Settings (UI)", self, shortcut='Ctrl+,'),
+            Command("Device Manager: Check for port changes", self),
+            Command("Device Manager: Fizz", self),
+            Command("Device Manager: Buzz", self),
+            Command("Close Window", self, triggered=self.close),
+        ]
 
         # def print_all_children(obj, prefix=''):
         #     for child in obj.children():
