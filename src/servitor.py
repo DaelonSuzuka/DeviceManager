@@ -174,20 +174,28 @@ class FrequencyButtons(Grid):
         self.setColumnStretch(1, 2)
 
 
-class RadioControls(Grid):        
+class RadioControls(Grid):
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     self.create_widgets()
+    #     self.build_layout()
+
+    
     def create_widgets(self):
         self.power_btns = PowerButtons()
         self.freq_btns = FrequencyButtons()
-
-        self.key = QPushButton("Toggle Key", checkable=True)
-        self.key.setStyleSheet(""" :checked { border: 5px solid red; border-radius: 10px; } """)
-
-        self.lock = QPushButton("Lock", checkable=True)
 
         self.mode = QComboBox()
         self.mode.addItems(['Mode'])
         self.mode.setMinimumHeight(100)
         self.mode.setStyleSheet("QComboBox { padding-left: 20px; }")
+
+        self.menu = QPushButton('Key Settings')
+
+        self.key = QPushButton("Toggle Key", checkable=True)
+        self.key.setStyleSheet(""" :checked { border: 5px solid red; border-radius: 10px; } """)
+
+        self.lock = QPushButton("Lock", checkable=True)
 
         self.timeout = QProgressBar()
         self.timeout.setTextVisible(False)
@@ -200,6 +208,25 @@ class RadioControls(Grid):
         self.timeout_timer.timeout.connect(lambda: self.update_timeout_bar())
         self.timeout_timer.start(100)
         self.current_power = 5
+
+    def build_layout(self):
+        self.addLayout(self.power_btns, 0, 0, 6, 1)
+        self.addWidget(VLine(), 0, 1, 6, 1)
+        self.addLayout(self.freq_btns, 0, 2, 6, 1)
+        self.addWidget(VLine(), 0, 3, 6, 1)
+        self.addWidget(VLine(), 0, 5, 6, 1)
+        self.addWidget(self.mode, 0, 6)
+        self.addWidget(self.key, 2, 6, 3, 1)
+        self.addWidget(self.timeout, 5, 6, 1, 1)
+        self.addWidget(self.menu, 1, 6, 1, 1)
+
+        self.setColumnStretch(0, 2)
+        self.setColumnStretch(1, 1)
+        self.setColumnStretch(2, 2)
+        self.setColumnStretch(3, 1)
+        self.setColumnStretch(4, 1)
+        self.setColumnStretch(5, 1)
+        self.setColumnStretch(6, 2)
 
     def update_timeout_bar(self):
         val = self.timeout.value()
@@ -237,28 +264,6 @@ class RadioControls(Grid):
         for i in range(self.mode.count()):
             if self.mode.itemText(i) == mode:
                 self.mode.setCurrentIndex(i)
-
-    def connect_signals(self):
-        pass
-
-    def build_layout(self):
-        self.addLayout(self.power_btns, 0, 0, 7, 1)
-        self.addWidget(VLine(), 0, 1, 7, 1)
-        self.addLayout(self.freq_btns, 0, 2, 7, 1)
-        self.addWidget(VLine(), 0, 3, 7, 1)
-        self.addWidget(VLine(), 0, 5, 7, 1)
-        self.addWidget(self.mode, 0, 6)
-        self.addWidget(self.key, 1, 6, 4, 1)
-        self.addWidget(self.timeout, 5, 6, 1, 1)
-        self.addWidget(self.lock, 6, 6, 1, 1)
-
-        self.setColumnStretch(0, 2)
-        self.setColumnStretch(1, 1)
-        self.setColumnStretch(2, 2)
-        self.setColumnStretch(3, 1)
-        self.setColumnStretch(4, 1)
-        self.setColumnStretch(5, 1)
-        self.setColumnStretch(6, 2)
 
 
 class DummyLoadControls(Grid):
