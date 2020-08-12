@@ -184,7 +184,8 @@ class RadioControls(Grid):
 
         self.lock = QPushButton("Lock", checkable=True)
 
-        self.mode = ComboBox(items=['Mode'])
+        self.mode = QComboBox()
+        self.mode.addItems(['Mode'])
         self.mode.setMinimumHeight(100)
         self.mode.setStyleSheet("QComboBox { padding-left: 20px; }")
 
@@ -448,6 +449,9 @@ class Servitor(QMdiSubWindow):
         self.control_panel.switch.two.clicked.connect(lambda: switch.select_antenna(2))
         self.control_panel.switch.three.clicked.connect(lambda: switch.select_antenna(3))
         self.control_panel.switch.four.clicked.connect(lambda: switch.select_antenna(4))
+
+        switch.read_antenna()
+        switch.read_antenna()
 
     def disconnect_switch(self, guid):
         if self.switch.guid != guid:
