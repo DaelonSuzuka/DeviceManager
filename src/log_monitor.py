@@ -372,7 +372,7 @@ class FilterControls(QStackedWidget):
         """)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
 
-        widget_width = 180
+        widget_width = 200
 
         # create widgets
         self.profiles = ProfileSelector()
@@ -415,22 +415,21 @@ class FilterControls(QStackedWidget):
         # send the filter to the model
         self.update_filter()
 
+        self.addWidget(QWidget())
+        self.addWidget(QWidget())
+
         # controls layout
-        grid = QGridLayout()
+        grid = QGridLayout(self.widget(0))
         grid.setContentsMargins(0, 0, 0, 0)
 
         grid.addWidget(self.profiles, 0, 0, 1, 5)
         grid.addWidget(self.text_filter, 1, 0, 1, 5)
         grid.addWidget(self.logger_filter, 2, 0, 1, 5)
 
-        self.addWidget(QWidget(layout=grid))
-
         # editor layout
-        grid = QGridLayout()
+        grid = QGridLayout(self.widget(1))
         grid.setContentsMargins(0, 0, 0, 0)
         grid.addWidget(QPushButton(clicked=lambda: self.setCurrentIndex(0)))
-        
-        self.addWidget(QWidget(layout=grid))
 
     def load_settings(self):
         try:
