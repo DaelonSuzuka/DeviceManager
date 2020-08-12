@@ -1,4 +1,3 @@
-import logging
 from device_client import DeviceClient
 from qt import *
 from device_manager import DeviceManager
@@ -7,8 +6,7 @@ from device_client import DeviceClient
 from device_controls import DeviceControls
 from servitor import Servitor
 from tuner import Tuner
-from settings import Settings, SettingsManager
-from thread import WorkerControls
+from settings import SettingsManager
 from command_palette import CommandPalette, Command
 
 from log_monitor import LogMonitor

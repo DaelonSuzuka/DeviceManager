@@ -1,12 +1,8 @@
-from re import sub
 from qt import *
-from devices import SerialDevice, profiles
+from devices import profiles
 from device_manager import DeviceManager
-import time
 import logging
 import json
-from serial.tools.list_ports import comports
-from bundles import SigBundle, SlotBundle
 from settings import Settings
 import typing
 from urllib.parse import urlparse

@@ -1,7 +1,5 @@
 from qt import *
-from devices import SerialDevice
 from functools import partial
-from bundles import SlotBundle
 from device_manager import DeviceManager
 
 

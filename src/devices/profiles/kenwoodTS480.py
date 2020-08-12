@@ -1,6 +1,5 @@
 from devices import SerialDevice, DeviceWidget
 from qt import *
-import logging
 from bundles import SigBundle
 
 

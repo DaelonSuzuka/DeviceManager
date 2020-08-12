@@ -1,8 +1,5 @@
 from qt import *
-from devices import SerialDevice, profiles, profile_names
 from device_manager import DeviceManager
-from serial.tools.list_ports import comports
-from bundles import SigBundle, SlotBundle
 
 
 class DeviceTreeWidgetItem(QTreeWidgetItem):

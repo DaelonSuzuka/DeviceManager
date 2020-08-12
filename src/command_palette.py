@@ -2,7 +2,6 @@ from qt import *
 import typing
 from style import colors
 import re
-import webcolors
 
 
 class Command(QAction):
