@@ -42,6 +42,7 @@ class DTS4(SerialDevice):
 
     def select_antenna(self, antenna):
         self.send(f"ant set {antenna}\r\n")
+        self.read_antenna()
 
     def read_antenna(self):
         self.send("ant read\r\n")
