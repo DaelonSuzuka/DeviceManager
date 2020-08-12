@@ -23,29 +23,15 @@ class MainWindow(QMainWindow):
         self.setAnimated(True)
 
         # init first so it can install on the root logger
-        self.log_monitor = LogMonitor()
-
-        self.command_palette = CommandPalette(self)
+        self.log_monitor = LogMonitor(self)
 
         self.dm = DeviceManager(self)
         self.server = DeviceServer()
         self.client = DeviceClient()
         self.tuner = Tuner()
         self.tuner_controls = self.tuner.controls
-        self.device_controls = DeviceControls()
+        self.device_controls = DeviceControls(self)
         self.servitor = Servitor()
-
-        self.area = QMdiArea()
-        self.area.addSubWindow(self.servitor)
-        self.servitor.setWindowState(Qt.WindowMaximized)
-        self.setCentralWidget(self.area)
-
-        self.init_dock_widgets()
-        self.init_menu_bar()
-        self.init_statusbar()
-        self.init_toolbar()
-
-        self.load_settings() # do this last
 
         self.commands = [
             Command("Preferences: Open Settings (JSON)", self),
@@ -53,8 +39,25 @@ class MainWindow(QMainWindow):
             Command("Device Manager: Check for port changes", self),
             Command("Device Manager: Fizz", self),
             Command("Device Manager: Buzz", self),
-            Command("Close Window", self, triggered=self.close),
+            Command("Quit Application", self, triggered=self.close),
         ]
+
+        # must be after Command objects are created by various modules
+        self.command_palette = CommandPalette(self)
+
+        self.area = QMdiArea()
+        self.area.addSubWindow(self.servitor)
+        self.servitor.setWindowState(Qt.WindowMaximized)
+        self.setCentralWidget(self.area)
+
+        self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
+        self.setDockNestingEnabled(True)
+
+        self.init_menu_bar()
+        self.init_statusbar()
+        self.init_toolbar()
+
+        self.load_settings() # do this last
 
         # def print_all_children(obj, prefix=''):
         #     for child in obj.children():
@@ -73,18 +76,6 @@ class MainWindow(QMainWindow):
         self.save_settings()
 
         super().closeEvent(event)
-
-    def init_dock_widgets(self):
-        self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
-        self.setDockNestingEnabled(True)
-
-        self.addDockWidget(self.device_controls.starting_area, self.device_controls)
-        self.addDockWidget(self.tuner_controls.starting_area, self.tuner_controls)
-        self.addDockWidget(self.log_monitor.starting_area, self.log_monitor)
-
-        # self.device_controls.hide()
-        self.tuner_controls.hide()
-        self.log_monitor.hide()
     
     def init_menu_bar(self):
         mb = MenuBar()
@@ -98,7 +89,6 @@ class MainWindow(QMainWindow):
         self.setMenuBar(mb)
 
     def init_statusbar(self):
-
         self.statusBar().setFixedHeight(25)
         self.statusBar().setContentsMargins(10, 0, 10, 3)
         self.statusBar().addPermanentWidget(self.client.status_widget)

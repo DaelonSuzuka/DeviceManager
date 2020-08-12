@@ -4,14 +4,29 @@ from style import colors
 import re
 
 
-class Command(QAction):
-    def __init__(self, text, parent=None, shortcut=None, **kwargs):
-        super().__init__(text, parent, **kwargs)
-        if shortcut:
-            self.setShortcut(shortcut)
+class CommandRegistry(QObject):
+    def __init__(self) -> None:
+        self.registry = {}
+        self.commands = []
 
-        CommandModel.commands.append(self)
-        CommandModel.command_dict[text] = self
+    def register_command(self, command):
+        self.registry[command.text()] = command
+        self.commands.append(command)
+        self.commands.sort(key=lambda x: x.text())
+
+    def execute(self, command_name):
+        self.registry[command_name].triggered.emit()
+
+
+registry = CommandRegistry()
+
+
+class Command(QAction):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        registry.register_command(self)
+
         self.usage_count = 0
         self.triggered.connect(self.used)
     
@@ -88,22 +103,17 @@ class PopupDelegate(QStyledItemDelegate):
         painter.restore()
 
 
-class CommandModel(QAbstractTableModel):
-    commands = []
+class CommandModel(QAbstractListModel):
     sorted_commands = []
-    command_dict = {}
 
     def sort_commands(self, prefix):
-        self.sorted_commands = [cmd for cmd in self.commands if prefix.lower() in cmd.text().lower()]
+        self.sorted_commands = [cmd for cmd in registry.commands if prefix.lower() in cmd.text().lower()]
         result = bool(self.sorted_commands)
-        self.sorted_commands.extend([cmd for cmd in self.commands if prefix.lower() not in cmd.text().lower()])
+        self.sorted_commands.extend([cmd for cmd in registry.commands if prefix.lower() not in cmd.text().lower()])
         return result
 
-    def columnCount(self, parent: PySide2.QtCore.QModelIndex) -> int:
-        return 1
-
     def rowCount(self, parent: PySide2.QtCore.QModelIndex) -> int:
-        return len(self.commands)
+        return len(registry.commands)
 
     def data(self, index: PySide2.QtCore.QModelIndex, role: int) -> typing.Any:
         if not index.isValid():
@@ -144,7 +154,6 @@ class CommandCompleter(QWidget):
     def open(self):
         self.active = True
         self.update_prefix('')
-
         super().show()
 
     def close(self):
@@ -181,11 +190,6 @@ class CommandCompleter(QWidget):
     def get_selection(self):
         index = self.list.currentIndex()
         return index.data(Qt.EditRole)
-
-    def execute_command(self):
-        index = self.list.currentIndex()
-        name = index.data(Qt.EditRole)
-        self.command_model.command_dict[name].triggered.emit()
 
 
 class _CommandPalette(QDialog):
@@ -235,7 +239,7 @@ class _CommandPalette(QDialog):
         self.open()
         self.command_completer.open()
 
-    def open(self, cb=None, prompt=None, placeholder=None, completer=None, validator=None, mask=None):
+    def _open(self, cb=None, prompt=None, placeholder=None, completer=None, validator=None, mask=None):
         self.callback = cb
 
         self.line.setText(prompt)
@@ -249,16 +253,19 @@ class _CommandPalette(QDialog):
         self.activateWindow()
         self.line.setFocus()
 
+    def open(self, cb=None, prompt=None, placeholder=None, completer=None, validator=None, mask=None):
+        QTimer.singleShot(0, lambda: self._open(cb, prompt, placeholder, completer, validator, mask))
+
     def accept(self):
         if self.command_completer.active:
-            self.command_completer.execute_command()
+            name = self.command_completer.get_selection()
+            self.dismiss()
+            registry.execute(name)
         else:
             result = self.line.text()
-
             if self.callback:
                 self.callback(result)
-
-        self.dismiss()
+            self.dismiss()
 
     def dismiss(self):
         self.callback = None

@@ -120,13 +120,10 @@ class StatusBarWidget(QWidget):
         regexp = QRegExp(f"^{oct}\\.{oct}\\.{oct}\\.{oct}$")
         CommandPalette().open(
             placeholder='Enter a new IP Address',
-            cb=self.address_result,
+            cb=lambda result: self.address.setText(result),
             # mask='000.000.000.000; ',
             validator=QRegExpValidator(regexp)
         )
-
-    def address_result(self, result):
-        self.address.setText(result)
 
 
 @DeviceManager.subscribe
@@ -142,8 +139,8 @@ class DeviceClient(QObject):
         self.remote_profiles = []
         
         self.commands = [
-            Command('Device Client: Connect', self, shortcut='Ctrl+Shift+C'),
-            Command('Device Client: Disconnect', self, shortcut='Ctrl+Shift+D'),
+            Command('Device Client: Connect', self, triggered=self.open_socket),
+            Command('Device Client: Disconnect', self, triggered=self.close_socket),
             Command('Device Client: Set Address', self),
             Command('Device Client: Connect on startup', self),
             Command("Device Client: Don't connect on startup", self),

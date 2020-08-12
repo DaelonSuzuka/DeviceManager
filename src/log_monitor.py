@@ -4,6 +4,8 @@ from collections import deque
 import json
 import qtawesome as qta
 from style import colors
+from command_palette import CommandPalette, Command
+
 
 INVALID_INDEX = QModelIndex()
 log_levels = {
@@ -54,12 +56,6 @@ class LoggerDelegate(QStyledItemDelegate):
         painter.save()
 
         if len(value) == 1:
-            # painter.setPen(QPen(log_levels[level_map[value]]))
-            # path = QPainterPath()
-            # path.addRoundedRect(option.rect, 5, 5)
-            # painter.drawRoundedRect(option.rect, 5, 5)
-            # painter.fillPath(path, QColor(log_levels[level_map[value]]))
-
             if option.state & QStyle.State_Selected and checked:
                 painter.setPen(QPen(log_levels[level_map[value]]))
             else: 
@@ -723,16 +719,25 @@ class LogTableView(QTableView):
 
 
 class LogMonitor(QDockWidget):
-    def __init__(self):
-        super().__init__('Log Monitor')
+    def __init__(self, parent=None):
+        super().__init__('Log Monitor', parent=parent)
         self.setObjectName('LogMonitor')
-
-        self.setMinimumWidth(1000)
 
         self.setAllowedAreas(Qt.AllDockWidgetAreas)
         self.starting_area = Qt.BottomDockWidgetArea
         self.closeEvent = lambda x: self.hide()
         self.dockLocationChanged.connect(lambda: QTimer.singleShot(0, self.adjust_size))
+        
+        self.parent().addDockWidget(self.starting_area, self)
+        self.hide()
+
+        self.setMinimumWidth(1000)
+
+        self.commands = [
+            Command("Log Monitor: Show log monitor", shortcut='Ctrl+l', triggered=self.show),
+            Command("Log Monitor: Hide log monitor", triggered=self.hide),
+            Command("Log Monitor: Switch profile", triggered=self.open_profile_prompt),
+        ]
 
         log_handler.forward_record = self.add_record
 
@@ -748,6 +753,19 @@ class LogMonitor(QDockWidget):
 
         self.setWidget(QWidget(layout=grid))
 
+    def open_profile_prompt(self):
+        profiles = list(self.filter_controls.settings['profiles'].keys())
+
+        self.completer = QCompleter(self, profiles)
+        self.completer.setCaseSensitivity(Qt.CaseInsensitive)
+        self.completer.setCompletionMode(QCompleter.PopupCompletion)
+
+        QTimer.singleShot(0, lambda: CommandPalette().open(
+            placeholder='Select a profile',
+            cb=lambda result: print(result),
+            completer=self.completer
+        ))
+
     def adjust_size(self):
         if self.isFloating():
             self.adjustSize()
@@ -759,4 +777,5 @@ class LogMonitor(QDockWidget):
     def toggleViewAction(self):
         action = super().toggleViewAction()
         action.setShortcut("Ctrl+L")
+        action.setMenuRole(QAction.TextHeuristicRole)
         return action

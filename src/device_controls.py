@@ -7,6 +7,7 @@ class DeviceTreeWidgetItem(QTreeWidgetItem):
         super().__init__(parent)
 
         self.device = device
+        self.guid = device.guid
         
         self.setText(0, device.profile_name)
 
@@ -59,36 +60,28 @@ class DeviceTree(QTreeWidget):
         item = self.itemAt(self.viewport().mapFromGlobal(pos))
 
         menu = QMenu()
-        menu.addAction(QAction("Settings", self, triggered=lambda: self.open_settings(pos)))
-        menu.addAction(QAction("Widget", self, triggered=lambda: self.open_widget(pos)))
-        menu.addAction(QAction("Remove", self, triggered=lambda: self.remove_clicked(pos)))
-        print(menu.exec_(event.globalPos()))
+        menu.addAction(QAction("Settings", self, triggered=lambda: self.open_settings(item)))
+        menu.addAction(QAction("Widget", self, triggered=lambda: self.open_widget(item)))
+        menu.addAction(QAction("Remove", self, triggered=lambda: self.remove_clicked(item)))
+        menu.exec_(pos)
 
-    def open_settings(self, pos):
-        item = self.itemAt(self.viewport().mapFromGlobal(pos))
+    def open_settings(self, item):
         if hasattr(item, 'device'):
             print('settings:', item.device.profile_name)
 
-    def open_widget(self, pos):
-        item = self.itemAt(self.viewport().mapFromGlobal(pos))
+    def open_widget(self, item):
         if hasattr(item, 'device'):
             if hasattr(item.device, 'widget'):
-                print('widget:', item.device.profile_name)
+                self.parent().parent().show_device_widget(item)
 
-    def remove_clicked(self, pos):
-        item = self.itemAt(self.viewport().mapFromGlobal(pos))
+    def remove_clicked(self, item):
         if hasattr(item, 'device'):
             print('remove:', item.device.profile_name)
 
 
-@DeviceManager.subscribe
-class DeviceControls(QDockWidget):
-    def __init__(self):
-        super().__init__('Available Devices:')
-        self.setObjectName('DeviceControls')
-
-        self.devices = {}
-        self.widgets = {}
+class DockWidget(QDockWidget):
+    def __init__(self, title, parent=None):
+        super().__init__(title, parent=parent)
 
         self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
         self.starting_area = Qt.RightDockWidgetArea
@@ -96,11 +89,7 @@ class DeviceControls(QDockWidget):
         self.closeEvent = lambda x: self.hide()
         self.dockLocationChanged.connect(lambda: QTimer.singleShot(0, self.adjust_size))
 
-        self.device_tree = DeviceTree(self)
-
-        grid = QGridLayout()
-        grid.addWidget(self.device_tree, 0, 0)
-        self.setWidget(QWidget(layout=grid))
+        self.parent().addDockWidget(self.starting_area, self)
 
     def adjust_size(self):
         if self.isFloating():
@@ -111,19 +100,34 @@ class DeviceControls(QDockWidget):
         action.setShortcut("Ctrl+D")
         return action
 
-    def show_device_widget(self):
-        for item in self.device_list.selectedItems():
-            if hasattr(self.devices[item.guid], 'widget'):
-                if item.guid not in self.widgets:
-                    widget = self.devices[item.guid].widget
-                    if isinstance(widget, QDockWidget):
-                        widget.setParent(self.parent())
-                        self.widgets[item.guid] = widget
-                        # widget.setFloating(True)
-                        # widget.show()
-                        # self.parent().addDockWidget(widget)
-                        
-                        self.parent().addDockWidget(widget.starting_area, widget)
+
+@DeviceManager.subscribe
+class DeviceControls(DockWidget):
+    def __init__(self, parent=None):
+        super().__init__('Available Devices:', parent=parent)
+        self.setObjectName('DeviceControls')
+
+        self.devices = {}
+        self.widgets = {}
+
+        self.device_tree = DeviceTree(self)
+
+        grid = QGridLayout()
+        grid.addWidget(self.device_tree, 0, 0)
+        self.setWidget(QWidget(layout=grid))
+
+    def show_device_widget(self, item):
+        if hasattr(self.devices[item.guid], 'widget'):
+            if item.guid not in self.widgets:
+                widget = self.devices[item.guid].widget
+                if isinstance(widget, QDockWidget):
+                    widget.setParent(self.parent())
+                    self.widgets[item.guid] = widget
+                    # widget.setFloating(True)
+                    # widget.show()
+                    # self.parent().addDockWidget(widget)
+                    
+                    self.parent().addDockWidget(widget.starting_area, widget)
 
     def on_device_added(self, device):
         if device.guid not in self.devices:
