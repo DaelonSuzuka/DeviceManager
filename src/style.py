@@ -225,13 +225,12 @@ class PaletteEditor(QDialog):
         self.apply.clicked.connect(self.apply_clicked)
         self.reset.clicked.connect(self.palette_reset)
 
-        layout = QGridLayout()
+        layout = QGridLayout(self)
         layout.addWidget(self.color_edit, 0, 0, 1, 1)
         layout.addWidget(self.set_color, 0, 1, 1, 1)
         layout.addWidget(self.apply, 0, 2, 1, 1)
         layout.addWidget(self.reset, 0, 3, 1, 1)
         layout.addWidget(self.table, 1, 0, 1, 4)
-        self.setLayout(layout)
 
     def double_click(self, item):
         if hasattr(item, 'color'):

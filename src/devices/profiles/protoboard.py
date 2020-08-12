@@ -37,39 +37,33 @@ class ProtoboardWidget(DeviceWidget):
             'port C' : ['C0','C1','C2','C3','C4','C5','C6','C7',],
         }
         
-        state_vbox = QVBoxLayout()
+        state_vbox = QVBoxLayout(layout)
         for port in ports:
             label = QLabel(port)
-            hbox = QHBoxLayout()
+            hbox = QHBoxLayout(state_vbox)
             for pin in ports[port]:
                 hbox.addWidget(QLabel(f"{pin}: "))
                 hbox.addWidget(QLabel(f" "))
-            state_vbox.addLayout(hbox)
         state_gbox = QGroupBox("Pin State:")
         state_gbox.setLayout(state_vbox)
-        layout.addWidget(state_gbox)
 
-        output_vbox = QVBoxLayout()
+        output_vbox = QVBoxLayout(layout)
         for port in ports:
             label = QLabel(port)
-            hbox = QHBoxLayout()
+            hbox = QHBoxLayout(output_vbox)
             for pin in ports[port]:
                 hbox.addWidget(QCheckBox(pin, tristate=True))
-            output_vbox.addLayout(hbox)
         output_gbox = QGroupBox("Set Output:")
         output_gbox.setLayout(output_vbox)
-        layout.addWidget(output_gbox)
 
-        read_vbox = QVBoxLayout()
+        read_vbox = QVBoxLayout(layout)
         for port in ports:
             label = QLabel(port)
-            hbox = QHBoxLayout()
+            hbox = QHBoxLayout(read_vbox)
             for pin in ports[port]:
                 btn = QPushButton(pin)
                 hbox.addWidget(btn)
-            read_vbox.addLayout(hbox)
         read_gbox = QGroupBox("Read Pin:")
         read_gbox.setLayout(read_vbox)
-        layout.addWidget(read_gbox)
 
         self.setWidget(QWidget(layout=grid))

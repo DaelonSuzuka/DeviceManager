@@ -65,11 +65,10 @@ class RFPanel(QGroupBox):
         self.reverse = QLabel("?")
 
         # create layout
-        grid = QGridLayout()
+        grid = QGridLayout(self)
         grid.addWidget(QLabel("Forward:"), 0, 0)
         grid.addWidget(self.forward, 0, 1)
         grid.addWidget(QLabel("Reverse:"), 0, 2)
         grid.addWidget(self.reverse, 0, 3)
         grid.addWidget(QLabel("Frequency:"), 0, 4)
         grid.addWidget(self.frequency, 0, 5)
-        self.setLayout(grid)

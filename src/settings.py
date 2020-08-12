@@ -238,10 +238,9 @@ class SettingsDialog(QDialog):
         hbox.addWidget(QPushButton('Cancel', clicked=self.cancel_clicked))
         hbox.addWidget(QPushButton('Apply', clicked=self.apply_clicked))
 
-        vbox = QVBoxLayout()
+        vbox = QVBoxLayout(self)
         vbox.addWidget(self.tabs)
         vbox.addLayout(hbox)
-        self.setLayout(vbox)
 
     def ok_clicked(self):
         self.accept()

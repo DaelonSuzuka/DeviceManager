@@ -62,13 +62,12 @@ class StatusBarWidget(QWidget):
         self.icon = QLabel('')
         self.icon.setPixmap(self.icon_off)
 
-        hbox = QHBoxLayout()
+        hbox = QHBoxLayout(self)
         hbox.setContentsMargins(0, 0, 0, 0)
         hbox.addWidget(self.icon)
         hbox.addWidget(QLabel('Status:'))
         hbox.addWidget(self.status)
         hbox.addWidget(self.address)
-        self.setLayout(hbox)
         
         self.act_connect = QAction("Connect", self, triggered=self.open)
         self.act_disconnect = QAction("Disconnect", self, triggered=self.close)
@@ -83,6 +82,7 @@ class StatusBarWidget(QWidget):
         self.connect_to_menu = QMenu('Connect To:')
         for address in settings.previous_connections():
             self.connect_to_menu.addAction(QAction(address, self))
+        self.connect_to_menu.addAction(QAction('New Address', self))
         menu.addMenu(self.connect_to_menu)
 
         menu.addAction(self.act_disconnect)

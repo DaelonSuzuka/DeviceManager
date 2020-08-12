@@ -71,11 +71,10 @@ class AntennaButtons(QGroupBox):
         self.tx = QPushButton("TX", checkable=True)
 
         # create layout
-        hbox = QHBoxLayout()
+        hbox = QHBoxLayout(self)
         hbox.addWidget(self.rx)
         hbox.addWidget(self.none)
         hbox.addWidget(self.tx)
-        self.setLayout(hbox)
 
     def select_antenna(self, antenna):
         self.rx.setChecked(False)

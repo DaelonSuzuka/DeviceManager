@@ -125,14 +125,13 @@ class RFPanel(QGroupBox):
         self.reverse = QLabel("?")
 
         # layout
-        grid = QGridLayout()
+        grid = QGridLayout(self)
         grid.addWidget(QLabel("Forward:"), 0, 0)
         grid.addWidget(self.forward, 0, 1)
         grid.addWidget(QLabel("Reverse:"), 0, 2)
         grid.addWidget(self.reverse, 0, 3)
         grid.addWidget(QLabel("Frequency:"), 0, 4)
         grid.addWidget(self.frequency, 0, 5)
-        self.setLayout(grid)
 
 
 class AntennaButtons(QGroupBox):    
@@ -145,13 +144,11 @@ class AntennaButtons(QGroupBox):
         self.group = QButtonGroup()
 
         # widgets and layout
-        grid = QGridLayout()
+        grid = QGridLayout(self)
         for i, name in enumerate(["None", "One", "Two", "Three", "Four",]):
             button = QPushButton(name, clicked=partial(self.set_antenna.emit, i), checkable=True)
             self.group.addButton(button)
             grid.addWidget(button, 0, i)
-
-        self.setLayout(grid)
 
     def select(self, antenna):
         for i, button in enumerate(self.group.buttons()):
@@ -172,11 +169,10 @@ class AutoButtons(QGroupBox):
         self.edit.clicked.connect(lambda: self.show_popup())
 
         # layout
-        grid = QGridLayout()
+        grid = QGridLayout(self)
         grid.addWidget(self.auto, 0, 0)
         grid.addWidget(self.edit, 0, 1)
         grid.setColumnStretch(5, 1)
-        self.setLayout(grid)
     
     def show_popup(self):
         self.popup.center()
@@ -206,7 +202,7 @@ class AutoTablePopup(QWidget):
         self.button_groups = [QButtonGroup() for b in range(len(self.bands))]
         
         # layout
-        grid = QGridLayout()
+        grid = QGridLayout(self)
         for i, band in enumerate(self.bands):
             grid.addWidget(QLabel(f"{band}: "), i, 0)
 
@@ -217,8 +213,6 @@ class AutoTablePopup(QWidget):
                 self.button_groups[i].addButton(radio)
                 self.radio_buttons[i][j] = radio
                 grid.addWidget(radio, i, j + 1)
-
-        self.setLayout(grid)
 
     def update(self, table):
         # print(table)

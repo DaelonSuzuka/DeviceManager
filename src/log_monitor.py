@@ -306,7 +306,7 @@ class ProfileSelector(QWidget):
         self.editor.returnPressed.connect(self.on_accept)
         # self.remove.clicked.connect(self.on_remove)
         
-        grid = QGridLayout()
+        grid = QGridLayout(self)
         grid.setContentsMargins(0, 0, 0, 0)
         grid.setSpacing(2)
 
@@ -319,8 +319,6 @@ class ProfileSelector(QWidget):
 
         self.accept.hide()
         self.editor.hide()
-
-        self.setLayout(grid)
 
     def on_change(self):
         name = self.selector.currentText()

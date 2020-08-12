@@ -182,6 +182,8 @@ class RadioControls(Grid):
         self.key = QPushButton("Toggle Key", checkable=True)
         self.key.setStyleSheet(""" :checked { border: 5px solid red; border-radius: 10px; } """)
 
+        self.lock = QPushButton("Lock", checkable=True)
+
         self.mode = ComboBox(items=['Mode'])
         self.mode.setMinimumHeight(100)
         self.mode.setStyleSheet("QComboBox { padding-left: 20px; }")
@@ -239,14 +241,15 @@ class RadioControls(Grid):
         pass
 
     def build_layout(self):
-        self.addLayout(self.power_btns, 0, 0, 6, 1)
-        self.addWidget(VLine(), 0, 1, 6, 1)
-        self.addLayout(self.freq_btns, 0, 2, 6, 1)
-        self.addWidget(VLine(), 0, 3, 6, 1)
-        self.addWidget(VLine(), 0, 5, 6, 1)
+        self.addLayout(self.power_btns, 0, 0, 7, 1)
+        self.addWidget(VLine(), 0, 1, 7, 1)
+        self.addLayout(self.freq_btns, 0, 2, 7, 1)
+        self.addWidget(VLine(), 0, 3, 7, 1)
+        self.addWidget(VLine(), 0, 5, 7, 1)
         self.addWidget(self.mode, 0, 6)
         self.addWidget(self.key, 1, 6, 4, 1)
         self.addWidget(self.timeout, 5, 6, 1, 1)
+        self.addWidget(self.lock, 6, 6, 1, 1)
 
         self.setColumnStretch(0, 2)
         self.setColumnStretch(1, 1)
