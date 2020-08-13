@@ -328,7 +328,7 @@ class ControlPanel(Widget):
 
 
 @DeviceManager.subscribe
-class Servitor(QWidget):
+class ServitorWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setStyleSheet("""
@@ -481,4 +481,4 @@ class ServitorSubWindow(QMdiSubWindow):
         self.setWindowIcon(QIcon(QPixmap(1,1)))
         self.setWindowTitle('Servitor Controls')
 
-        self.setWidget(Servitor(self))
+        self.setWidget(ServitorWidget(self))

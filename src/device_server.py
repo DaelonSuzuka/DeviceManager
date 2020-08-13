@@ -21,8 +21,8 @@ settings = Settings().register('Server')
 
 @DeviceManager.subscribe
 class DeviceServer(QObject):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
         self.settings = settings
         self.log = logging.getLogger(__name__)
         self.devices = {}

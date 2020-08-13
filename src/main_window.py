@@ -1,17 +1,18 @@
 from device_client import DeviceClient
 from qt import *
+import qtawesome as qta
+import logging
+
 from device_manager import DeviceManager
 from device_server import DeviceServer
 from device_client import DeviceClient
-from device_controls import DeviceControlsDockWidget
-from servitor import Servitor
-from tuner import Tuner
 from settings import SettingsManager
-from command_palette import CommandPalette, Command
 
+from command_palette import CommandPalette, Command
+from tuner import Tuner
+from servitor import ServitorSubWindow
+from device_controls import DeviceControlsDockWidget
 from log_monitor import LogMonitorDockWidget
-import logging
-import qtawesome as qta
 
 
 class MainWindow(QMainWindow):
@@ -20,18 +21,17 @@ class MainWindow(QMainWindow):
         self.setObjectName("MainWindow")
         self.setWindowTitle("LDG Device Manager")
         self.qsettings = QSettings()
-        self.setAnimated(True)
 
         # init first so it can install on the root logger
         self.log_monitor = LogMonitorDockWidget(self)
 
         self.dm = DeviceManager(self)
-        self.server = DeviceServer()
-        self.client = DeviceClient()
+        self.server = DeviceServer(self)
+        self.client = DeviceClient(self)
         self.tuner = Tuner()
         self.tuner_controls = self.tuner.controls
         self.device_controls = DeviceControlsDockWidget(self)
-        self.servitor = Servitor()
+        self.servitor = ServitorSubWindow()
 
         self.addActions([
             Command("Preferences: Open Settings (JSON)", self),
@@ -45,10 +45,13 @@ class MainWindow(QMainWindow):
         # must be after Command objects are created by various modules
         self.command_palette = CommandPalette(self)
 
-        self.area = QMdiArea()
-        self.area.addSubWindow(self.servitor)
-        self.servitor.setWindowState(Qt.WindowMaximized)
+        self.area = QMdiArea(self, viewMode=QMdiArea.TabbedView)
         self.setCentralWidget(self.area)
+
+        self.area.addSubWindow(self.servitor)
+        self.area.addSubWindow(QMdiSubWindow(self, windowTitle='This is a window'))
+        self.area.addSubWindow(QMdiSubWindow(self, windowTitle='This is another window'))
+        self.servitor.setWindowState(Qt.WindowMaximized)
 
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
         self.setDockNestingEnabled(True)
@@ -65,29 +68,17 @@ class MainWindow(QMainWindow):
         #         print_all_children(child, '  ' + prefix )
 
         # print_all_children(self)
-
-    def closeEvent(self, event):
-        self.dm.scan_timer.stop()
-        self.dm.update_timer.stop()
-        self.servitor.control_panel.radio.timeout_timer.stop()
-        self.tuner.worker.slots.stop()
-        self.tuner.thread.quit()
-        
-        self.save_settings()
-        SettingsManager().save_now()
-
-        super().closeEvent(event)
     
     def init_menu_bar(self):
-        mb = MenuBar()
-        mb.file_exit.triggered.connect(self.close)
-        mb.file_settings.triggered.connect(lambda: SettingsManager().show_dialog())
-        mb.view.addAction(self.command_palette.action)
-        mb.view.addSeparator()
-        mb.view.addAction(self.device_controls.toggleViewAction())
-        mb.view.addAction(self.tuner_controls.toggleViewAction())
-        mb.view.addAction(self.log_monitor.toggleViewAction())
-        self.setMenuBar(mb)
+        menu = MenuBar()
+        menu.file_exit.triggered.connect(self.close)
+        menu.file_settings.triggered.connect(lambda: SettingsManager().show_dialog())
+        menu.view.addAction(self.command_palette.action)
+        menu.view.addSeparator()
+        menu.view.addAction(self.device_controls.toggleViewAction())
+        menu.view.addAction(self.tuner_controls.toggleViewAction())
+        menu.view.addAction(self.log_monitor.toggleViewAction())
+        self.setMenuBar(menu)
 
     def init_statusbar(self):
         self.statusBar().setFixedHeight(25)
@@ -107,6 +98,18 @@ class MainWindow(QMainWindow):
         self.tool.addAction(QAction(qta.icon('ei.cogs', color='gray'), '', self.tool))
 
         self.addToolBar(Qt.LeftToolBarArea, self.tool)
+
+    def closeEvent(self, event):
+        self.dm.scan_timer.stop()
+        self.dm.update_timer.stop()
+        self.servitor.widget().control_panel.radio.timeout_timer.stop()
+        self.tuner.worker.slots.stop()
+        self.tuner.thread.quit()
+        
+        self.save_settings()
+        SettingsManager().save_now()
+
+        super().closeEvent(event)
 
     def save_settings(self):
         self.qsettings.setValue("window_geometry", self.saveGeometry())

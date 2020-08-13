@@ -127,9 +127,9 @@ class StatusBarWidget(QWidget):
 
 
 @DeviceManager.subscribe
-class DeviceClient(QWidget):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class DeviceClient(QObject):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
         self.settings = settings
         self.log = logging.getLogger(__name__)
 

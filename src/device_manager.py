@@ -23,7 +23,7 @@ class Settings(Settings):
 settings = Settings().register('Devices')
 
 
-class DeviceManager:
+class DeviceManager(QObject):
     signals = {
         'add_device':[SerialDevice],
         'remove_device': [str]
@@ -53,6 +53,7 @@ class DeviceManager:
         return target
 
     def __init__(self, parent=None):
+        super().__init__(parent=parent)
         self.settings = settings
         self.log = logging.getLogger(__name__)
         self.log.info("Initializing DeviceManager...")
