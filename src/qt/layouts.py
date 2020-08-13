@@ -1,20 +1,5 @@
 from .qt import *
 
-class Grid(QGridLayout):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.create_widgets()
-        self.connect_signals()
-        self.build_layout()
-
-    def create_widgets(self):
-        pass
-
-    def connect_signals(self):
-        pass
-
-    def build_layout(self):
-        pass
 
 class VLine(QFrame):
     def __init__(self, *args, **kwargs):
