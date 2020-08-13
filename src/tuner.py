@@ -23,9 +23,9 @@ class TuningWorker(QObject):
         self.history = {}
         self.plan = []
         
-        self.caps = VariableCapacitor()
-        self.inds = VariableInductor()
-        self.sensor = Alpha4510A()
+        self.caps = None
+        self.inds = None
+        self.sensor = None
 
     def on_start(self, caps, inds, sensor):
         self.caps = caps
@@ -79,9 +79,9 @@ class Tuner(QObject):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.caps = VariableCapacitor()
-        self.inds = VariableInductor()
-        self.sensor = Alpha4510A()
+        self.caps = None
+        self.inds = None
+        self.sensor = None
 
         self.thread = QThread()
         self.worker = TuningWorker()
@@ -144,17 +144,17 @@ class Tuner(QObject):
 
     def on_device_removed(self, guid):
         if self.caps.guid == guid:
-            self.caps = VariableCapacitor()
+            self.caps = None
             self.controls.cup.setEnabled(False)
             self.controls.cdn.setEnabled(False)
 
         if self.inds.guid == guid:
-            self.inds = VariableInductor()
+            self.inds = None
             self.controls.lup.setEnabled(False)
             self.controls.ldn.setEnabled(False)
 
         if self.sensor.guid == guid:
-            self.sensor = Alpha4510A()
+            self.sensor = None
             
 
 class TunerControls(QDockWidget):
