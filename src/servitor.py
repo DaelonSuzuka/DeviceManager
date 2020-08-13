@@ -10,8 +10,7 @@ class RadioInfo(Widget):
         self.mode = QLabel("  ?  ")
         
     def build_layout(self):
-        grid = QGridLayout(self)
-        grid.setContentsMargins(0, 0, 0, 0)
+        grid = QGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
 
         grid.addWidget(QLabel("Kenwood TS-480"), 0, 0, 1, 2)
         grid.addWidget(QLabel("Power:"), 1, 0)
@@ -30,8 +29,7 @@ class MeterInfo(Widget):
         self.frequency = QLabel("  ?  ")
 
     def build_layout(self):
-        grid = QGridLayout(self)
-        grid.setContentsMargins(0, 0, 0, 0)
+        grid = QGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
 
         grid.addWidget(QLabel("Alpha 4510"), 0, 0, 1, 2)
         grid.addWidget(QLabel("Forward:"), 1, 0)
@@ -54,8 +52,7 @@ class TunerInfo(Widget):
         self.frequency = QLabel("  ?  ")
 
     def build_layout(self):
-        grid = QGridLayout(self)
-        grid.setContentsMargins(0, 0, 0, 0)
+        grid = QGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
 
         grid.addWidget(QLabel("Forward Watts:"), 0, 1)
         grid.addWidget(self.forward_watts, 0, 2)
@@ -78,8 +75,7 @@ class InfoPanel(Widget):
         self.tuner_info = TunerInfo()
 
     def build_layout(self):
-        grid = QGridLayout(self)
-        grid.setContentsMargins(0, 0, 0, 0)
+        grid = QGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
 
         grid.addWidget(self.radio_info, 0, 0)
         grid.addWidget(HLine(), 1, 0)
@@ -112,8 +108,7 @@ class PowerButtons(Widget):
             btn.clicked.connect(partial(self.set_power.emit, btn.text()))
 
     def build_layout(self):
-        grid = QGridLayout(self)
-        grid.setContentsMargins(0, 0, 0, 0)
+        grid = QGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
         
         for i, btn in enumerate(self.btns.buttons()):
             grid.addWidget(btn, i, 0)
@@ -165,8 +160,7 @@ class FrequencyButtons(Widget):
             btn.clicked.connect(partial(self.set_frequency.emit, self.freqs[i]))
 
     def build_layout(self):
-        grid = QGridLayout(self)
-        grid.setContentsMargins(0, 0, 0, 0)
+        grid = QGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
         
         for i, btn in enumerate(self.btns.buttons()):
             grid.addWidget(btn, i, 0)
@@ -189,10 +183,29 @@ class FrequencyButtons(Widget):
                 return
 
 
+class DummyLoadControls(Widget):
+    def create_widgets(self):
+        self.cup = QPushButton("CUP")
+        self.cdn = QPushButton("CDN")
+        self.lup = QPushButton("LUP")
+        self.ldn = QPushButton("LDN")
+        self.clear = QPushButton("Bypass")
+        
+    def build_layout(self):
+        vbox = QVBoxLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
+        
+        vbox.addWidget(self.cup)
+        vbox.addWidget(self.cdn)
+        vbox.addWidget(self.lup)
+        vbox.addWidget(self.ldn)
+        vbox.addWidget(self.clear)
+
+
 class RadioControls(Widget):
     def create_widgets(self):
         self.power_btns = PowerButtons()
         self.freq_btns = FrequencyButtons()
+        self.dummy_load = DummyLoadControls()
 
         self.mode = QComboBox()
         self.mode.addItems(['Mode'])
@@ -219,26 +232,22 @@ class RadioControls(Widget):
         self.current_power = 5
 
     def build_layout(self):
-        grid = QGridLayout(self)
-        grid.setContentsMargins(0, 0, 0, 0)
-        
-        grid.addWidget(self.power_btns, 0, 0, 6, 1)
-        grid.addWidget(VLine(), 0, 1, 6, 1)
-        grid.addWidget(self.freq_btns, 0, 2, 6, 1)
-        grid.addWidget(VLine(), 0, 3, 6, 1)
-        grid.addWidget(VLine(), 0, 5, 6, 1)
-        grid.addWidget(self.mode, 0, 6)
-        grid.addWidget(self.key, 2, 6, 3, 1)
-        grid.addWidget(self.timeout, 5, 6, 1, 1)
-        grid.addWidget(self.menu, 1, 6, 1, 1)
+        hbox = QHBoxLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
 
-        grid.setColumnStretch(0, 2)
-        grid.setColumnStretch(1, 1)
-        grid.setColumnStretch(2, 2)
-        grid.setColumnStretch(3, 1)
-        grid.setColumnStretch(4, 1)
-        grid.setColumnStretch(5, 1)
-        grid.setColumnStretch(6, 2)
+        hbox.addWidget(self.power_btns, 2)
+        hbox.addWidget(VLine(), 1)
+        hbox.addWidget(self.freq_btns, 2)
+        hbox.addWidget(VLine(), 1)
+        hbox.addWidget(self.dummy_load, 1)
+        hbox.addWidget(VLine(), 1)
+
+        vbox = QVBoxLayout(contentsMargins=QMargins(0, 0, 0, 0))
+        hbox.addLayout(vbox, 2)
+
+        vbox.addWidget(self.mode, 1)
+        vbox.addWidget(self.menu, 1)
+        vbox.addWidget(self.key, 4)
+        vbox.addWidget(self.timeout, 1)
 
     def update_timeout_bar(self):
         val = self.timeout.value()
@@ -278,26 +287,7 @@ class RadioControls(Widget):
                 self.mode.setCurrentIndex(i)
 
 
-class DummyLoadControls(Widget):
-    def create_widgets(self):
-        self.cup = QPushButton("CUP")
-        self.cdn = QPushButton("CDN")
-        self.lup = QPushButton("LUP")
-        self.ldn = QPushButton("LDN")
-        self.clear = QPushButton("Bypass")
-        
-    def build_layout(self):
-        grid = QGridLayout(self)
-        grid.setContentsMargins(0, 0, 0, 0)
-        
-        grid.addWidget(self.cup, 0, 0)
-        grid.addWidget(self.cdn, 1, 0)
-        grid.addWidget(self.lup, 2, 0)
-        grid.addWidget(self.ldn, 3, 0)
-        grid.addWidget(self.clear, 4, 0)
-
-
-class SwitchControls(Widget):        
+class SwitchControls(Widget):
     def create_widgets(self):
         self.one = QPushButton("Ant 1", checkable=True)
         self.two = QPushButton("Ant 2", checkable=True)
@@ -311,8 +301,7 @@ class SwitchControls(Widget):
         self.btns.addButton(self.four)
 
     def build_layout(self):
-        grid = QGridLayout(self)
-        grid.setContentsMargins(0, 0, 0, 0)
+        grid = QGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
         
         grid.addWidget(self.one, 0, 0)
         grid.addWidget(self.two, 0, 1)
@@ -323,19 +312,13 @@ class SwitchControls(Widget):
 class ControlPanel(Widget):        
     def create_widgets(self):
         self.radio = RadioControls()
-        self.dummy_load = DummyLoadControls()
         self.switch = SwitchControls()
 
-        # disable_children(self.radio)
-        # disable_children(self.dummy_load)
-        # disable_children(self.switch)
+        self.radio.setEnabled(False)
+        self.switch.setEnabled(False)
 
     def build_layout(self):
-        # shove the dummy load buttons back into the radio controls
-        self.radio.layout().addWidget(self.dummy_load, 0, 4, 6, 1)
-
-        grid = QGridLayout(self)
-        grid.setContentsMargins(0, 0, 0, 0)
+        grid = QGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
         
         grid.addWidget(self.radio, 0, 0)
         grid.setRowStretch(0, 4)
@@ -345,22 +328,15 @@ class ControlPanel(Widget):
 
 
 @DeviceManager.subscribe
-class Servitor(QMdiSubWindow):
+class Servitor(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowIcon(QIcon(QPixmap(1,1)))
-        self.setWindowTitle('Servitor Controls')
         self.setStyleSheet("""
+            QWidget { font-size: 16pt; }
             QPushButton { 
-                font-size: 16pt; 
                 max-width: 2000px; 
                 max-height: 2000px; 
             } 
-            QLabel { font-size: 16pt; } 
-            QComboBox { font-size: 16pt; } 
-            QMdiSubWindow { 
-                selection-background-color: dark-gray;
-            }
         """)
 
         self.devices = {}
@@ -369,25 +345,16 @@ class Servitor(QMdiSubWindow):
         self.switch = None
         self.dummy_load = None
 
-        self.create_widgets()
-        self.build_layout()
-
-    def create_widgets(self):
         self.info_panel = InfoPanel()
         self.control_panel = ControlPanel()
 
-    def build_layout(self):
-        grid = QGridLayout()
+        grid = QGridLayout(self)
 
         grid.addWidget(self.info_panel, 0, 0)
         grid.setColumnStretch(0, 2)
         grid.addWidget(VLine(), 0, 1)
         grid.addWidget(self.control_panel, 0, 2)
         grid.setColumnStretch(2, 7)
-
-        # grid.setColumnStretch(5, 1)
-        # self.setLayout(grid)
-        self.setWidget(QWidget(layout=grid))
 
     def connect_meter(self, meter):
         if self.meter:
@@ -438,12 +405,10 @@ class Servitor(QMdiSubWindow):
         
         self.control_panel.radio.mode.clear()
         self.control_panel.radio.mode.addItems([m for m in radio.modes if m != ""])
-        enable_children(self.control_panel.radio)
+        self.control_panel.radio.setEnabled(True)
         
         if not self.switch:
-            disable_children(self.control_panel.switch)
-        if not self.dummy_load:
-            disable_children(self.control_panel.dummy_load)
+            self.control_panel.switch.setEnabled(False)
 
         radio.unkey()
         radio.get_power_level()
@@ -455,7 +420,7 @@ class Servitor(QMdiSubWindow):
             return
         self.radio = None
 
-        disable_children(self.control_panel.radio)
+        self.control_panel.radio.setEnabled(False)
         self.info_panel.radio_info.power.setText("  ?  ")
         self.info_panel.radio_info.frequency.setText("  ?  ")
         self.info_panel.radio_info.mode.setText("  ?  ")
@@ -463,13 +428,12 @@ class Servitor(QMdiSubWindow):
         self.control_panel.radio.mode.clear()
         self.control_panel.radio.mode.addItem("Mode")
 
-    
     def connect_switch(self, switch):
         if self.switch:
             return
         self.switch = switch
 
-        enable_children(self.control_panel.switch)
+        self.control_panel.switch.setEnabled(True)
 
         self.control_panel.switch.one.clicked.connect(lambda: switch.select_antenna(1))
         self.control_panel.switch.two.clicked.connect(lambda: switch.select_antenna(2))
@@ -484,7 +448,7 @@ class Servitor(QMdiSubWindow):
             return
         self.switch = None
 
-        disable_children(self.control_panel.switch)
+        self.control_panel.switch.setEnabled(False)
 
     def on_device_added(self, device):
         self.devices[device.guid] = device
@@ -509,3 +473,12 @@ class Servitor(QMdiSubWindow):
             self.disconnect_switch(guid)
 
         self.devices.pop(guid)
+
+
+class ServitorSubWindow(QMdiSubWindow):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowIcon(QIcon(QPixmap(1,1)))
+        self.setWindowTitle('Servitor Controls')
+
+        self.setWidget(Servitor(self))
