@@ -15,7 +15,16 @@ class MyApplication(QApplication):
     t = QElapsedTimer()
 
     def __init__(self) -> None:
+        # turn on high dpi scaling - must be done before creating app
+        self.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+
         super().__init__()
+        
+        self.setOrganizationName("LDG Electronics")
+        self.setOrganizationDomain("LDG Electronics")
+        self.setApplicationName("Device Manager")
+        self.setApplicationVersion("v0.1")
+
         self.default_palette = QGuiApplication.palette()
         self.setStyle('Fusion')
         self.setPalette(darkPalette)
@@ -41,22 +50,22 @@ class MyApplication(QApplication):
         # self.palette_editor.palette_updated.connect(self.update_palette)
         # self.palette_editor.palette_reset.connect(self.reset_palette)
 
-    def update_palette(self, palette):
-        self.setPalette(palette)
+    # def update_palette(self, palette):
+    #     self.setPalette(palette)
         
-        QPixmapCache().clear()
-        self.relaunch_window()
+    #     QPixmapCache().clear()
+    #     self.relaunch_window()
 
-    def reset_palette(self):
-        QPixmapCache().clear()
-        self.setPalette(self.default_palette)
-        self.window.setPalette(self.default_palette)
-        self.relaunch_window()
+    # def reset_palette(self):
+    #     QPixmapCache().clear()
+    #     self.setPalette(self.default_palette)
+    #     self.window.setPalette(self.default_palette)
+    #     self.relaunch_window()
 
-    def relaunch_window(self):
-        self.window.close()
-        self.window = MainWindow()
-        self.window.show()
+    # def relaunch_window(self):
+    #     self.window.close()
+    #     self.window = MainWindow()
+    #     self.window.show()
 
         # self.window.setPalette(palette)
 
@@ -72,19 +81,10 @@ class MyApplication(QApplication):
 
 
 def run():
-    # turn on high dpi scaling - must be done before creating app
-    QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
-    
-    QCoreApplication.setOrganizationName("LDG Electronics")
-    QCoreApplication.setOrganizationDomain("LDG Electronics")
-    QCoreApplication.setApplicationName("Device Manager")
-    QCoreApplication.setApplicationVersion("v0.1")
-
     # Create the Qt Application
     app = MyApplication()
 
     def ctrlc_handler(sig, frame):
-        print('exiting')
         app.window.close()
         app.shutdown()
 

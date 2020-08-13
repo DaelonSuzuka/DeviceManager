@@ -715,19 +715,10 @@ class LogTableView(QTableView):
             self.horizontalHeader().resizeSection(i, col.width)
 
 
-class LogMonitor(QDockWidget):
+class LogMonitorWidget(QWidget):
     def __init__(self, parent=None):
-        super().__init__('Log Monitor', parent=parent)
-        self.setObjectName('LogMonitor')
-
-        self.setAllowedAreas(Qt.AllDockWidgetAreas)
-        self.starting_area = Qt.BottomDockWidgetArea
-        self.closeEvent = lambda x: self.hide()
-        self.dockLocationChanged.connect(lambda: QTimer.singleShot(0, self.adjust_size))
+        super().__init__(parent=parent)
         
-        self.parent().addDockWidget(self.starting_area, self)
-        self.hide()
-
         self.setMinimumWidth(1000)
 
         self.commands = [
@@ -742,13 +733,10 @@ class LogMonitor(QDockWidget):
         self.filter_controls = FilterControls()
         self.filter_controls.filter_updated.connect(self.log_table.filter_model.set_filter)
         
-        grid = QGridLayout()
+        grid = QGridLayout(self)
         grid.setContentsMargins(10, 10, 10, 10)
-
         grid.addWidget(self.filter_controls, 0, 0)
         grid.addWidget(self.log_table, 0, 1)
-
-        self.setWidget(QWidget(layout=grid))
 
     def open_profile_prompt(self):
         profiles = list(self.filter_controls.settings['profiles'].keys())
@@ -763,14 +751,31 @@ class LogMonitor(QDockWidget):
             completer=self.completer
         ))
 
-    def adjust_size(self):
-        if self.isFloating():
-            self.adjustSize()
 
     def add_record(self, record):
         self.log_table.add_record(record)
         self.filter_controls.logger_filter.register_logger(record.name)
             
+
+class LogMonitorDockWidget(QDockWidget):
+    def __init__(self, parent=None):
+        super().__init__('Log Monitor', parent=parent)
+        self.setObjectName('LogMonitor')
+
+        self.setAllowedAreas(Qt.AllDockWidgetAreas)
+        self.starting_area = Qt.BottomDockWidgetArea
+        self.closeEvent = lambda x: self.hide()
+        self.dockLocationChanged.connect(lambda: QTimer.singleShot(0, self.adjust_size))
+
+        self.parent().addDockWidget(self.starting_area, self)
+        self.hide()
+
+        self.setWidget(LogMonitorWidget(self))
+
+    def adjust_size(self):
+        if self.isFloating():
+            self.adjustSize()
+
     def toggleViewAction(self):
         action = super().toggleViewAction()
         action.setShortcut("Ctrl+L")

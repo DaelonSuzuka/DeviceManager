@@ -54,7 +54,7 @@ class DeviceTree(QTreeWidget):
             parent = item.parent()
             index = parent.indexOfChild(item)
             parent.takeChild(index)
-        
+
     def contextMenuEvent(self, event):
         pos = event.globalPos()
         item = self.itemAt(self.viewport().mapFromGlobal(pos))
@@ -72,39 +72,17 @@ class DeviceTree(QTreeWidget):
     def open_widget(self, item):
         if hasattr(item, 'device'):
             if hasattr(item.device, 'widget'):
-                self.parent().parent().show_device_widget(item)
+                self.parent().show_device_widget(item)
 
     def remove_clicked(self, item):
         if hasattr(item, 'device'):
             print('remove:', item.device.profile_name)
 
 
-class DockWidget(QDockWidget):
-    def __init__(self, title, parent=None):
-        super().__init__(title, parent=parent)
-
-        self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
-        self.starting_area = Qt.RightDockWidgetArea
-        self.setFeatures(QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable)
-        self.closeEvent = lambda x: self.hide()
-        self.dockLocationChanged.connect(lambda: QTimer.singleShot(0, self.adjust_size))
-
-        self.parent().addDockWidget(self.starting_area, self)
-
-    def adjust_size(self):
-        if self.isFloating():
-            self.adjustSize()
-
-    def toggleViewAction(self):
-        action = super().toggleViewAction()
-        action.setShortcut("Ctrl+D")
-        return action
-
-
 @DeviceManager.subscribe
-class DeviceControls(DockWidget):
+class DeviceControlsWidget(QWidget):
     def __init__(self, parent=None):
-        super().__init__('Available Devices:', parent=parent)
+        super().__init__(parent=parent)
         self.setObjectName('DeviceControls')
 
         self.devices = {}
@@ -112,22 +90,17 @@ class DeviceControls(DockWidget):
 
         self.device_tree = DeviceTree(self)
 
-        grid = QGridLayout()
+        grid = QGridLayout(self)
         grid.addWidget(self.device_tree, 0, 0)
-        self.setWidget(QWidget(layout=grid))
 
     def show_device_widget(self, item):
         if hasattr(self.devices[item.guid], 'widget'):
             if item.guid not in self.widgets:
                 widget = self.devices[item.guid].widget
                 if isinstance(widget, QDockWidget):
-                    widget.setParent(self.parent())
+                    widget.setParent(self.parent().parent())
                     self.widgets[item.guid] = widget
-                    # widget.setFloating(True)
-                    # widget.show()
-                    # self.parent().addDockWidget(widget)
-                    
-                    self.parent().addDockWidget(widget.starting_area, widget)
+                    self.parent().parent().addDockWidget(widget.starting_area, widget)
 
     def on_device_added(self, device):
         if device.guid not in self.devices:
@@ -142,3 +115,28 @@ class DeviceControls(DockWidget):
         if guid in self.widgets:
             self.widgets[guid].deleteLater()
             self.widgets.pop(guid)
+
+
+class DeviceControlsDockWidget(QDockWidget):
+    def __init__(self, parent=None):
+        super().__init__('Available Devices:', parent=parent)
+        self.setObjectName('DeviceControls')
+
+        self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        self.starting_area = Qt.RightDockWidgetArea
+        self.setFeatures(QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable)
+        self.closeEvent = lambda x: self.hide()
+        self.dockLocationChanged.connect(lambda: QTimer.singleShot(0, self.adjust_size))
+
+        self.parent().addDockWidget(self.starting_area, self)
+
+        self.setWidget(DeviceControlsWidget(self))
+
+    def adjust_size(self):
+        if self.isFloating():
+            self.adjustSize()
+
+    def toggleViewAction(self):
+        action = super().toggleViewAction()
+        action.setShortcut("Ctrl+D")
+        return action

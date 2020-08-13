@@ -3,13 +3,13 @@ from qt import *
 from device_manager import DeviceManager
 from device_server import DeviceServer
 from device_client import DeviceClient
-from device_controls import DeviceControls
+from device_controls import DeviceControlsDockWidget
 from servitor import Servitor
 from tuner import Tuner
 from settings import SettingsManager
 from command_palette import CommandPalette, Command
 
-from log_monitor import LogMonitor
+from log_monitor import LogMonitorDockWidget
 import logging
 import qtawesome as qta
 
@@ -23,24 +23,24 @@ class MainWindow(QMainWindow):
         self.setAnimated(True)
 
         # init first so it can install on the root logger
-        self.log_monitor = LogMonitor(self)
+        self.log_monitor = LogMonitorDockWidget(self)
 
         self.dm = DeviceManager(self)
         self.server = DeviceServer()
         self.client = DeviceClient()
         self.tuner = Tuner()
         self.tuner_controls = self.tuner.controls
-        self.device_controls = DeviceControls(self)
+        self.device_controls = DeviceControlsDockWidget(self)
         self.servitor = Servitor()
 
-        self.commands = [
+        self.addActions([
             Command("Preferences: Open Settings (JSON)", self),
             Command("Preferences: Open Settings (UI)", self, shortcut='Ctrl+,'),
             Command("Device Manager: Check for port changes", self),
             Command("Device Manager: Fizz", self),
             Command("Device Manager: Buzz", self),
             Command("Quit Application", self, triggered=self.close),
-        ]
+        ])
 
         # must be after Command objects are created by various modules
         self.command_palette = CommandPalette(self)
@@ -74,6 +74,7 @@ class MainWindow(QMainWindow):
         self.tuner.thread.quit()
         
         self.save_settings()
+        SettingsManager().save_now()
 
         super().closeEvent(event)
     

@@ -26,7 +26,7 @@ def get_ip():
 
 class Settings(Settings):
     connect_on_startup: bool = False
-    address: str = '73.86.101.13'
+    address: str = '10.0.0.207'
     port: int = 43000
     previous_connections: typing.List[str] = [
         '10.0.0.207',
@@ -127,7 +127,7 @@ class StatusBarWidget(QWidget):
 
 
 @DeviceManager.subscribe
-class DeviceClient(QObject):
+class DeviceClient(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.settings = settings
@@ -145,7 +145,7 @@ class DeviceClient(QObject):
             Command('Device Client: Connect on startup', self),
             Command("Device Client: Don't connect on startup", self),
             Command("Device Client: Some other thing", self),
-            Command("Device Client: Foo", self),
+            Command("Device Client: Foo"),
             Command("Device Client: Bar", self),
             Command("Device Client: Baz", self),
             Command("Device Client: Fizz", self),
