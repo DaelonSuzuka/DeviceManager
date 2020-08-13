@@ -1,5 +1,4 @@
 from qt import *
-from devices import SerialDevice, RFSensor, VariableInductor, VariableCapacitor, Alpha4510A
 from device_manager import DeviceManager
 from bundles import SigBundle, SlotBundle
 
@@ -12,7 +11,7 @@ class TuningWorker(QObject):
             'stopped': [list], 
         }
         slots = {
-            'start': [SerialDevice, SerialDevice, SerialDevice], 
+            'start': [object, object, object], 
             'stop': [],
             'recieve': [dict],
         }
@@ -26,6 +25,8 @@ class TuningWorker(QObject):
         self.caps = None
         self.inds = None
         self.sensor = None
+        self.prev = None
+        self.index = 0
 
     def on_start(self, caps, inds, sensor):
         self.caps = caps
@@ -62,13 +63,16 @@ class TuningWorker(QObject):
         if self.prev:
             self.history[self.prev] = str(self.last_results)
 
-        C, L = self.plan[self.index]
-        self.index += 1
+        try:
+            C, L = self.plan[self.index]
+            self.index += 1
 
-        self.caps.set_caps(C) 
-        self.inds.set_inds(L)
+            self.caps.set_caps(C) 
+            self.inds.set_inds(L)
 
-        self.prev = (C, L)
+            self.prev = (C, L)
+        except IndexError:
+            pass
 
     def on_recieve(self, results):
         self.last_results = results
@@ -209,23 +213,6 @@ class TunerControls(QDockWidget):
         layout.addWidget(self.ldn)
         layout.addWidget(self.tune)
         layout.addWidget(self.stop)
-        # layout.addWidget(self.reset)
-        # layout.addWidget(QPushButton())
-
-        # layout = QGridLayout(alignment=Qt.AlignmentFlag.AlignCenter)
-        # layout.setContentsMargins(10, 10, 10, 10)
-        # layout.setSpacing(10)
-
-        # layout.addWidget(self.cup, 0, 3)
-        # layout.addWidget(self.cdn, 1, 3)
-        # layout.addWidget(self.lup, 0, 4)
-        # layout.addWidget(self.ldn, 1, 4)
-        # layout.addWidget(self.tune, 0, 5)
-        # layout.addWidget(self.stop, 1, 5)
-        # layout.addWidget(self.reset, 0, 6)
-        # layout.addWidget(QPushButton(), 1, 6)
-        # layout.addWidget(QPushButton(), 0, 7)
-        # layout.addWidget(QPushButton(), 1, 7)
 
         self.setWidget(QWidget(layout=layout))
 
