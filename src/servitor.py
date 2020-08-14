@@ -1,6 +1,8 @@
 from qt import *
 from functools import partial
 from device_manager import DeviceManager
+import qtawesome as qta
+from style import qcolors
 
 
 class RadioInfo(Widget):        
@@ -96,12 +98,15 @@ class PowerButtons(Widget):
         for power in powers:
             self.btns.addButton(QPushButton(power, checkable=True))
 
-        self.up = QPushButton("Power Up")
-        self.down = QPushButton("Power Down")
+        icon = qta.icon('mdi.plus', color=qcolors.gray)
+        self.up = QPushButton(icon, '', iconSize=QSize(80, 80))
+
+        icon = qta.icon('mdi.minus', color=qcolors.gray)
+        self.down = QPushButton(icon, '', iconSize=QSize(80, 80))
 
     def connect_signals(self):
-        self.up.clicked.connect(lambda: self.uncheck_all())
-        self.down.clicked.connect(lambda: self.uncheck_all())
+        self.up.clicked.connect(self.uncheck_all)
+        self.down.clicked.connect(self.uncheck_all)
         
         for btn in self.btns.buttons():
             btn.clicked.connect(lambda: self.btns.setExclusive(True))
@@ -112,6 +117,7 @@ class PowerButtons(Widget):
         
         for i, btn in enumerate(self.btns.buttons()):
             grid.addWidget(btn, i, 0)
+
         grid.addWidget(self.up, 0, 1, 5, 1)
         grid.addWidget(self.down, 5, 1, 5, 1)
         grid.setColumnStretch(0, 1)
@@ -148,8 +154,11 @@ class FrequencyButtons(Widget):
         for band in band_names:
             self.btns.addButton(QPushButton(band, checkable=True))
 
-        self.up = QPushButton("Band Up")
-        self.down = QPushButton("Band Up")
+        icon = qta.icon('mdi.arrow-up', color=qcolors.gray)
+        self.up = QPushButton(icon, '', iconSize=QSize(80, 80))
+
+        icon = qta.icon('mdi.arrow-down', color=qcolors.gray)
+        self.down = QPushButton(icon, '', iconSize=QSize(80, 80))
 
     def connect_signals(self):
         self.up.clicked.connect(lambda: self.uncheck_all())
@@ -201,34 +210,161 @@ class DummyLoadControls(Widget):
         vbox.addWidget(self.clear)
 
 
+class LockButton(QPushButton):
+    locked = Signal()
+    unlocked = Signal()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setToolTip('Lock Power Output')
+
+        self.closed_lock = qta.icon('fa5s.lock', color=qcolors.gray)
+        self.confirm = qta.icon('fa5.question-circle', color=qcolors.gray)
+        self.open_lock = qta.icon('fa5s.unlock-alt', color=qcolors.red)
+        self.setIconSize(QSize(50, 50))
+
+        self.state = 0
+        self.id = None
+
+        self.clicked.connect(self.update_icon)
+        self.setIcon(self.closed_lock)
+
+    def timerEvent(self, event: PySide2.QtCore.QTimerEvent):
+        self.killTimer(self.id)
+        self.state = 0
+        self.setIcon(self.closed_lock)
+        self.setCheckable(False)
+
+    def update_icon(self):
+        if self.state == 0:
+            self.state = 1
+            self.setIcon(self.confirm)
+            self.id = self.startTimer(1000)
+
+        elif self.state == 1:
+            self.state = 2
+            self.setIcon(self.open_lock)
+            self.setCheckable(True)
+            self.setChecked(True)
+            self.killTimer(self.id)
+            self.unlocked.emit()
+
+        elif self.state == 2:
+            self.state = 0
+            self.setIcon(self.closed_lock)
+            self.setCheckable(False)
+            self.locked.emit()
+
+
+class HeatButton(QPushButton):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setToolTip('Thermal Protection')
+        self.icons = [
+            qta.icon('ei.fire', color='gray'),
+            qta.icon('ei.fire', color=qcolors.yellow),
+            qta.icon('ei.fire', color=qcolors.orange),
+            qta.icon('ei.fire', color=qcolors.red),
+        ]
+        self.level = 1
+        self.setIconSize(QSize(60, 60))
+    
+        self.clicked.connect(self.update_icon)
+        self.update_icon()
+
+    def update_icon(self):
+        self.level = (self.level + 1) % 4
+        self.setIcon(self.icons[self.level])
+
+
+class TimeoutButton(QPushButton):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setToolTip('Lock Power Output')
+        self.setCheckable(True)
+
+        self.on = qta.icon('mdi.timer', color=qcolors.gray)
+        self.off = qta.icon('mdi.timer-off', color=qcolors.red)
+        self.setIconSize(QSize(60, 60))
+
+        self.clicked.connect(self.update_icon)
+        self.update_icon()
+
+    def update_icon(self):
+        if self.isChecked():
+            self.setIcon(self.off)
+        else:
+            self.setIcon(self.on)
+
+
+class KeyButton(QPushButton):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setCheckable(True)
+        self.on = qta.icon('mdi.radio-tower', color=qcolors.silver)
+        self.off = qta.icon('mdi.radio-tower', color='gray')
+        self.setIcon(self.off)
+        self.setIconSize(QSize(100, 100))
+        self.setStyleSheet(""" :checked { border: 5px solid #FF4136; border-radius: 10px; } """)
+
+        self.clicked.connect(self.update_icon)
+
+    def update_icon(self):
+        if self.isChecked():
+            self.setIcon(self.on)
+        else:
+            self.setIcon(self.off)
+
+
+class ModeComboBox(QComboBox):
+    def addItems(self, texts):
+        super().addItems(['    ' + t for t in texts])
+
+    def showPopup(self):
+        super().showPopup()
+        popup = self.findChild(QFrame)
+        popup.move(popup.x(), self.mapToGlobal(self.rect().bottomLeft()).y())
+
+
 class RadioControls(Widget):
     def create_widgets(self):
         self.power_btns = PowerButtons()
         self.freq_btns = FrequencyButtons()
         self.dummy_load = DummyLoadControls()
+        self.dummy_load.setEnabled(False)
 
-        self.mode = QComboBox()
+        self.setStyleSheet("""
+            QComboBox QListView { 
+                background-color: palette(button); 
+            }
+            QComboBox QListView::item {
+                min-height: 60px; 
+            }
+        """)
+
+        self.mode = ModeComboBox()
+        self.mode.setView(QListView(self.mode))
         self.mode.addItems(['Mode'])
         self.mode.setMinimumHeight(100)
-        self.mode.setStyleSheet("QComboBox { padding-left: 20px; }")
 
-        self.menu = QPushButton('Key Settings')
+        self.lock = LockButton()
+        self.lock.locked.connect(lambda: print('locked'))
+        self.lock.unlocked.connect(lambda: print('unlocked'))
+        self.heat = HeatButton()
+        self.time = TimeoutButton()
 
-        self.key = QPushButton("Toggle Key", checkable=True)
-        self.key.setStyleSheet(""" :checked { border: 5px solid red; border-radius: 10px; } """)
-
-        self.lock = QPushButton("Lock", checkable=True)
+        self.key = KeyButton()
 
         self.timeout = QProgressBar()
         self.timeout.setTextVisible(False)
         self.timeout.setStyleSheet('QProgressBar::chunk { background: grey; }')
-        self.timeout_max = 10000
+        self.timeout_max = 50000
         self.timeout.setMaximum(self.timeout_max)
         self.timeout.setValue(0)
 
         self.timeout_timer = QTimer()
         self.timeout_timer.timeout.connect(lambda: self.update_timeout_bar())
-        self.timeout_timer.start(100)
+        self.timeout_timer.start(20)
         self.current_power = 5
 
     def build_layout(self):
@@ -243,17 +379,27 @@ class RadioControls(Widget):
 
         vbox = QVBoxLayout(contentsMargins=QMargins(0, 0, 0, 0))
         hbox.addLayout(vbox, 2)
+        
+        box = QHBoxLayout(contentsMargins=QMargins(0, 0, 0, 0))
+        box.addWidget(QPushButton())
+        box.addWidget(self.mode)
+        vbox.addLayout(box, 1)
 
-        vbox.addWidget(self.mode, 1)
-        vbox.addWidget(self.menu, 1)
-        vbox.addWidget(self.key, 4)
-        vbox.addWidget(self.timeout, 1)
+        vbox.addWidget(self.key, 5)
+        vbox.addWidget(self.timeout)
+
+        box = QHBoxLayout(contentsMargins=QMargins(0, 0, 0, 0))
+        box.addWidget(self.lock)
+        # box.addWidget(QPushButton())
+        box.addWidget(self.heat)
+        box.addWidget(self.time)
+        vbox.addLayout(box, 1)
 
     def update_timeout_bar(self):
         val = self.timeout.value()
 
         if self.timeout.isEnabled():
-            if self.key.isChecked():
+            if self.key.isChecked() and not self.time.isChecked():
                 if val < self.timeout_max:
                     if val + self.current_power > self.timeout_max:
                         self.timeout.setValue(self.timeout_max)
@@ -263,20 +409,12 @@ class RadioControls(Widget):
                 if val >= self.timeout_max - 1:
                     self.key.clicked.emit()
                     self.timeout.setValue(0)
-                    # self.key.setChecked(False)
-                    # self.key.setEnabled(False)
-                    # self.key.setStyleSheet(self.key_stylesheet_overheated)
             else:
                 if val > 0:
-                    if (val - self.current_power) < 0:
+                    if (val - 500) < 0:
                         self.timeout.setValue(0)
                     else:
-                        self.timeout.setValue(val - 50)
-
-                # if val == 0:
-                #     self.key.setEnabled(True)
-                    # self.key.setStyleSheet("")
-                    # self.key.setStyleSheet(self.key_stylesheet_normal)
+                        self.timeout.setValue(val - 500)
 
     def set_power(self, power):
         self.current_power = int(power)
@@ -380,32 +518,34 @@ class ServitorWidget(QWidget):
         if self.radio:
             return
         self.radio = radio
+        radio_ctrl = self.control_panel.radio
 
         radio.signals.power.connect(lambda s: self.info_panel.radio_info.power.setText(s))
-        radio.signals.power.connect(lambda s: self.control_panel.radio.power_btns.select(s))
-        radio.signals.power.connect(lambda s: self.control_panel.radio.set_power(s))
+        radio.signals.power.connect(lambda s: radio_ctrl.power_btns.select(s))
+        radio.signals.power.connect(lambda s: radio_ctrl.set_power(s))
         radio.signals.frequency.connect(lambda s: self.info_panel.radio_info.frequency.setText(s))
-        radio.signals.frequency.connect(lambda s: self.control_panel.radio.freq_btns.select(s))
+        radio.signals.frequency.connect(lambda s: radio_ctrl.freq_btns.select(s))
         radio.signals.mode.connect(lambda s: self.info_panel.radio_info.mode.setText(s))
-        radio.signals.mode.connect(lambda s: self.control_panel.radio.select_mode(s))
+        radio.signals.mode.connect(lambda s: radio_ctrl.select_mode(s))
 
-        radio.signals.keyed.connect(lambda: self.control_panel.radio.key.setChecked(True))
-        radio.signals.unkeyed.connect(lambda: self.control_panel.radio.key.setChecked(False))
+        radio.signals.keyed.connect(lambda: radio_ctrl.key.setChecked(True))
+        radio.signals.unkeyed.connect(lambda: radio_ctrl.key.setChecked(False))
 
-        self.control_panel.radio.key.clicked.connect(radio.toggle_key)
-        self.control_panel.radio.mode.activated.connect(lambda: radio.set_mode(self.control_panel.radio.mode.currentText()))
 
-        self.control_panel.radio.freq_btns.up.clicked.connect(radio.band_up)
-        self.control_panel.radio.freq_btns.down.clicked.connect(radio.band_down)
-        self.control_panel.radio.freq_btns.set_frequency.connect(radio.set_vfoA_frequency)
+        radio_ctrl.key.clicked.connect(radio.toggle_key)
+        radio_ctrl.mode.activated.connect(lambda: radio.set_mode(radio_ctrl.mode.currentText().lstrip(' ')))
 
-        self.control_panel.radio.power_btns.up.clicked.connect(radio.increase_power_level)
-        self.control_panel.radio.power_btns.down.clicked.connect(radio.decrease_power_level)
-        self.control_panel.radio.power_btns.set_power.connect(radio.set_power_level)
+        radio_ctrl.freq_btns.up.clicked.connect(radio.band_up)
+        radio_ctrl.freq_btns.down.clicked.connect(radio.band_down)
+        radio_ctrl.freq_btns.set_frequency.connect(radio.set_vfoA_frequency)
+
+        radio_ctrl.power_btns.up.clicked.connect(radio.increase_power_level)
+        radio_ctrl.power_btns.down.clicked.connect(radio.decrease_power_level)
+        radio_ctrl.power_btns.set_power.connect(radio.set_power_level)
         
-        self.control_panel.radio.mode.clear()
-        self.control_panel.radio.mode.addItems([m for m in radio.modes if m != ""])
-        self.control_panel.radio.setEnabled(True)
+        radio_ctrl.mode.clear()
+        radio_ctrl.mode.addItems([m for m in radio.modes if m != ""])
+        radio_ctrl.setEnabled(True)
         
         if not self.switch:
             self.control_panel.switch.setEnabled(False)
@@ -478,7 +618,7 @@ class ServitorWidget(QWidget):
 class ServitorSubWindow(QMdiSubWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowIcon(QIcon(QPixmap(1,1)))
+        self.setWindowIcon(QIcon(QPixmap(0, 0)))
         self.setWindowTitle('Servitor Controls')
 
         self.setWidget(ServitorWidget(self))

@@ -161,10 +161,9 @@ class Tuner(QObject):
             self.sensor = None
             
 
-class TunerControls(QDockWidget):
-    def __init__(self):
-        super().__init__('Tuner Controls')
-        self.setObjectName('TunerControls')
+class TunerControls(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
         
         self.setStyleSheet("""
             QPushButton { 
@@ -176,18 +175,9 @@ class TunerControls(QDockWidget):
             } 
         """)
         
-        self.setAllowedAreas(Qt.AllDockWidgetAreas)
-        self.starting_area = Qt.BottomDockWidgetArea
-        self.closeEvent = lambda x: self.hide()
-        self.dockLocationChanged.connect(lambda: QTimer.singleShot(0, self.adjust_size))
-
         self.create_widgets()
         self.connect_signals()
         self.build_layout()
-
-    def adjust_size(self):
-        if self.isFloating():
-            self.adjustSize()
 
     def create_widgets(self):
         self.tune = QPushButton("Tune")
@@ -203,8 +193,7 @@ class TunerControls(QDockWidget):
         self.stop.clicked.connect(self.stop_clicked)
 
     def build_layout(self):
-        layout = QHBoxLayout(alignment=Qt.AlignmentFlag.AlignCenter)
-        layout.setContentsMargins(10, 10, 10, 10)
+        layout = QHBoxLayout(self, contentsMargins=QMargins(10, 10, 10, 10), alignment=Qt.AlignmentFlag.AlignCenter)
         layout.setSpacing(10)
 
         layout.addWidget(self.cup)
@@ -214,8 +203,6 @@ class TunerControls(QDockWidget):
         layout.addWidget(self.tune)
         layout.addWidget(self.stop)
 
-        self.setWidget(QWidget(layout=layout))
-
     def tune_clicked(self):
         self.tune.setEnabled(False)
         self.stop.setEnabled(True)
@@ -223,8 +210,3 @@ class TunerControls(QDockWidget):
     def stop_clicked(self):
         self.stop.setEnabled(False)
         self.tune.setEnabled(True)
-
-    def toggleViewAction(self):
-        action = super().toggleViewAction()
-        action.setShortcut("Ctrl+T")
-        return action

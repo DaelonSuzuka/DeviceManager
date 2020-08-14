@@ -1,4 +1,4 @@
-from device_client import DeviceClient
+from device_client import DeviceClient, settings
 from qt import *
 import qtawesome as qta
 import logging
@@ -10,7 +10,7 @@ from settings import SettingsManager
 
 from command_palette import CommandPalette, Command
 from tuner import Tuner
-from servitor import ServitorSubWindow
+from servitor import ServitorSubWindow, ServitorWidget
 from device_controls import DeviceControlsDockWidget
 from log_monitor import LogMonitorDockWidget
 
@@ -31,7 +31,7 @@ class MainWindow(QMainWindow):
         self.tuner = Tuner()
         self.tuner_controls = self.tuner.controls
         self.device_controls = DeviceControlsDockWidget(self)
-        self.servitor = ServitorSubWindow()
+        self.servitor = ServitorWidget()
 
         self.addActions([
             Command("Preferences: Open Settings (JSON)", self),
@@ -45,13 +45,12 @@ class MainWindow(QMainWindow):
         # must be after Command objects are created by various modules
         self.command_palette = CommandPalette(self)
 
-        self.area = QMdiArea(self, viewMode=QMdiArea.TabbedView)
-        self.setCentralWidget(self.area)
+        self.tabs = QTabWidget(self)
+        self.setContentsMargins(QMargins(0, 0, 0, 10))
+        self.tabs.addTab(self.servitor, 'Servitor')
+        self.tabs.addTab(self.tuner_controls, 'Tuner')
 
-        self.area.addSubWindow(self.servitor)
-        self.area.addSubWindow(QMdiSubWindow(self, windowTitle='This is a window'))
-        self.area.addSubWindow(QMdiSubWindow(self, windowTitle='This is another window'))
-        self.servitor.setWindowState(Qt.WindowMaximized)
+        self.setCentralWidget(self.tabs)
 
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
         self.setDockNestingEnabled(True)
@@ -70,14 +69,37 @@ class MainWindow(QMainWindow):
         # print_all_children(self)
     
     def init_menu_bar(self):
-        menu = MenuBar()
-        menu.file_exit.triggered.connect(self.close)
-        menu.file_settings.triggered.connect(lambda: SettingsManager().show_dialog())
-        menu.view.addAction(self.command_palette.action)
-        menu.view.addSeparator()
-        menu.view.addAction(self.device_controls.toggleViewAction())
-        menu.view.addAction(self.tuner_controls.toggleViewAction())
-        menu.view.addAction(self.log_monitor.toggleViewAction())
+        menu = QMenuBar()
+        file_ = menu.addMenu('File')
+
+        file_.addAction(QAction('&Settings', self, 
+            shortcut='Ctrl+,', 
+            statusTip='Open settings',
+            triggered=lambda: SettingsManager().show_dialog()))
+
+        file_.addSeparator()
+
+        file_.addAction(QAction('&Exit', self, 
+            shortcut='Ctrl+Q', 
+            statusTip='Exit application',
+            triggered=self.close))
+    
+        view = menu.addMenu('View')
+    
+        view.addAction(self.command_palette.action)
+        view.addSeparator()
+        view.addAction(self.device_controls.toggleViewAction())
+        view.addAction(self.log_monitor.toggleViewAction())
+
+        settings = menu.addMenu('Settings')
+        settings.addAction(QAction('Settings'))
+
+        plugins = menu.addMenu('Plugins')
+        plugins.addAction(QAction('Plugins'))
+
+        help_ = menu.addMenu('Help')
+        help_.addAction(QAction('Help'))
+
         self.setMenuBar(menu)
 
     def init_statusbar(self):
@@ -102,7 +124,7 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         self.dm.scan_timer.stop()
         self.dm.update_timer.stop()
-        self.servitor.widget().control_panel.radio.timeout_timer.stop()
+        # self.servitor.widget().control_panel.radio.timeout_timer.stop()
         self.tuner.worker.slots.stop()
         self.tuner.thread.quit()
         
@@ -120,28 +142,3 @@ class MainWindow(QMainWindow):
             self.restoreGeometry(self.qsettings.value("window_geometry"))
         if self.qsettings.value("windowState") is not None:
             self.restoreState(self.qsettings.value("windowState"))
-
-
-class MenuBar(QMenuBar):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.file_menu()
-        self.view_menu()
-
-    def file_menu(self):        
-        self.file = self.addMenu("&File")
-
-        self.file_settings = QAction("&Settings", self)
-        self.file_settings.setShortcut("Ctrl+,")
-        self.file_settings.setStatusTip("Open settings")
-
-        self.file_exit = QAction(QIcon("exit.png"), "&Exit", self)
-        self.file_exit.setShortcut("Ctrl+Q")
-        self.file_exit.setStatusTip("Exit application")
-
-        self.file.addAction(self.file_settings)
-        self.file.addSeparator()
-        self.file.addAction(self.file_exit)
-    
-    def view_menu(self):        
-        self.view = self.addMenu("&View")
