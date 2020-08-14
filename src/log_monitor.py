@@ -732,6 +732,7 @@ class LogMonitorWidget(QWidget):
         self.log_table = LogTableView()
         self.filter_controls = FilterControls()
         self.filter_controls.filter_updated.connect(self.log_table.filter_model.set_filter)
+        self.filter_controls.update_filter()
         
         grid = QGridLayout(self)
         grid.setContentsMargins(10, 10, 10, 10)
