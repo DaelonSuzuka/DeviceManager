@@ -421,7 +421,7 @@ class RadioControls(Widget):
 
     def select_mode(self, mode):
         for i in range(self.mode.count()):
-            if self.mode.itemText(i) == mode:
+            if self.mode.itemText(i).lstrip(' ') == mode:
                 self.mode.setCurrentIndex(i)
 
 
@@ -530,7 +530,6 @@ class ServitorWidget(QWidget):
 
         radio.signals.keyed.connect(lambda: radio_ctrl.key.setChecked(True))
         radio.signals.unkeyed.connect(lambda: radio_ctrl.key.setChecked(False))
-
 
         radio_ctrl.key.clicked.connect(radio.toggle_key)
         radio_ctrl.mode.activated.connect(lambda: radio.set_mode(radio_ctrl.mode.currentText().lstrip(' ')))
