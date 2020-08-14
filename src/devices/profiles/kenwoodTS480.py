@@ -64,7 +64,7 @@ class TS480(SerialDevice):
     
     def send(self, string):
         # append ";" to every command, so we don't have to keep repeating it
-        string += ';'
+        string = string.rstrip(';') + ';'
         super().send(string)
 
     def recieve(self, string):
@@ -118,14 +118,17 @@ class TS480(SerialDevice):
     def band_up(self):
         self.send("BU")
         self.get_vfoA_frequency()
+        self.get_mode()
 
     def band_down(self):
         self.send("BD")
         self.get_vfoA_frequency()
+        self.get_mode()
 
     def set_vfoA_frequency(self, frequency):
         self.send("FA" + str(frequency).rjust(11, '0'))
         self.get_vfoA_frequency()
+        self.get_mode()
 
     def get_vfoA_frequency(self):
         self.send("FA")
