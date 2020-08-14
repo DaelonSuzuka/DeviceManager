@@ -1,4 +1,4 @@
-from device_client import DeviceClient, settings
+from device_client import DeviceClient
 from qt import *
 import qtawesome as qta
 import logging
@@ -10,7 +10,7 @@ from settings import SettingsManager
 
 from command_palette import CommandPalette, Command
 from tuner import Tuner
-from servitor import ServitorSubWindow, ServitorWidget
+from servitor import ServitorWidget
 from device_controls import DeviceControlsDockWidget
 from log_monitor import LogMonitorDockWidget
 
