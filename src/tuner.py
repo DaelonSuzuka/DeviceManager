@@ -130,34 +130,37 @@ class Tuner(QObject):
 
     def on_device_added(self, device):
         if device.profile_name == "VariableCapacitor":
-            self.caps = device
-            self.controls.cup.setEnabled(True)
-            self.controls.cdn.setEnabled(True)
-            self.controls.cup.clicked.connect(self.caps.relays_cup)
-            self.controls.cdn.clicked.connect(self.caps.relays_cdn)
+            if self.caps is None:
+                self.caps = device
+                self.controls.cup.setEnabled(True)
+                self.controls.cdn.setEnabled(True)
+                self.controls.cup.clicked.connect(self.caps.relays_cup)
+                self.controls.cdn.clicked.connect(self.caps.relays_cdn)
 
         if device.profile_name == "VariableInductor":
-            self.inds = device
-            self.controls.lup.setEnabled(True)
-            self.controls.ldn.setEnabled(True)
-            self.controls.lup.clicked.connect(self.inds.relays_lup)
-            self.controls.ldn.clicked.connect(self.inds.relays_ldn)
+            if self.inds is None:
+                self.inds = device
+                self.controls.lup.setEnabled(True)
+                self.controls.ldn.setEnabled(True)
+                self.controls.lup.clicked.connect(self.inds.relays_lup)
+                self.controls.ldn.clicked.connect(self.inds.relays_ldn)
 
         if device.profile_name == "Alpha4510A":
-            self.sensor = device
+            if self.sensor is None:
+                self.sensor = device
 
     def on_device_removed(self, guid):
-        if self.caps.guid == guid:
+        if self.caps and self.caps.guid == guid:
             self.caps = None
             self.controls.cup.setEnabled(False)
             self.controls.cdn.setEnabled(False)
 
-        if self.inds.guid == guid:
+        if self.inds and self.inds.guid == guid:
             self.inds = None
             self.controls.lup.setEnabled(False)
             self.controls.ldn.setEnabled(False)
 
-        if self.sensor.guid == guid:
+        if self.sensor and self.sensor.guid == guid:
             self.sensor = None
             
 
