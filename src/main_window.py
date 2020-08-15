@@ -117,7 +117,7 @@ class MainWindow(QMainWindow):
         self.tool.addAction(QAction(qta.icon('ei.check-empty', color='gray'), '', self.tool))
         self.tool.addAction(QAction(qta.icon('ei.lines', color='gray'), '', self.tool))
         self.tool.addAction(QAction(qta.icon('ei.random', color='gray'), '', self.tool))
-        self.tool.addAction(QAction(qta.icon('ei.cogs', color='gray'), '', self.tool))
+        self.tool.addAction(QAction(qta.icon('mdi.settings', color='gray'), '', self.tool))
 
         self.addToolBar(Qt.LeftToolBarArea, self.tool)
 
