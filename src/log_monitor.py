@@ -297,25 +297,20 @@ class ProfileSelector(QWidget):
 
         self.add = QPushButton(qta.icon('fa.plus-square-o', color='lightgray'), '')
         self.accept = QPushButton(qta.icon('fa5.check-square', color='lightgray'), '')
-        self.remove = QPushButton(qta.icon('mdi.delete-outline', color='lightgray'), '')
         self.edit = QPushButton(qta.icon('fa.pencil-square-o', color='lightgray'), '')
 
         self.selector.currentIndexChanged.connect(self.on_change)
         self.add.clicked.connect(self.on_add)
         self.accept.clicked.connect(self.on_accept)
         self.editor.returnPressed.connect(self.on_accept)
-        # self.remove.clicked.connect(self.on_remove)
         
-        grid = QGridLayout(self)
-        grid.setContentsMargins(0, 0, 0, 0)
-        grid.setSpacing(2)
+        grid = CGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0), spacing=2)
 
-        grid.addWidget(self.selector, 0, 0, 1, 3)
-        grid.addWidget(self.editor, 0, 0, 1, 3)
-        grid.addWidget(self.add, 0, 3)
-        grid.addWidget(self.accept, 0, 3)
-        grid.addWidget(self.edit, 0, 4)
-        # grid.addWidget(self.remove, 0, 4)
+        grid.add(self.selector, 0, 0, 1, 3)
+        grid.add(self.editor, 0, 0, 1, 3)
+        grid.add(self.add, 0, 3)
+        grid.add(self.accept, 0, 3)
+        grid.add(self.edit, 0, 4)
 
         self.accept.hide()
         self.editor.hide()
@@ -419,17 +414,16 @@ class FilterControls(QStackedWidget):
         self.addWidget(QWidget())
 
         # controls layout
-        grid = QGridLayout(self.widget(0))
-        grid.setContentsMargins(0, 0, 0, 0)
-
-        grid.addWidget(self.profiles, 0, 0, 1, 5)
-        grid.addWidget(self.text_filter, 1, 0, 1, 5)
-        grid.addWidget(self.logger_filter, 2, 0, 1, 5)
+        grid = CGridLayout(self.widget(0), contentsMargins=QMargins(0, 0, 0, 0))
+        grid.add(self.profiles, 0, 0, 1, 5)
+        grid.add(self.text_filter, 1, 0, 1, 5)
+        grid.add(self.logger_filter, 2, 0, 1, 5)
 
         # editor layout
-        grid = QGridLayout(self.widget(1))
-        grid.setContentsMargins(0, 0, 0, 0)
-        grid.addWidget(QPushButton(clicked=lambda: self.setCurrentIndex(0)))
+        grid = CGridLayout(self.widget(1), contentsMargins=QMargins(0, 0, 0, 0))
+        grid.add(QPushButton('X', maximumWidth=20, clicked=lambda: self.setCurrentIndex(0)), 0, 1)
+        grid.setRowStretch(1, 1)
+        grid.setColumnStretch(0, 1)
 
     def load_settings(self):
         try:
@@ -510,7 +504,7 @@ class TableHeader(QObject):
         super().__init__()
         self.header_view = header_view
         self.columns = [
-            Column('asctime', 'Time', width=150),
+            Column('asctime', 'Time', width=170),
             Column('levelname', 'Level', width=60),
             Column('name', 'Name', width=180),
             Column('port', 'Port', False, width=225),

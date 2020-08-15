@@ -8,6 +8,8 @@ class ContextLayout:
         elif isinstance(item, QLayout):
             self.addLayout(item, *args)
 
+        return item
+
     def __enter__(self):
         return self
 
@@ -41,6 +43,18 @@ class CHBoxLayout(QHBoxLayout, ContextLayout):
                 parent.addLayout(self)
 
         self.setContentsMargins(QMargins(0, 0, 0, 0))
+
+
+class CGridLayout(QGridLayout, ContextLayout):
+    def __init__(self, parent=None, stretch=None, **kwargs):
+        if parent is None or isinstance(parent, QWidget):
+            super().__init__(parent, **kwargs)
+        else:
+            super().__init__(**kwargs)
+            if stretch:
+                parent.addLayout(self, stretch)
+            else:
+                parent.addLayout(self)
 
 
 class VLine(QFrame):
