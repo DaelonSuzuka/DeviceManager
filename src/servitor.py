@@ -98,11 +98,11 @@ class PowerButtons(Widget):
         for power in powers:
             self.btns.addButton(QPushButton(power, checkable=True))
 
-        icon = qta.icon('mdi.plus', color=qcolors.gray)
-        self.up = QPushButton(icon, '', iconSize=QSize(80, 80))
+        size = QSize(80, 80)
+        color = qcolors.gray
 
-        icon = qta.icon('mdi.minus', color=qcolors.gray)
-        self.down = QPushButton(icon, '', iconSize=QSize(80, 80))
+        self.up = QPushButton(qta.icon('mdi.plus', color=color), '', iconSize=size)
+        self.down = QPushButton(qta.icon('mdi.minus', color=color), '', iconSize=size)
 
     def connect_signals(self):
         self.up.clicked.connect(self.uncheck_all)
@@ -214,49 +214,66 @@ class LockButton(QPushButton):
     locked = Signal()
     unlocked = Signal()
 
+    _state_changed = Signal(int)
+
+    @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, state):
+        if self._state != state:
+            self._state = state
+            self.timer.stop()
+            self._state_changed.emit(self._state)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setToolTip('Lock Power Output')
-
-        self.closed_lock = qta.icon('fa5s.lock', color=qcolors.gray)
-        self.confirm = qta.icon('fa5.question-circle', color=qcolors.gray)
-        self.open_lock = qta.icon('fa5s.unlock-alt', color=qcolors.red)
         self.setIconSize(QSize(50, 50))
+        self.icons = [
+            qta.icon('fa5s.lock', color='gray'),
+            qta.icon('fa5.question-circle', color=qcolors.gray),
+            qta.icon('fa5s.unlock-alt', color=qcolors.red)
+        ]
 
+        self._state = None
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.lock)
+
+        self.clicked.connect(self.next_state)
+        self._state_changed.connect(self.update_icon)
         self.state = 0
-        self.id = None
 
-        self.clicked.connect(self.update_icon)
-        self.setIcon(self.closed_lock)
-
-    def timerEvent(self, event: PySide2.QtCore.QTimerEvent):
-        self.killTimer(self.id)
+    def lock(self):
+        if self.state == 2:
+            self.locked.emit()
         self.state = 0
-        self.setIcon(self.closed_lock)
         self.setCheckable(False)
 
-    def update_icon(self):
+    def confirm(self):
+        self.state = 1
+        self.timer.start(1000)
+
+    def unlock(self):
+        self.unlocked.emit()
+        self.state = 2
+        self.setCheckable(True)
+        self.setChecked(True)
+
+    def next_state(self):
         if self.state == 0:
-            self.state = 1
-            self.setIcon(self.confirm)
-            self.id = self.startTimer(1000)
-
+            self.confirm()
         elif self.state == 1:
-            self.state = 2
-            self.setIcon(self.open_lock)
-            self.setCheckable(True)
-            self.setChecked(True)
-            self.killTimer(self.id)
-            self.unlocked.emit()
-
+            self.unlock()
         elif self.state == 2:
-            self.state = 0
-            self.setIcon(self.closed_lock)
-            self.setCheckable(False)
-            self.locked.emit()
+            self.lock()
+
+    def update_icon(self):
+        self.setIcon(self.icons[self.state])
 
 
-class HeatButton(QPushButton):
+class HeatButton(StateButton):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setToolTip('Thermal Protection')
@@ -266,54 +283,26 @@ class HeatButton(QPushButton):
             qta.icon('ei.fire', color=qcolors.orange),
             qta.icon('ei.fire', color=qcolors.red),
         ]
-        self.level = 1
-        self.setIconSize(QSize(60, 60))
-    
-        self.clicked.connect(self.update_icon)
-        self.update_icon()
-
-    def update_icon(self):
-        self.level = (self.level + 1) % 4
-        self.setIcon(self.icons[self.level])
+        self.state = 0
 
 
-class TimeoutButton(QPushButton):
+class TimeoutButton(IconToggleButton):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setToolTip('Lock Power Output')
-        self.setCheckable(True)
-
-        self.on = qta.icon('mdi.timer', color=qcolors.gray)
-        self.off = qta.icon('mdi.timer-off', color=qcolors.red)
-        self.setIconSize(QSize(60, 60))
-
-        self.clicked.connect(self.update_icon)
+        self.setToolTip('Radio Timeout')
+        self.icon_unchecked = qta.icon('mdi.timer', color='gray')
+        self.icon_checked = qta.icon('mdi.timer-off', color=qcolors.red)
         self.update_icon()
 
-    def update_icon(self):
-        if self.isChecked():
-            self.setIcon(self.off)
-        else:
-            self.setIcon(self.on)
 
-
-class KeyButton(QPushButton):
+class KeyButton(IconToggleButton):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setCheckable(True)
-        self.on = qta.icon('mdi.radio-tower', color=qcolors.silver)
-        self.off = qta.icon('mdi.radio-tower', color='gray')
-        self.setIcon(self.off)
         self.setIconSize(QSize(100, 100))
         self.setStyleSheet(""" :checked { border: 5px solid #FF4136; border-radius: 10px; } """)
-
-        self.clicked.connect(self.update_icon)
-
-    def update_icon(self):
-        if self.isChecked():
-            self.setIcon(self.on)
-        else:
-            self.setIcon(self.off)
+        self.icon_checked = qta.icon('mdi.radio-tower', color=qcolors.silver)
+        self.icon_unchecked = qta.icon('mdi.radio-tower', color='gray')
+        self.update_icon()
 
 
 class ModeComboBox(QComboBox):
@@ -368,32 +357,26 @@ class RadioControls(Widget):
         self.current_power = 5
 
     def build_layout(self):
-        hbox = QHBoxLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
+        with CHBoxLayout(self) as hbox:
+            hbox.add(self.power_btns, 2)
+            hbox.add(VLine(), 1)
+            hbox.add(self.freq_btns, 2)
+            hbox.add(VLine(), 1)
+            hbox.add(self.dummy_load, 1)
+            hbox.add(VLine(), 1)
 
-        hbox.addWidget(self.power_btns, 2)
-        hbox.addWidget(VLine(), 1)
-        hbox.addWidget(self.freq_btns, 2)
-        hbox.addWidget(VLine(), 1)
-        hbox.addWidget(self.dummy_load, 1)
-        hbox.addWidget(VLine(), 1)
+            with CVBoxLayout(hbox, 2) as vbox:
+                with CHBoxLayout(vbox, 1) as box:
+                    box.addWidget(QPushButton())
+                    box.addWidget(self.mode)
 
-        vbox = QVBoxLayout(contentsMargins=QMargins(0, 0, 0, 0))
-        hbox.addLayout(vbox, 2)
-        
-        box = QHBoxLayout(contentsMargins=QMargins(0, 0, 0, 0))
-        box.addWidget(QPushButton())
-        box.addWidget(self.mode)
-        vbox.addLayout(box, 1)
+                vbox.addWidget(self.key, 5)
+                vbox.addWidget(self.timeout)
 
-        vbox.addWidget(self.key, 5)
-        vbox.addWidget(self.timeout)
-
-        box = QHBoxLayout(contentsMargins=QMargins(0, 0, 0, 0))
-        box.addWidget(self.lock)
-        # box.addWidget(QPushButton())
-        box.addWidget(self.heat)
-        box.addWidget(self.time)
-        vbox.addLayout(box, 1)
+                with CHBoxLayout(vbox, 1) as box:
+                    box.addWidget(self.lock)
+                    box.addWidget(self.heat)
+                    box.addWidget(self.time)
 
     def update_timeout_bar(self):
         val = self.timeout.value()

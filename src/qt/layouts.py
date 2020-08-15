@@ -1,6 +1,48 @@
 from .qt import *
 
 
+class ContextLayout:
+    def add(self, item, *args):
+        if isinstance(item, QWidget):
+            self.addWidget(item, *args)
+        elif isinstance(item, QLayout):
+            self.addLayout(item, *args)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        pass
+
+
+class CVBoxLayout(QVBoxLayout, ContextLayout):
+    def __init__(self, parent=None, stretch=None, **kwargs):
+        if parent is None or isinstance(parent, QWidget):
+            super().__init__(parent, **kwargs)
+        else:
+            super().__init__(**kwargs)
+            if stretch:
+                parent.addLayout(self, stretch)
+            else:
+                parent.addLayout(self)
+
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+
+
+class CHBoxLayout(QHBoxLayout, ContextLayout):
+    def __init__(self, parent=None, stretch=None, **kwargs):
+        if parent is None or isinstance(parent, QWidget):
+            super().__init__(parent, **kwargs)
+        else:
+            super().__init__(**kwargs)
+            if stretch:
+                parent.addLayout(self, stretch)
+            else:
+                parent.addLayout(self)
+
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+
+
 class VLine(QFrame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
