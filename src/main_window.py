@@ -2,6 +2,7 @@ from device_client import DeviceClient
 from qt import *
 import qtawesome as qta
 import logging
+from style import qcolors
 
 from device_manager import DeviceManager
 from device_server import DeviceServer
@@ -113,18 +114,23 @@ class MainWindow(QMainWindow):
         self.tool.setMovable(False)
         self.tool.setIconSize(QSize(40, 40))
 
-        self.tool.addAction(QAction(qta.icon('ei.adjust-alt', color='gray'), '', self.tool))
-        self.tool.addAction(QAction(qta.icon('ei.check-empty', color='gray'), '', self.tool))
-        self.tool.addAction(QAction(qta.icon('ei.lines', color='gray'), '', self.tool))
-        self.tool.addAction(QAction(qta.icon('ei.random', color='gray'), '', self.tool))
-        self.tool.addAction(QAction(qta.icon('mdi.settings', color='gray'), '', self.tool))
+        self.tool.addAction(QAction(qta.icon('vsc.files', color='gray'), '', self.tool))
+        self.tool.addAction(QAction(qta.icon('vsc.search', color='gray'), '', self.tool))
+        self.tool.addAction(QAction(qta.icon('vsc.source-control', color='gray'), '', self.tool))
+        self.tool.addAction(QAction(qta.icon('vsc.remote-explorer', color='gray'), '', self.tool))
+        self.tool.addAction(QAction(qta.icon('vsc.git-pull-request', color=qcolors.silver), '', self.tool))
+        empty = QWidget(self.tool)
+        empty.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding);
+        self.tool.addWidget(empty)
+        self.tool.addAction(QAction(qta.icon('vsc.organization', color='gray'), '', self.tool))
+        self.tool.addAction(QAction(qta.icon('vsc.gear', color='gray'), '', self.tool))
 
         self.addToolBar(Qt.LeftToolBarArea, self.tool)
 
     def closeEvent(self, event):
         self.dm.scan_timer.stop()
         self.dm.update_timer.stop()
-        # self.servitor.widget().control_panel.radio.timeout_timer.stop()
+        self.servitor.control_panel.radio.timeout.timer.stop()
         self.tuner.worker.slots.stop()
         self.tuner.thread.quit()
         

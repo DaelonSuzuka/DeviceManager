@@ -263,8 +263,8 @@ class KeyButton(IconToggleButton):
         super().__init__(*args, **kwargs)
         self.setIconSize(QSize(100, 100))
         self.setStyleSheet(""" :checked { border: 5px solid #FF4136; border-radius: 10px; } """)
-        self.icon_checked = qta.icon('mdi.radio-tower', color=qcolors.silver)
-        self.icon_unchecked = qta.icon('mdi.radio-tower', color='gray')
+        self.icon_checked = qta.icon('vsc.radio-tower', color=qcolors.silver)
+        self.icon_unchecked = qta.icon('vsc.radio-tower', color='gray')
         self.update_icon()
 
 
