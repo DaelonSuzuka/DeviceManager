@@ -114,16 +114,23 @@ class MainWindow(QMainWindow):
         self.tool.setMovable(False)
         self.tool.setIconSize(QSize(40, 40))
 
-        self.tool.addAction(QAction(qta.icon('vsc.files', color='gray'), '', self.tool))
-        self.tool.addAction(QAction(qta.icon('vsc.search', color='gray'), '', self.tool))
-        self.tool.addAction(QAction(qta.icon('vsc.source-control', color='gray'), '', self.tool))
-        self.tool.addAction(QAction(qta.icon('vsc.remote-explorer', color='gray'), '', self.tool))
-        self.tool.addAction(QAction(qta.icon('vsc.git-pull-request', color=qcolors.silver), '', self.tool))
+        self.tool.addAction(QAction(qta.icon('ei.adjust-alt', color='gray'), '', self.tool))
+        self.tool.addAction(QAction(qta.icon('ei.check-empty', color='gray'), '', self.tool))
+        self.tool.addAction(QAction(qta.icon('ei.lines', color='gray'), '', self.tool))
+        self.tool.addAction(QAction(qta.icon('ei.random', color='gray'), '', self.tool))
+
         empty = QWidget(self.tool)
         empty.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding);
         self.tool.addWidget(empty)
-        self.tool.addAction(QAction(qta.icon('vsc.organization', color='gray'), '', self.tool))
-        self.tool.addAction(QAction(qta.icon('vsc.gear', color='gray'), '', self.tool))
+
+        settings_btn = QToolButton(self.tool, icon=qta.icon('mdi.settings', color='gray'))
+        menu = QMenu(settings_btn)
+        menu.addAction(QAction('Open a Thing', menu))
+        menu.addSeparator()
+        menu.addAction(QAction('Preferences', menu))
+        settings_btn.setMenu(menu)
+        settings_btn.setPopupMode(QToolButton.InstantPopup)
+        self.tool.addWidget(settings_btn)
 
         self.addToolBar(Qt.LeftToolBarArea, self.tool)
 
