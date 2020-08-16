@@ -93,13 +93,13 @@ class MainWindow(QMainWindow):
         view.addAction(self.log_monitor.toggleViewAction())
 
         settings = menu.addMenu('Settings')
-        settings.addAction(QAction('Settings'))
+        settings.addAction(QAction('Settings', menu))
 
         plugins = menu.addMenu('Plugins')
-        plugins.addAction(QAction('Plugins'))
+        plugins.addAction(QAction('Plugins', menu))
 
         help_ = menu.addMenu('Help')
-        help_.addAction(QAction('Help'))
+        help_.addAction(QAction('Help', menu))
 
         self.setMenuBar(menu)
 
