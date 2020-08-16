@@ -102,30 +102,46 @@ class InfoPanel(Widget):
         grid.setRowStretch(5, 1)
 
 
+class LockButton(ConfirmToggleButton):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setToolTip('Lock Power Output')
+        self.icons = [
+            qta.icon('fa.lock', color=qcolors.gray),
+            qta.icon('fa.question-circle-o', color=qcolors.gray),
+            qta.icon('fa.unlock-alt', color=qcolors.red)
+        ]
+        self.state = 0
+
+
 class PowerButtons(Widget):
     power_changed = Signal(str)
 
     def create_widgets(self):
-        self.power = ''
+        self.power = '5'
         self.limit = True
 
-        powers = ["200", "175", "150", "125", "100", "75", "50", "25", "10", "5"]
-
         grid = CGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
-
         self.btns = QButtonGroup()
+
+        powers = ["200", "175", "150", "125", "100", "75", "50", "25", "10", "5"]
         for i, power in enumerate(powers):
             btn = QPushButton(power, checkable=True)
             self.btns.addButton(btn)
-            grid.add(btn, i, 0)
+            grid.add(btn, i + 1, 0)
             btn.clicked.connect(lambda: self.btns.setExclusive(True))
             btn.clicked.connect(partial(self.update_power, btn.text()))
 
-        grid.add(QPushButton('+', clicked=lambda: self.update_power(int(self.power) + 5)), 0, 1, 5, 1)
-        grid.add(QPushButton('-', clicked=lambda: self.update_power(int(self.power) - 5)), 5, 1, 5, 1)
+        self.lock = grid.add(LockButton(), 0, 0)
+        self.lock.setIconSize(QSize(35, 35))
 
-        grid.setColumnStretch(0, 1)
-        grid.setColumnStretch(1, 2)
+        grid.add(QPushButton(disabled=True), 0, 1)
+        grid.add(QPushButton(disabled=True), 0, 2)
+        grid.add(QPushButton('+', clicked=lambda: self.update_power(int(self.power) + 5)), 1, 1, 5, 2)
+        grid.add(QPushButton('-', clicked=lambda: self.update_power(int(self.power) - 5)), 6, 1, 5, 2)
+
+        self.lock.toggled.connect(lambda s: self.set_limit(not s))
+        self.set_limit(True)
 
     def update_power(self, power):
         power = str(power)
@@ -144,6 +160,14 @@ class PowerButtons(Widget):
         self.limit = limit
         if limit == True:
             self.update_power(self.power)
+            
+            for btn in self.btns.buttons():
+                if int(btn.text()) > 100:
+                    btn.setEnabled(False)
+
+        else:
+            for btn in self.btns.buttons():
+                btn.setEnabled(True)
 
     def uncheck_all(self):
         self.btns.setExclusive(False)
@@ -167,39 +191,31 @@ class FrequencyButtons(Widget):
             "14000000", "10100000", "07000000", "03500000", "01800000"
         ]
 
-        band_names = [
-            "50 Mhz", "28 Mhz", "24 Mhz", "21 Mhz", "18 Mhz",
-            "14 Mhz", "10 Mhz", "7 Mhz", "3.4 Mhz", "1.8 Mhz"
-        ]
 
+        grid = CGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
         self.btns = QButtonGroup()
-        for band in band_names:
-            self.btns.addButton(QPushButton(band, checkable=True))
+
+        band_names = ["50", "28", "24", "21", "18", "14", "10", "7", "3.4", "1.8"]
+        for i, band in enumerate(band_names):
+            btn = QPushButton(band + ' Mhz', checkable=True)
+            self.btns.addButton(btn)
+            grid.add(btn, i + 1, 0)
+            btn.clicked.connect(lambda: self.btns.setExclusive(True))
+            btn.clicked.connect(partial(self.set_frequency.emit, self.freqs[i]))
+        
+        grid.add(QPushButton(disabled=True), 0, 0)
+        grid.add(QPushButton(disabled=True), 0, 1)
+        grid.add(QPushButton(disabled=True), 0, 2)
 
         icon = qta.icon('mdi.arrow-up', color=qcolors.gray)
         self.up = QPushButton(icon, '', iconSize=QSize(80, 80))
+        self.up.clicked.connect(lambda: self.uncheck_all())
+        grid.add(self.up, 1, 1, 5, 2)
 
         icon = qta.icon('mdi.arrow-down', color=qcolors.gray)
         self.down = QPushButton(icon, '', iconSize=QSize(80, 80))
-
-    def connect_signals(self):
-        self.up.clicked.connect(lambda: self.uncheck_all())
         self.down.clicked.connect(lambda: self.uncheck_all())
-        
-        for i, btn in enumerate(self.btns.buttons()):
-            btn.clicked.connect(lambda: self.btns.setExclusive(True))
-            btn.clicked.connect(partial(self.set_frequency.emit, self.freqs[i]))
-
-    def build_layout(self):
-        grid = CGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
-        
-        for i, btn in enumerate(self.btns.buttons()):
-            grid.add(btn, i, 0)
-
-        grid.add(self.up, 0, 1, 5, 1)
-        grid.add(self.down, 5, 1, 5, 1)
-        grid.setColumnStretch(0, 1)
-        grid.setColumnStretch(1, 2)
+        grid.add(self.down, 6, 1, 5, 2)
 
     def uncheck_all(self):
         self.btns.setExclusive(False)
@@ -224,28 +240,23 @@ class DummyLoadControls(Widget):
         self.clear = vbox.add(QPushButton("Bypass"))
 
 
-class LockButton(ConfirmToggleButton):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.setToolTip('Lock Power Output')
-        self.icons = [
-            qta.icon('fa5s.lock', color='gray'),
-            qta.icon('fa5.question-circle', color=qcolors.gray),
-            qta.icon('fa5s.unlock-alt', color=qcolors.red)
-        ]
-        self.state = 0
-
-
 class HeatButton(StateButton):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setToolTip('Thermal Protection')
         self.icons = [
-            qta.icon('ei.fire', color='gray'),
-            qta.icon('ei.fire', color=qcolors.yellow),
-            qta.icon('ei.fire', color=qcolors.orange),
-            qta.icon('ei.fire', color=qcolors.red),
+            qta.icon('mdi.circle-outline', color='gray'),
+            qta.icon('mdi.circle-slice-1', color=qcolors.silver),
+            qta.icon('mdi.circle-slice-2', color=qcolors.silver),
+            qta.icon('mdi.circle-slice-3', color=qcolors.yellow),
+            qta.icon('mdi.circle-slice-4', color=qcolors.yellow),
+            qta.icon('mdi.circle-slice-5', color=qcolors.orange),
+            qta.icon('mdi.circle-slice-6', color=qcolors.orange),
+            qta.icon('mdi.circle-slice-7', color=qcolors.red),
+            qta.icon('mdi.circle-slice-8', color=qcolors.red),
+            qta.icon('mdi.alert-circle-outline', color=qcolors.red),
         ]
+        
         self.state = 0
 
 
@@ -352,14 +363,12 @@ class RadioControls(Widget):
 
         self.mode = ModeComboBox()
 
-        self.lock = LockButton()
         self.heat = HeatButton()
         self.time = TimeoutButton()
 
         self.timeout = TimeoutBar()
         self.key = KeyButton()
 
-        self.lock.toggled.connect(lambda s: self.power_btns.set_limit(not s))
         self.time.toggled.connect(self.timeout.set_suppressed)
         self.key.toggled.connect(self.timeout.set_running)
         self.timeout.timeout.connect(lambda: self.key.setChecked(False))
@@ -382,8 +391,8 @@ class RadioControls(Widget):
                 vbox.add(self.timeout)
 
                 with CHBoxLayout(vbox, 1) as box:
-                    box.add(self.lock)
                     box.add(self.heat)
+                    box.add(QPushButton())
                     box.add(self.time)
 
     def set_power(self, power):
