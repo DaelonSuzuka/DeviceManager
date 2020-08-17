@@ -5,11 +5,9 @@ import qtawesome as qta
 from style import qcolors
 
 
+@DeviceManager.subscribe_to("TS-480")
 class RadioInfo(Widget):        
     def create_widgets(self):
-        self.radio = None
-        self.placeholder = "  ?  "
-
         self.power = QLabel("  ?  ")
         self.frequency = QLabel("  ?  ")
         self.mode = QLabel("  ?  ")
@@ -25,29 +23,20 @@ class RadioInfo(Widget):
         grid.add(QLabel("Mode:"), 3, 0)
         grid.add(self.mode, 3, 1)
 
-    def connect_radio(self, radio):
-        if self.radio:
-            return
-        self.radio = radio
-        
-        radio.signals.power.connect(lambda s: self.power.setText(s))
-        radio.signals.frequency.connect(lambda s: self.frequency.setText(s))
-        radio.signals.mode.connect(lambda s: self.mode.setText(s))
+    def connected(self):
+        self.device.signals.power.connect(lambda s: self.power.setText(s))
+        self.device.signals.frequency.connect(lambda s: self.frequency.setText(s))
+        self.device.signals.mode.connect(lambda s: self.mode.setText(s))
 
-    def disconnect_radio(self, guid):
-        if self.radio.guid != guid:
-            return
-        self.radio = None
-        
+    def disconnected(self):
         self.power.setText("  ?  ")
         self.frequency.setText("  ?  ")
         self.mode.setText("  ?  ")
 
 
+@DeviceManager.subscribe_to("Alpha4510A")
 class MeterInfo(Widget):        
     def create_widgets(self):
-        self.meter = None
-        
         self.forward = QLabel("  ?  ")
         self.reverse = QLabel("  ?  ")
         self.swr = QLabel("  ?  ")
@@ -66,21 +55,13 @@ class MeterInfo(Widget):
         grid.add(QLabel("SWR:"), 4, 0)
         grid.add(self.swr, 4, 1)
 
-    def connect_meter(self, meter):
-        if self.meter:
-            return
-        self.meter = meter
+    def connected(self):
+        self.device.signals.forward.connect(lambda s: self.forward.setText(s))
+        self.device.signals.reverse.connect(lambda s: self.reverse.setText(s))
+        self.device.signals.swr.connect(lambda s: self.swr.setText(s))
+        self.device.signals.frequency.connect(lambda s: self.frequency.setText(s))
 
-        meter.signals.forward.connect(lambda s: self.forward.setText(s))
-        meter.signals.reverse.connect(lambda s: self.reverse.setText(s))
-        meter.signals.swr.connect(lambda s: self.swr.setText(s))
-        meter.signals.frequency.connect(lambda s: self.frequency.setText(s))
-
-    def disconnect_meter(self, guid):
-        if self.meter.guid != guid:
-            return
-        self.meter = None
-
+    def disconnected(self):
         self.forward.setText("  ?  ")
         self.reverse.setText("  ?  ")
         self.swr.setText("  ?  ")
@@ -114,6 +95,7 @@ class LockButton(ConfirmToggleButton):
         self.state = 0
 
 
+@DeviceManager.subscribe_to("TS-480")
 class PowerButtons(Widget):
     power_changed = Signal(str)
 
@@ -132,9 +114,7 @@ class PowerButtons(Widget):
             btn.clicked.connect(lambda: self.btns.setExclusive(True))
             btn.clicked.connect(partial(self.update_power, btn.text()))
 
-        self.lock = grid.add(LockButton(), 0, 0)
-        self.lock.setIconSize(QSize(35, 35))
-
+        self.lock = grid.add(LockButton(iconSize=QSize(35, 35)), 0, 0)
         grid.add(QPushButton(disabled=True), 0, 1)
         grid.add(QPushButton(disabled=True), 0, 2)
         grid.add(QPushButton('+', clicked=lambda: self.update_power(int(self.power) + 5)), 1, 1, 5, 2)
@@ -142,6 +122,10 @@ class PowerButtons(Widget):
 
         self.lock.toggled.connect(lambda s: self.set_limit(not s))
         self.set_limit(True)
+
+    def connected(self):
+        self.device.signals.power.connect(lambda s: self.set_power(s))
+        self.power_changed.connect(self.device.set_power_level)
 
     def update_power(self, power):
         power = str(power)
@@ -182,6 +166,7 @@ class PowerButtons(Widget):
                 return
 
 
+@DeviceManager.subscribe_to("TS-480")
 class FrequencyButtons(Widget):
     set_frequency = Signal(str)
 
@@ -190,7 +175,6 @@ class FrequencyButtons(Widget):
             "50000000", "28000000", "24890000", "21000000", "18068000",
             "14000000", "10100000", "07000000", "03500000", "01800000"
         ]
-
 
         grid = CGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
         self.btns = QButtonGroup()
@@ -207,15 +191,14 @@ class FrequencyButtons(Widget):
         grid.add(QPushButton(disabled=True), 0, 1)
         grid.add(QPushButton(disabled=True), 0, 2)
 
-        icon = qta.icon('mdi.arrow-up', color=qcolors.gray)
-        self.up = QPushButton(icon, '', iconSize=QSize(80, 80))
-        self.up.clicked.connect(lambda: self.uncheck_all())
-        grid.add(self.up, 1, 1, 5, 2)
+        self.up = grid.add(QPushButton('^', clicked=lambda: self.uncheck_all()), 1, 1, 5, 2)
+        self.down = grid.add(QPushButton('v', clicked=lambda: self.uncheck_all()), 6, 1, 5, 2)
 
-        icon = qta.icon('mdi.arrow-down', color=qcolors.gray)
-        self.down = QPushButton(icon, '', iconSize=QSize(80, 80))
-        self.down.clicked.connect(lambda: self.uncheck_all())
-        grid.add(self.down, 6, 1, 5, 2)
+    def connected(self):
+        self.device.signals.frequency.connect(lambda s: self.select(s))
+        self.up.clicked.connect(self.device.band_up)
+        self.down.clicked.connect(self.device.band_down)
+        self.set_frequency.connect(self.device.set_vfoA_frequency)
 
     def uncheck_all(self):
         self.btns.setExclusive(False)
@@ -232,7 +215,7 @@ class FrequencyButtons(Widget):
 
 class DummyLoadControls(Widget):
     def create_widgets(self):
-        vbox = CVBoxLayout(self)
+        vbox = CVBoxLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
         self.cup = vbox.add(QPushButton("CUP"))
         self.cdn = vbox.add(QPushButton("CDN"))
         self.lup = vbox.add(QPushButton("LUP"))
@@ -269,6 +252,7 @@ class TimeoutButton(IconToggleButton):
         self.update_icon()
 
 
+@DeviceManager.subscribe_to("TS-480")
 class KeyButton(IconToggleButton):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -278,7 +262,13 @@ class KeyButton(IconToggleButton):
         self.icon_unchecked = qta.icon('mdi.radio-tower', color='gray')
         self.update_icon()
 
+    def connected(self):
+        self.device.signals.keyed.connect(lambda: self.setChecked(True))
+        self.device.signals.unkeyed.connect(lambda: self.setChecked(False))
+        self.clicked.connect(self.device.toggle_key)
 
+
+@DeviceManager.subscribe_to("TS-480")
 class ModeComboBox(QComboBox):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -296,8 +286,23 @@ class ModeComboBox(QComboBox):
         self.setMinimumHeight(40)
         self.setMaximumHeight(100)
 
+    def connected(self):
+        self.activated.connect(lambda: self.device.set_mode(self.currentText().lstrip(' ')))
+        self.device.signals.mode.connect(lambda s: self.select_mode(s))
+        self.clear()
+        self.addItems([m for m in self.device.modes if m != ""])
+
+    def disconected(self):
+        self.clear()
+        self.addItem("Mode")
+
     def addItems(self, texts):
         super().addItems(['    ' + t for t in texts])
+
+    def select_mode(self, mode):
+        for i in range(self.count()):
+            if self.itemText(i).lstrip(' ') == mode:
+                self.setCurrentIndex(i)
 
     def showPopup(self):
         super().showPopup()
@@ -305,6 +310,7 @@ class ModeComboBox(QComboBox):
         popup.move(popup.x(), self.mapToGlobal(self.rect().bottomLeft()).y())
 
 
+@DeviceManager.subscribe_to("TS-480")
 class TimeoutBar(QProgressBar):
     timeout = Signal()
 
@@ -313,8 +319,8 @@ class TimeoutBar(QProgressBar):
         self.setStyleSheet('QProgressBar::chunk { background: grey; }')
         
         self.setTextVisible(False)
-        self.timeout_max = 50000
-        self.setMaximum(self.timeout_max)
+        self.default_maximum = 50000
+        self.setMaximum(self.default_maximum)
         self.setValue(0)
 
         self.running = False
@@ -324,6 +330,12 @@ class TimeoutBar(QProgressBar):
         self.timer = QTimer(self)
         self.timer.timeout.connect(lambda: self.update_timeout_bar())
         self.timer.start(20)
+
+    def connected(self):
+        self.device.signals.power.connect(lambda s: self.set_power(s))
+
+    def set_power(self, power):
+        self.current_power = int(power)
 
     def set_running(self, running):
         self.running = running
@@ -336,15 +348,14 @@ class TimeoutBar(QProgressBar):
 
         if self.isEnabled():
             if self.running and not self.suppressed:
-                if val < self.timeout_max:
-                    if val + self.current_power > self.timeout_max:
-                        self.setValue(self.timeout_max)
+                if val < self.maximum():
+                    if val + self.current_power > self.maximum():
+                        self.setValue(self.maximum())
                     else:
                         self.setValue(val + self.current_power)
 
-                if val >= self.timeout_max - 1:
+                if val >= self.maximum() - 1:
                     self.timeout.emit()
-                    self.setValue(0)
             else:
                 if val > 0:
                     if (val - 500) < 0:
@@ -353,6 +364,7 @@ class TimeoutBar(QProgressBar):
                         self.setValue(val - 500)
 
 
+@DeviceManager.subscribe_to("TS-480")
 class RadioControls(Widget):
     def create_widgets(self):
         self.radio = None
@@ -371,10 +383,12 @@ class RadioControls(Widget):
 
         self.time.toggled.connect(self.timeout.set_suppressed)
         self.key.toggled.connect(self.timeout.set_running)
-        self.timeout.timeout.connect(lambda: self.key.setChecked(False))
+        self.timeout.timeout.connect(lambda: self.key.click())
 
     def build_layout(self):
-        with CHBoxLayout(self) as hbox:
+        margins = { 'contentsMargins': QMargins(0, 0, 0, 0) }
+
+        with CHBoxLayout(self, **margins) as hbox:
             hbox.add(self.power_btns, 2)
             hbox.add(VLine(), 1)
             hbox.add(self.freq_btns, 2)
@@ -382,67 +396,36 @@ class RadioControls(Widget):
             hbox.add(self.dummy_load, 1)
             hbox.add(VLine(), 1)
 
-            with CVBoxLayout(hbox, 2) as vbox:
-                with CHBoxLayout(vbox, 1) as box:
+            with CVBoxLayout(hbox, 2, **margins) as vbox:
+                with CHBoxLayout(vbox, 1, **margins) as box:
                     box.add(QPushButton())
                     box.add(self.mode)
 
                 vbox.add(self.key, 5)
                 vbox.add(self.timeout)
 
-                with CHBoxLayout(vbox, 1) as box:
+                with CHBoxLayout(vbox, 1, **margins) as box:
                     box.add(self.heat)
                     box.add(QPushButton())
                     box.add(self.time)
 
-    def set_power(self, power):
-        self.timeout.current_power = int(power)
-
-    def select_mode(self, mode):
-        for i in range(self.mode.count()):
-            if self.mode.itemText(i).lstrip(' ') == mode:
-                self.mode.setCurrentIndex(i)
-    
-    def connect_radio(self, radio):
-        if self.radio:
-            return
-        self.radio = radio
-
-        radio.signals.power.connect(lambda s: self.power_btns.set_power(s))
-        radio.signals.power.connect(lambda s: self.set_power(s))
-        radio.signals.frequency.connect(lambda s: self.freq_btns.select(s))
-        radio.signals.mode.connect(lambda s: self.select_mode(s))
-
-        radio.signals.keyed.connect(lambda: self.key.setChecked(True))
-        radio.signals.unkeyed.connect(lambda: self.key.setChecked(False))
-
-        self.key.clicked.connect(radio.toggle_key)
-        self.mode.activated.connect(lambda: radio.set_mode(self.mode.currentText().lstrip(' ')))
-
-        self.freq_btns.up.clicked.connect(radio.band_up)
-        self.freq_btns.down.clicked.connect(radio.band_down)
-        self.freq_btns.set_frequency.connect(radio.set_vfoA_frequency)
-
-        self.power_btns.power_changed.connect(radio.set_power_level)
-        
-        self.mode.clear()
-        self.mode.addItems([m for m in radio.modes if m != ""])
+    def connected(self):
         self.setEnabled(True)
+        
+        self.device.unkey()
+        self.device.get_power_level()
+        self.device.get_mode()
+        self.device.get_vfoA_frequency()
 
-    def disconnect_radio(self, guid):
-        if self.radio.guid != guid:
-            return
-        self.radio = None
-
+    def disconnected(self):
         self.setEnabled(False)
-        self.mode.clear()
-        self.mode.addItem("Mode")
 
 
+@DeviceManager.subscribe_to("DTS-4")
 class SwitchControls(Widget):
     def create_widgets(self):
         self.switch = None
-        grid = CHBoxLayout(self)
+        grid = CHBoxLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
 
         self.one = grid.add(QPushButton("Ant 1", checkable=True))
         self.two = grid.add(QPushButton("Ant 2", checkable=True))
@@ -454,24 +437,16 @@ class SwitchControls(Widget):
         self.btns.addButton(self.two)
         self.btns.addButton(self.three)
         self.btns.addButton(self.four)
-
-    def connect_switch(self, switch):
-        if self.switch:
-            return
-        self.switch = switch
-
+        
+    def connected(self):
         self.setEnabled(True)
 
-        self.one.clicked.connect(lambda: switch.select_antenna(1))
-        self.two.clicked.connect(lambda: switch.select_antenna(2))
-        self.three.clicked.connect(lambda: switch.select_antenna(3))
-        self.four.clicked.connect(lambda: switch.select_antenna(4))
+        self.one.clicked.connect(lambda: self.device.select_antenna(1))
+        self.two.clicked.connect(lambda: self.device.select_antenna(2))
+        self.three.clicked.connect(lambda: self.device.select_antenna(3))
+        self.four.clicked.connect(lambda: self.device.select_antenna(4))
 
-    def disconnect_switch(self, guid):
-        if self.switch.guid != guid:
-            return
-        self.switch = None
-
+    def disconnected(self):
         self.setEnabled(False)
 
 
@@ -481,14 +456,13 @@ class ControlPanel(Widget):
         self.switch = SwitchControls(enabled=False)
 
     def build_layout(self):
-        grid = CVBoxLayout(self)
+        grid = CVBoxLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
         
         grid.add(self.radio, 4)
         grid.add(HLine())
         grid.add(self.switch, 1)
 
 
-@DeviceManager.subscribe
 class ServitorWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -500,12 +474,6 @@ class ServitorWidget(QWidget):
             } 
         """)
 
-        self.devices = {}
-        self.radio = None
-        self.meter = None
-        self.switch = None
-        self.dummy_load = None
-
         self.info_panel = InfoPanel()
         self.control_panel = ControlPanel()
 
@@ -516,82 +484,6 @@ class ServitorWidget(QWidget):
         grid.addWidget(VLine(), 0, 1)
         grid.addWidget(self.control_panel, 0, 2)
         grid.setColumnStretch(2, 7)
-
-    def connect_meter(self, meter):
-        if self.meter:
-            return
-        self.meter = meter
-
-        self.info_panel.meter_info.connect_meter(meter)
-
-    def disconnect_meter(self, guid):
-        if self.meter.guid != guid:
-            return
-        self.meter = None
-
-        self.info_panel.meter_info.disconnect_meter(guid)
-        
-    def connect_radio(self, radio):
-        if self.radio:
-            return
-        self.radio = radio
-
-        self.info_panel.radio_info.connect_radio(radio)
-        self.control_panel.radio.connect_radio(radio)
-        
-        if not self.switch:
-            self.control_panel.switch.setEnabled(False)
-
-        radio.unkey()
-        radio.get_power_level()
-        radio.get_mode()
-        radio.get_vfoA_frequency()
-
-    def disconnect_radio(self, guid):
-        if self.radio.guid != guid:
-            return
-        self.radio = None
-
-        self.info_panel.radio_info.disconnect_radio(guid)
-        self.control_panel.radio.disconnect_radio(guid)
-
-    def connect_switch(self, switch):
-        if self.switch:
-            return
-        self.switch = switch
-
-        self.control_panel.switch.connect_switch(switch)
-
-    def disconnect_switch(self, guid):
-        if self.switch.guid != guid:
-            return
-        self.switch = None
-
-        self.control_panel.switch.disconnect_switch(guid)
-
-    def on_device_added(self, device):
-        self.devices[device.guid] = device
-
-        if device.profile_name == "Alpha4510A":
-            self.connect_meter(device)
-
-        if device.profile_name == "TS-480":
-            self.connect_radio(device)
-
-        if device.profile_name == "DTS-4":
-            self.connect_switch(device)
-
-    def on_device_removed(self, guid):
-        if self.devices[guid].profile_name == "Alpha4510A":
-            self.disconnect_meter(guid)
-
-        if self.devices[guid].profile_name == "TS-480":
-            self.disconnect_radio(guid)
-
-        if self.devices[guid].profile_name == "DTS-4":
-            self.disconnect_switch(guid)
-
-        self.devices.pop(guid)
 
 
 class ServitorSubWindow(QMdiSubWindow):

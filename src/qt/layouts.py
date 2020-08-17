@@ -28,8 +28,6 @@ class CVBoxLayout(QVBoxLayout, ContextLayout):
             else:
                 parent.addLayout(self)
 
-        self.setContentsMargins(QMargins(0, 0, 0, 0))
-
 
 class CHBoxLayout(QHBoxLayout, ContextLayout):
     def __init__(self, parent=None, stretch=None, **kwargs):
@@ -41,8 +39,6 @@ class CHBoxLayout(QHBoxLayout, ContextLayout):
                 parent.addLayout(self, stretch)
             else:
                 parent.addLayout(self)
-
-        self.setContentsMargins(QMargins(0, 0, 0, 0))
 
 
 class CGridLayout(QGridLayout, ContextLayout):

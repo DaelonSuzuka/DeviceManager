@@ -39,8 +39,8 @@ class DeviceManager(QObject):
     def subscribe(cls, target):
         old_init = target.__init__
 
-        def new_init(obj, *args):
-            old_init(obj, *args)
+        def new_init(obj, *args, **kwargs):
+            old_init(obj, *args, **kwargs)
             
             obj.signals = SigBundle(cls.signals)
             obj.slots = SlotBundle(cls.slots)
@@ -51,6 +51,50 @@ class DeviceManager(QObject):
         target.__init__ = new_init
 
         return target
+
+    @classmethod
+    def subscribe_to(cls, device_name):
+
+        def get_added():
+            def on_device_added(self, device):
+                if device.profile_name == device_name:
+                    if self.device:
+                        return
+                    self.device = device
+                    if hasattr(self, 'connected'):
+                        self.connected()
+            return on_device_added
+
+        def get_removed():
+            def on_device_removed(self, guid):
+                if self.devices[guid].profile_name == device_name:
+                    if self.device.guid != guid:
+                        return
+                    self.device = None
+                    if hasattr(self, 'disconnected'):
+                        self.disconnected()
+            return on_device_removed
+
+        def decorator(target):
+            target.on_device_added = get_added()
+            target.on_device_removed = get_removed()
+
+            old_init = target.__init__
+
+            def new_init(obj, *args, **kwargs):
+                old_init(obj, *args, **kwargs)
+                
+                obj.slots = SlotBundle(cls.slots)
+                obj.slots.link_to(obj)
+
+                obj.device = None
+                
+                cls.new_subscribers.append(obj)
+
+            target.__init__ = new_init
+
+            return target
+        return decorator
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
