@@ -12,11 +12,17 @@ import typing
 class Settings(Settings):
     scan_period: int = 250
     update_period: int = 10
+    # startup: typing.List[str] = [
+    #     'TS-480:/dev/ttyS0',
+    #     'Alpha4510A:/dev/ttyUSB0',
+    #     'DTS-4:/dev/ttyS2',
+    #     'VariableDummyLoad:/dev/ttyS3',
+    # ]
+    
     startup: typing.List[str] = [
-        'TS-480:/dev/ttyS0',
-        'Alpha4510A:/dev/ttyUSB0',
-        'DTS-4:/dev/ttyS2',
-        'VariableDummyLoad:/dev/ttyS3',
+        "TS-480:/dev/ttyS0",
+        "Alpha4510A:/dev/ttyS1",
+        "DTS-4:/dev/ttyS2"
     ]
 
 
