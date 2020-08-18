@@ -129,6 +129,7 @@ class DeviceControlsDockWidget(QDockWidget):
         self.dockLocationChanged.connect(lambda: QTimer.singleShot(0, self.adjust_size))
 
         self.parent().addDockWidget(self.starting_area, self)
+        self.hide()
 
         self.setWidget(DeviceControlsWidget(self))
 
