@@ -473,6 +473,8 @@ class ServitorWidget(QWidget):
                 max-height: 2000px; 
             } 
         """)
+        self.setBackgroundRole(QPalette.Base)
+        self.setAutoFillBackground(True)
 
         self.info_panel = InfoPanel()
         self.control_panel = ControlPanel()
