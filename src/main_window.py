@@ -58,7 +58,6 @@ class MainWindow(QMainWindow):
         self.setDockNestingEnabled(True)
 
         # self.init_menu_bar()
-        # self.init_statusbar()
         self.init_toolbar()
 
         self.load_settings() # do this last
@@ -104,36 +103,41 @@ class MainWindow(QMainWindow):
 
         self.setMenuBar(menu)
 
-    def init_statusbar(self):
-        self.statusBar().setFixedHeight(25)
-        self.statusBar().setContentsMargins(10, 0, 10, 3)
-        self.statusBar().addPermanentWidget(self.client.status_widget)
-
     def init_toolbar(self):
         self.tool = QToolBar()
         self.tool.setObjectName('toolbar')
         self.tool.setMovable(False)
-        self.tool.setIconSize(QSize(40, 40))
+        self.tool.setIconSize(QSize(30, 30))
+        self.addToolBar(Qt.BottomToolBarArea, self.tool)
 
-        self.tool.addAction(QAction(qta.icon('ei.adjust-alt', color='gray'), '', self.tool))
-        self.tool.addAction(QAction(qta.icon('ei.check-empty', color='gray'), '', self.tool))
-        self.tool.addAction(QAction(qta.icon('ei.lines', color='gray'), '', self.tool))
-        self.tool.addAction(QAction(qta.icon('ei.random', color='gray'), '', self.tool))
-
-        empty = QWidget(self.tool)
-        empty.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding);
-        self.tool.addWidget(empty)
-
+        # settings button
         settings_btn = QToolButton(self.tool, icon=qta.icon('mdi.settings', color='gray'))
         menu = QMenu(settings_btn)
-        menu.addAction(QAction('Open a Thing', menu))
-        menu.addSeparator()
-        menu.addAction(QAction('Preferences', menu))
         settings_btn.setMenu(menu)
         settings_btn.setPopupMode(QToolButton.InstantPopup)
         self.tool.addWidget(settings_btn)
+        
+        # settings popup menu
+        menu.addAction(self.command_palette.action)
+        menu.addSeparator()
+        menu.addAction(self.device_controls.toggleViewAction())
+        menu.addAction(self.log_monitor.toggleViewAction())
 
-        self.addToolBar(Qt.LeftToolBarArea, self.tool)
+        menu.addSeparator()
+        menu.addAction(QAction('&Settings', menu, 
+            shortcut='Ctrl+,', 
+            statusTip='Open settings',
+            triggered=lambda: SettingsManager().show_dialog()))
+            
+        menu.addAction(QAction('&Exit', menu, 
+            shortcut='Ctrl+Q', 
+            statusTip='Exit application',
+            triggered=self.close))
+        
+        # spacer widget
+        self.tool.addWidget(QWidget(sizePolicy=QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)))
+        
+        self.tool.addWidget(self.client.status_widget)
 
     def closeEvent(self, event):
         self.dm.scan_timer.stop()
