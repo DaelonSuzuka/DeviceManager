@@ -137,6 +137,7 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         self.dm.scan_timer.stop()
         self.dm.update_timer.stop()
+        self.dm.close()
         self.servitor.control_panel.radio.timeout.timer.stop()
         self.tuner.worker.slots.stop()
         self.tuner.thread.quit()

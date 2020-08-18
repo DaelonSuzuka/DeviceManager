@@ -129,6 +129,10 @@ class DeviceManager(QObject):
         
         self.check_for_new_subscribers()
 
+    def close(self):
+        for _, device in self.devices.items():
+            device.close()
+
     def check_for_new_subscribers(self):
         for new_sub in self.new_subscribers:
             if new_sub not in self.subscribers:
