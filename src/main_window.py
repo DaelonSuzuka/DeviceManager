@@ -57,9 +57,9 @@ class MainWindow(QMainWindow):
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
         self.setDockNestingEnabled(True)
 
-        self.init_menu_bar()
-        self.init_statusbar()
-        # self.init_toolbar()
+        # self.init_menu_bar()
+        # self.init_statusbar()
+        self.init_toolbar()
 
         self.load_settings() # do this last
 
