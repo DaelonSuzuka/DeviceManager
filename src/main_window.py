@@ -47,12 +47,13 @@ class MainWindow(QMainWindow):
         self.command_palette = CommandPalette(self)
 
         self.tabs = QTabWidget(self)
-        self.setContentsMargins(QMargins(0, 0, 0, 10))
-        self.tabs.addTab(self.servitor, 'Servitor')
-        self.tabs.addTab(self.tuner_controls, 'Tuner')
-
         self.setCentralWidget(self.tabs)
+        self.setContentsMargins(QMargins(3, 3, 3, 0))
 
+        self.tabs.addTab(self.servitor, 'Servitor')
+        # self.tabs.addTab(self.tuner_controls, 'Tuner')
+
+        # init dockwidget settings
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
         self.setDockNestingEnabled(True)
 
