@@ -94,8 +94,11 @@ class StatusBarWidget(QWidget):
 
         self.menu = menu
 
-    def contextMenuEvent(self, event):
+    def mousePressEvent(self, event):
         self.menu.exec_(event.globalPos())
+
+    # def contextMenuEvent(self, event):
+    #     self.menu.exec_(event.globalPos())
 
     def socket_connected(self):
         self.status.setText("Connected")
