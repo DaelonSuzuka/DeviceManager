@@ -319,23 +319,26 @@ class TimeoutBar(QProgressBar):
         self.setStyleSheet('QProgressBar::chunk { background: grey; }')
         
         self.setTextVisible(False)
-        self.default_maximum = 50000
+        self.default_maximum = 35000
         self.setMaximum(self.default_maximum)
         self.setValue(0)
 
         self.running = False
         self.suppressed = False
         self.current_power = 5
+        self.step = 5
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(lambda: self.update_timeout_bar())
-        self.timer.start(20)
+        self.timer.start(50)
 
     def connected(self):
         self.device.signals.power.connect(lambda s: self.set_power(s))
 
     def set_power(self, power):
         self.current_power = int(power)
+
+        self.step = (self.current_power / 2) + 10
 
     def set_running(self, running):
         self.running = running
@@ -349,10 +352,10 @@ class TimeoutBar(QProgressBar):
         if self.isEnabled():
             if self.running and not self.suppressed:
                 if val < self.maximum():
-                    if val + self.current_power > self.maximum():
+                    if val + self.step > self.maximum():
                         self.setValue(self.maximum())
                     else:
-                        self.setValue(val + self.current_power)
+                        self.setValue(val + self.step)
 
                 if val >= self.maximum() - 1:
                     self.timeout.emit()
@@ -367,7 +370,7 @@ class TimeoutBar(QProgressBar):
 @DeviceManager.subscribe_to("TS-480")
 class RadioControls(Widget):
     def create_widgets(self):
-        self.radio = None
+        self.setStyleSheet('QProgressBar { border: 1px solid grey; }')
 
         self.power_btns = PowerButtons()
         self.freq_btns = FrequencyButtons()
