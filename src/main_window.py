@@ -58,7 +58,7 @@ class MainWindow(QMainWindow):
 
         self.init_menu_bar()
         self.init_statusbar()
-        self.init_toolbar()
+        # self.init_toolbar()
 
         self.load_settings() # do this last
 
