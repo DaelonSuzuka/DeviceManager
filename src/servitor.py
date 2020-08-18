@@ -393,8 +393,8 @@ class RadioControls(Widget):
             hbox.add(VLine(), 1)
             hbox.add(self.freq_btns, 2)
             hbox.add(VLine(), 1)
-            hbox.add(self.dummy_load, 1)
-            hbox.add(VLine(), 1)
+            # hbox.add(self.dummy_load, 1)
+            # hbox.add(VLine(), 1)
 
             with CVBoxLayout(hbox, 2, **margins) as vbox:
                 with CHBoxLayout(vbox, 1, **margins) as box:
@@ -405,7 +405,8 @@ class RadioControls(Widget):
                 vbox.add(self.timeout)
 
                 with CHBoxLayout(vbox, 1, **margins) as box:
-                    box.add(self.heat)
+                    # box.add(self.heat)
+                    box.add(QPushButton())
                     box.add(QPushButton())
                     box.add(self.time)
 
