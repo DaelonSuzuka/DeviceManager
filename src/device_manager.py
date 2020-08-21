@@ -79,7 +79,7 @@ class DeviceManager(QObject):
                     return
                 self.device = None
                 if hasattr(self, 'disconnected'):
-                    self.disconnected()
+                    self.disconnected(guid)
             return on_device_removed
 
         def decorator(target):

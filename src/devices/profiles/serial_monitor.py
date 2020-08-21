@@ -1,8 +1,8 @@
 from qt import *
 from devices import SerialDevice, DeviceWidget
-from pyte import HistoryScreen, Screen, Stream
 from serial import SerialException
-from style import colors
+from serial_monitor import SerialMonitorWidget
+
 
 class NullBuffer:
     def __init__(self):
@@ -71,88 +71,6 @@ class SerialMonitor(SerialDevice):
             self.connect_monitor(self.w.monitor)
         
         return self.w
-
-
-fg_map = {
-    "black": "black",
-    "red": colors.red,
-    "green": colors.green,
-    "brown": "brown",
-    "blue": colors.blue,
-    "magenta": "magenta",
-    "cyan": colors.teal,
-    "white": colors.gray,
-    "default": colors.gray,  # white.
-}
-
-bg_map = {
-    "black": '#313131',
-    "red": colors.red,
-    "green": colors.green,
-    "brown": "brown",
-    "blue": colors.blue,
-    "magenta": "magenta",
-    "cyan": colors.teal,
-    "white": colors.gray,
-    "default": '#313131'  # black.
-}
-
-
-def render_to_html(buffer):
-    html = [f'<body style="background-color:{bg_map["default"]};">']
-
-    for _, chars in buffer.items():
-        text = ''
-        for _, char in chars.items():
-
-            text += f'<span style="color:{fg_map[char.fg]}; background-color:{bg_map[char.bg]};">'
-            text += char.data
-            text += '</span>'
-
-        text += '<br>'
-        html.append(text)
-
-    html.append('</body>')
-    return "\n".join(html)
-
-
-class SerialMonitorWidget(QTextEdit):
-    tx = Signal(str)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.setReadOnly(True)
-        
-        self.screen = Screen(120, 20)
-        self.stream = Stream(self.screen)
-
-        html = render_to_html(self.screen.buffer)
-        self.setHtml(html)
-
-    def keyPressEvent(self, event: PySide2.QtGui.QKeyEvent):
-        key = event.text()
-
-        if event.key() == Qt.Key_Up:
-            print('up')
-            key = '\e[A'
-        if event.key() == Qt.Key_Down:
-            print('down')
-            key = '\e[B'
-        if event.key() == Qt.Key_Left:
-            print('left')
-            key = '\e[C'
-        if event.key() == Qt.Key_Right:
-            print('right')
-            key = '\e[D'
-
-
-        self.tx.emit(key)
-
-    def rx(self, string):
-        self.stream.feed(string)
-
-        html = render_to_html(self.screen.buffer)
-        self.setHtml(html)
 
 
 class SerialMonitorDockWidget(DeviceWidget):
