@@ -73,12 +73,11 @@ class DeviceManager(QObject):
 
         def get_removed():
             def on_device_removed(self, guid):
-                if self.devices[guid].profile_name == device_name:
-                    if self.device.guid != guid:
-                        return
-                    self.device = None
-                    if hasattr(self, 'disconnected'):
-                        self.disconnected(guid)
+                if self.device is None or self.device.guid != guid:
+                    return
+                self.device = None
+                if hasattr(self, 'disconnected'):
+                    self.disconnected()
             return on_device_removed
 
         def decorator(target):
