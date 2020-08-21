@@ -1,7 +1,7 @@
 from qt import *
 from devices import SerialDevice, DeviceWidget
-from vt102 import screen, stream
-
+from pyte import HistoryScreen, Screen, Stream
+from serial import SerialException
 
 class NullBuffer:
     def __init__(self):
@@ -11,7 +11,7 @@ class NullBuffer:
         self.buffer = ""
 
     def insert_char(self, c):
-        self.buffer = c
+        self.buffer += c
 
     def completed(self):
         if self.buffer:
@@ -29,8 +29,34 @@ class SerialMonitor(SerialDevice):
         self.message_tree = None
         self.w = None
 
-    def recieve(self, string):
-        self.log.debug(f"RX: {string}")
+    def communicate(self):
+        """ Handle comms with the serial port. Call this often, from an event loop or something. """
+        if not self.active:
+            return
+
+        # serial transmit
+        try:
+            if not self.queue.empty():
+                self.ser.write(self.queue.get().encode())
+        except SerialException as e:
+            self.log.exception(e)
+
+        # serial recieve
+        try:
+            while self.ser.in_waiting:
+                self.msg.insert_char(self.ser.read(1).decode())
+        except Exception as e:
+            name = ''
+            if hasattr(self, 'profile_name'):
+                name = self.profile_name
+                
+            self.log.exception(f"{name}: {self.port} | {e}")
+
+        # handle completed message
+        if self.msg.completed():
+            msg = self.msg.buffer
+            self.recieve(msg)
+            self.msg.reset()
 
     @property
     def widget(self):
@@ -47,20 +73,18 @@ class SerialMonitorWidget(QTextEdit):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setReadOnly(True)
-        self.st = stream()
-        self.sc = screen((40, 120))
-        self.sc.attach(self.st)
+        self.setAcceptRichText(True)
+
+        self.screen = Screen(80, 20, history=500)
+        self.stream = Stream(self.screen)
+        self.setText("\n".join(self.screen.display))
 
     def keyPressEvent(self, event: PySide2.QtGui.QKeyEvent):
         self.tx.emit(event.text())
 
     def rx(self, string):
-        self.st.process(string)
-
-        lines = [l for l in self.sc.display]
-
-         
-        self.setText("\n".join(lines))
+        self.stream.feed(string)
+        self.setText("\n".join(self.screen.display))
 
 
 class SerialMonitorDockWidget(DeviceWidget):
