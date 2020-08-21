@@ -30,6 +30,11 @@ class SerialMonitor(SerialDevice):
         self.message_tree = None
         self.w = None
 
+    def recieve(self, string):
+        """ do something when a complete string is captured in self.communicate() """
+        self.log.debug(f"RX: {string}")
+        self.base_signals.send.emit(string)
+        
     def communicate(self):
         """ Handle comms with the serial port. Call this often, from an event loop or something. """
         if not self.active:
@@ -129,16 +134,16 @@ class SerialMonitorWidget(QTextEdit):
 
         if event.key() == Qt.Key_Up:
             print('up')
-            key = '\x18[A'
+            key = '\e[A'
         if event.key() == Qt.Key_Down:
             print('down')
-            key = '\x18[B'
+            key = '\e[B'
         if event.key() == Qt.Key_Left:
             print('left')
-            key = '\x18[C'
+            key = '\e[C'
         if event.key() == Qt.Key_Right:
             print('right')
-            key = '\x18[D'
+            key = '\e[D'
 
 
         self.tx.emit(key)
