@@ -23,12 +23,12 @@ class RadioInfo(Widget):
         grid.add(QLabel("Mode:"), 3, 0)
         grid.add(self.mode, 3, 1)
 
-    def connected(self):
-        self.device.signals.power.connect(lambda s: self.power.setText(s))
-        self.device.signals.frequency.connect(lambda s: self.frequency.setText(s))
-        self.device.signals.mode.connect(lambda s: self.mode.setText(s))
+    def connected(self, device):
+        device.signals.power.connect(lambda s: self.power.setText(s))
+        device.signals.frequency.connect(lambda s: self.frequency.setText(s))
+        device.signals.mode.connect(lambda s: self.mode.setText(s))
 
-    def disconnected(self):
+    def disconnected(self, guid):
         self.power.setText("  ?  ")
         self.frequency.setText("  ?  ")
         self.mode.setText("  ?  ")
@@ -55,13 +55,13 @@ class MeterInfo(Widget):
         grid.add(QLabel("SWR:"), 4, 0)
         grid.add(self.swr, 4, 1)
 
-    def connected(self):
-        self.device.signals.forward.connect(lambda s: self.forward.setText(s))
-        self.device.signals.reverse.connect(lambda s: self.reverse.setText(s))
-        self.device.signals.swr.connect(lambda s: self.swr.setText(s))
-        self.device.signals.frequency.connect(lambda s: self.frequency.setText(s))
+    def connected(self, device):
+        device.signals.forward.connect(lambda s: self.forward.setText(s))
+        device.signals.reverse.connect(lambda s: self.reverse.setText(s))
+        device.signals.swr.connect(lambda s: self.swr.setText(s))
+        device.signals.frequency.connect(lambda s: self.frequency.setText(s))
 
-    def disconnected(self):
+    def disconnected(self, guid):
         self.forward.setText("  ?  ")
         self.reverse.setText("  ?  ")
         self.swr.setText("  ?  ")
@@ -123,9 +123,9 @@ class PowerButtons(Widget):
         self.lock.toggled.connect(lambda s: self.set_limit(not s))
         self.set_limit(True)
 
-    def connected(self):
-        self.device.signals.power.connect(lambda s: self.set_power(s))
-        self.power_changed.connect(self.device.set_power_level)
+    def connected(self, device):
+        device.signals.power.connect(lambda s: self.set_power(s))
+        self.power_changed.connect(device.set_power_level)
 
     def update_power(self, power):
         power = str(power)
@@ -194,11 +194,11 @@ class FrequencyButtons(Widget):
         self.up = grid.add(QPushButton('^', clicked=lambda: self.uncheck_all()), 1, 1, 5, 2)
         self.down = grid.add(QPushButton('v', clicked=lambda: self.uncheck_all()), 6, 1, 5, 2)
 
-    def connected(self):
-        self.device.signals.frequency.connect(lambda s: self.select(s))
-        self.up.clicked.connect(self.device.band_up)
-        self.down.clicked.connect(self.device.band_down)
-        self.set_frequency.connect(self.device.set_vfoA_frequency)
+    def connected(self, device):
+        device.signals.frequency.connect(lambda s: self.select(s))
+        self.up.clicked.connect(device.band_up)
+        self.down.clicked.connect(device.band_down)
+        self.set_frequency.connect(device.set_vfoA_frequency)
 
     def uncheck_all(self):
         self.btns.setExclusive(False)
@@ -262,10 +262,10 @@ class KeyButton(IconToggleButton):
         self.icon_unchecked = qta.icon('mdi.radio-tower', color='gray')
         self.update_icon()
 
-    def connected(self):
-        self.device.signals.keyed.connect(lambda: self.setChecked(True))
-        self.device.signals.unkeyed.connect(lambda: self.setChecked(False))
-        self.clicked.connect(self.device.toggle_key)
+    def connected(self, device):
+        device.signals.keyed.connect(lambda: self.setChecked(True))
+        device.signals.unkeyed.connect(lambda: self.setChecked(False))
+        self.clicked.connect(device.toggle_key)
 
 
 @DeviceManager.subscribe_to("TS-480")
@@ -286,11 +286,11 @@ class ModeComboBox(QComboBox):
         self.setMinimumHeight(40)
         self.setMaximumHeight(100)
 
-    def connected(self):
-        self.activated.connect(lambda: self.device.set_mode(self.currentText().lstrip(' ')))
-        self.device.signals.mode.connect(lambda s: self.select_mode(s))
+    def connected(self, device):
+        self.activated.connect(lambda: device.set_mode(self.currentText().lstrip(' ')))
+        device.signals.mode.connect(lambda s: self.select_mode(s))
         self.clear()
-        self.addItems([m for m in self.device.modes if m != ""])
+        self.addItems([m for m in device.modes if m != ""])
 
     def disconected(self):
         self.clear()
@@ -332,8 +332,8 @@ class TimeoutBar(QProgressBar):
         self.timer.timeout.connect(lambda: self.update_timeout_bar())
         self.timer.start(50)
 
-    def connected(self):
-        self.device.signals.power.connect(lambda s: self.set_power(s))
+    def connected(self, device):
+        device.signals.power.connect(lambda s: self.set_power(s))
 
     def set_power(self, power):
         self.current_power = int(power)
@@ -413,15 +413,15 @@ class RadioControls(Widget):
                     box.add(QPushButton())
                     box.add(self.time)
 
-    def connected(self):
+    def connected(self, device):
         self.setEnabled(True)
         
-        self.device.unkey()
-        self.device.get_power_level()
-        self.device.get_mode()
-        self.device.get_vfoA_frequency()
+        device.unkey()
+        device.get_power_level()
+        device.get_mode()
+        device.get_vfoA_frequency()
 
-    def disconnected(self):
+    def disconnected(self, guid):
         self.setEnabled(False)
 
 
@@ -442,15 +442,15 @@ class SwitchControls(Widget):
         self.btns.addButton(self.three)
         self.btns.addButton(self.four)
         
-    def connected(self):
+    def connected(self, device):
         self.setEnabled(True)
 
-        self.one.clicked.connect(lambda: self.device.select_antenna(1))
-        self.two.clicked.connect(lambda: self.device.select_antenna(2))
-        self.three.clicked.connect(lambda: self.device.select_antenna(3))
-        self.four.clicked.connect(lambda: self.device.select_antenna(4))
+        self.one.clicked.connect(lambda: device.select_antenna(1))
+        self.two.clicked.connect(lambda: device.select_antenna(2))
+        self.three.clicked.connect(lambda: device.select_antenna(3))
+        self.four.clicked.connect(lambda: device.select_antenna(4))
 
-    def disconnected(self):
+    def disconnected(self, guid):
         self.setEnabled(False)
 
 
