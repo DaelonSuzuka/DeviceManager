@@ -7,3 +7,4 @@ QtAwesome==0.7.2
 QtPy==1.9.0
 shiboken2==5.15.0
 six==1.15.0
+vt102==0.5

@@ -40,6 +40,10 @@ class SerialDeviceBase:
         socket.textMessageReceived.connect(self.send)
         self.base_signals.send.connect(lambda s: socket.sendTextMessage(s))
 
+    def connect_monitor(self, monitor):
+        monitor.tx.connect(self.send)
+        self.base_signals.send.connect(lambda s: monitor.rx(s))
+
     def open(self):
         """ open the serial port and set the device to active """
         if self.port == "DummyPort":

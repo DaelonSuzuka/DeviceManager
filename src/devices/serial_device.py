@@ -108,15 +108,16 @@ class SerialDevice(SerialDeviceBase):
 
     def process_message(self, msg, table):
         # TODO: catch KeyErrors
-        for k in msg.keys():
-            # does the table list an action?
-            if k in table.keys() and callable(table[k]):
-                table[k](msg[k])
+        if self.message_tree is not None:
+            for k in msg.keys():
+                # does the table list an action?
+                if k in table.keys() and callable(table[k]):
+                    table[k](msg[k])
 
-            # can we go deeper?
-            elif isinstance(msg[k], dict):
-                if k in table.keys():
-                    self.process_message(msg[k], table[k])
+                # can we go deeper?
+                elif isinstance(msg[k], dict):
+                    if k in table.keys():
+                        self.process_message(msg[k], table[k])
 
     def recieve(self, string):
         super().recieve(string)

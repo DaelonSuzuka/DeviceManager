@@ -47,3 +47,4 @@ from .variablecapacitor import VariableCapacitor
 from .variableinductor import VariableInductor
 from .variable_dummy_load import VariableDummyLoad
 from .yaesuFT991 import FT991
+from .serial_monitor import SerialMonitor
