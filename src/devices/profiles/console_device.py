@@ -20,8 +20,8 @@ class NullBuffer:
         return False
 
 
-class SerialMonitor(SerialDevice):
-    profile_name = "SerialMonitor"
+class ConsoleDevice(SerialDevice):
+    profile_name = "ConsoleDevice"
 
     def __init__(self, port=None, baud=115200, device=None):
         super().__init__(port=port, baud=baud, device=device)
@@ -67,13 +67,13 @@ class SerialMonitor(SerialDevice):
     @property
     def widget(self):
         if self.w is None:
-            self.w = SerialMonitorDockWidget(self.title, self.guid)
+            self.w = ConsoleDeviceWidget(self.title, self.guid)
             self.connect_monitor(self.w.monitor)
         
         return self.w
 
 
-class SerialMonitorDockWidget(DeviceWidget):
+class ConsoleDeviceWidget(DeviceWidget):
     def build_layout(self):
         grid = QGridLayout()
         
