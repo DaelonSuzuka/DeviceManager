@@ -55,22 +55,26 @@ def render_to_html(buffer):
     return "\n".join(html)
 
 
-class SerialMonitorWidget(QTextEdit):
+class SerialMonitorWidget(QWidget):
     tx = Signal(str)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, columns=120, rows=30, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setReadOnly(True)
+        self.text = QTextEdit()
+        self.text.setReadOnly(True)
 
-        font = self.font()
+        with CVBoxLayout(self) as layout:
+            layout.addWidget(self.text)
+
+        font = self.text.font()
         font.setFamily('Courier New')
-        self.setFont(font)
+        self.text.setFont(font)
         
-        self.screen = Screen(120, 30)
+        self.screen = Screen(columns, rows)
         self.stream = Stream(self.screen)
 
         html = render_to_html(self.screen.buffer)
-        self.setHtml(html)
+        self.text.setHtml(html)
 
     def keyPressEvent(self, event: PySide2.QtGui.QKeyEvent):
         key = event.text()
@@ -108,4 +112,4 @@ class SerialMonitorWidget(QTextEdit):
         self.stream.feed(string)
 
         html = render_to_html(self.screen.buffer)
-        self.setHtml(html)
+        self.text.setHtml(html)
