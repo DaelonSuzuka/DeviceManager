@@ -29,14 +29,23 @@ bg_map = {
 
 
 def render_to_html(buffer):
-    html = [f'<body style="background-color:{bg_map["default"]};">']
+    html = []
+    html.append('<body>')
 
     for _, chars in buffer.items():
         text = ''
         for _, char in chars.items():
 
-            text += f'<span style="color:{fg_map[char.fg]}; background-color:{bg_map[char.bg]};">'
-            text += char.data
+            # background and highlighting in chitin use the 'reverse' text attribute instead of setting the bg-color
+            if char.reverse:
+                text += f'<span style="color: {colors.black}; background-color: {fg_map[char.fg]}">'
+            else:
+                text += f'<span style="color: {fg_map[char.fg]};">'
+
+            if char.data == ' ':
+                text += '&nbsp;' # html collapses multiple spaces but not the nbsp character
+            else:
+                text += char.data
             text += '</span>'
 
         text += '<br>'
