@@ -143,7 +143,7 @@ class MainWindow(QMainWindow):
         self.dm.scan_timer.stop()
         self.dm.update_timer.stop()
         self.dm.close()
-        self.servitor.control_panel.radio.timeout.timer.stop()
+        self.servitor.radio.timeout.timer.stop()
         self.tuner.worker.slots.stop()
         self.tuner.thread.quit()
         
