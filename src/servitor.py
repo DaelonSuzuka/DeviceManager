@@ -68,21 +68,6 @@ class MeterInfo(Widget):
         self.frequency.setText("  ?  ")
 
 
-class InfoPanel(Widget):        
-    def create_widgets(self):
-        self.radio_info = RadioInfo()
-        self.meter_info = MeterInfo()
-
-    def build_layout(self):
-        grid = CGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
-
-        grid.add(self.radio_info, 0, 0)
-        grid.add(HLine(), 1, 0)
-        grid.add(self.meter_info, 2, 0)
-        
-        grid.setRowStretch(5, 1)
-
-
 class LockButton(ConfirmToggleButton):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -454,19 +439,6 @@ class SwitchControls(Widget):
         self.setEnabled(False)
 
 
-class ControlPanel(Widget):        
-    def create_widgets(self):
-        self.radio = RadioControls(enabled=False)
-        self.switch = SwitchControls(enabled=False)
-
-    def build_layout(self):
-        grid = CVBoxLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
-        
-        grid.add(self.radio, 4)
-        grid.add(HLine())
-        grid.add(self.switch, 1)
-
-
 class ServitorWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -480,16 +452,26 @@ class ServitorWidget(QWidget):
         self.setBackgroundRole(QPalette.Base)
         self.setAutoFillBackground(True)
 
-        self.info_panel = InfoPanel()
-        self.control_panel = ControlPanel()
+        self.radio = RadioControls(enabled=False)
+        self.switch = SwitchControls(enabled=False)
+        self.radio_info = RadioInfo()
+        self.meter_info = MeterInfo()
 
-        grid = QGridLayout(self)
+        margins = { 'contentsMargins': QMargins(0, 0, 0, 0) }
 
-        grid.addWidget(self.info_panel, 0, 0)
-        grid.setColumnStretch(0, 2)
-        grid.addWidget(VLine(), 0, 1)
-        grid.addWidget(self.control_panel, 0, 2)
-        grid.setColumnStretch(2, 7)
+        with CHBoxLayout(self) as hbox:
+            with CVBoxLayout(hbox, 1, **margins) as vbox:
+                vbox.setAlignment(Qt.AlignTop)
+                vbox.add(self.radio_info)
+                vbox.add(HLine())
+                vbox.add(self.meter_info)
+
+            hbox.addWidget(VLine())
+
+            with CVBoxLayout(hbox, 4, **margins) as vbox:
+                vbox.add(self.radio, 4)
+                vbox.add(HLine())
+                vbox.add(self.switch, 1)
 
 
 class ServitorSubWindow(QMdiSubWindow):
