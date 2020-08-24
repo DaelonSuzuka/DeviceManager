@@ -63,21 +63,3 @@ class ConsoleDevice(SerialDevice):
             msg = self.msg.buffer
             self.recieve(msg)
             self.msg.reset()
-
-    @property
-    def widget(self):
-        if self.w is None:
-            self.w = ConsoleDeviceWidget(self.title, self.guid)
-            self.connect_monitor(self.w.monitor)
-        
-        return self.w
-
-
-class ConsoleDeviceWidget(DeviceWidget):
-    def build_layout(self):
-        grid = QGridLayout()
-        
-        self.monitor = SerialMonitorWidget()
-        grid.addWidget(self.monitor)
-
-        self.setWidget(QWidget(layout=grid))
