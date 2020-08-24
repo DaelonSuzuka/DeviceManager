@@ -62,19 +62,32 @@ class SerialMonitorWidget(QTextEdit):
     def keyPressEvent(self, event: PySide2.QtGui.QKeyEvent):
         key = event.text()
 
-        if event.key() == Qt.Key_Up:
-            print('up')
-            key = '\eA'
-        if event.key() == Qt.Key_Down:
-            print('down')
-            key = '\eB'
-        if event.key() == Qt.Key_Left:
-            print('left')
-            key = '\eC'
-        if event.key() == Qt.Key_Right:
-            print('right')
-            key = '\eD'
+        esc = '\033'
+        key_map = {
+            Qt.Key_Up: '[A',
+            Qt.Key_Down: '[B',
+            Qt.Key_Right: '[C',
+            Qt.Key_Left: '[D',
+            Qt.Key_Home: '[1~',
+            Qt.Key_End: '[OF',
+            Qt.Key_PageUp: '[5~',
+            Qt.Key_PageDown: '[6~',
+            Qt.Key_F1: 'OP',
+            Qt.Key_F2: 'OQ',
+            Qt.Key_F3: 'OR',
+            Qt.Key_F4: 'OS',
+            Qt.Key_F5: '[16~',
+            Qt.Key_F6: '[17~',
+            Qt.Key_F7: '[18~',
+            Qt.Key_F8: '[19~',
+            Qt.Key_F9: '[20~',
+            Qt.Key_F10: '[21~',
+            Qt.Key_F11: '[22~',
+            Qt.Key_F12: '[24~',
+        }
 
+        if event.key() in key_map:
+            key = esc + key_map[event.key()]
 
         self.tx.emit(key)
 
