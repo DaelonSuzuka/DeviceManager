@@ -52,6 +52,10 @@ class SerialMonitorWidget(QTextEdit):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setReadOnly(True)
+
+        font = self.font()
+        font.setFamily('Courier New')
+        self.setFont(font)
         
         self.screen = Screen(120, 30)
         self.stream = Stream(self.screen)
