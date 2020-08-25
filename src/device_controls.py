@@ -1,5 +1,6 @@
 from qt import *
 from device_manager import DeviceManager
+from serial_monitor import SerialMonitorWidget
 
 
 class DeviceTreeWidgetItem(QTreeWidgetItem):
@@ -61,7 +62,11 @@ class DeviceTree(QTreeWidget):
 
         menu = QMenu()
         menu.addAction(QAction("Settings", self, triggered=lambda: self.open_settings(item)))
-        menu.addAction(QAction("Widget", self, triggered=lambda: self.open_widget(item)))
+
+        if hasattr(item.device, 'widget'):
+            menu.addAction(QAction("Show Control Widget", self, triggered=lambda: self.open_widget(item)))
+
+        menu.addAction(QAction("Open Serial Monitor", self, triggered=lambda: self.open_monitor(item)))
         menu.addAction(QAction("Remove", self, triggered=lambda: self.remove_clicked(item)))
         menu.exec_(pos)
 
@@ -73,6 +78,12 @@ class DeviceTree(QTreeWidget):
         if hasattr(item, 'device'):
             if hasattr(item.device, 'widget'):
                 self.parent().show_device_widget(item)
+
+    def open_monitor(self, item):
+        monitor = SerialMonitorWidget()
+        monitor.setWindowTitle(item.device.title)
+        item.device.connect_monitor(monitor)
+        monitor.show()
 
     def remove_clicked(self, item):
         if hasattr(item, 'device'):
