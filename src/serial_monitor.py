@@ -62,6 +62,10 @@ class SerialMonitorWidget(QWidget):
         super().__init__(*args, **kwargs)
         self.text = QTextEdit()
         self.text.setReadOnly(True)
+        self.text.installEventFilter(self)
+
+        self.setMinimumWidth(600)
+        self.setMinimumHeight(400)
 
         with CVBoxLayout(self) as layout:
             layout.addWidget(self.text)
@@ -75,6 +79,14 @@ class SerialMonitorWidget(QWidget):
 
         html = render_to_html(self.screen.buffer)
         self.text.setHtml(html)
+
+    def eventFilter(self, watched: PySide2.QtCore.QObject, event: PySide2.QtCore.QEvent) -> bool:
+        if event.type() == QEvent.Type.KeyPress:
+            self.keyPressEvent(event)
+            event.accept()
+            return True
+
+        return False
 
     def keyPressEvent(self, event: PySide2.QtGui.QKeyEvent):
         key = event.text()
