@@ -12,6 +12,7 @@ from settings import SettingsManager
 from command_palette import CommandPalette, Command
 from tuner import Tuner
 from servitor import ServitorWidget
+from diagnostics import DiagnosticWidget
 from device_controls import DeviceControlsDockWidget
 from log_monitor import LogMonitorDockWidget
 
@@ -33,6 +34,7 @@ class MainWindow(QMainWindow):
         self.tuner_controls = self.tuner.controls
         self.device_controls = DeviceControlsDockWidget(self)
         self.servitor = ServitorWidget()
+        self.diagnostics = DiagnosticWidget()
 
         self.addActions([
             Command("Preferences: Open Settings (JSON)", self),
@@ -51,6 +53,7 @@ class MainWindow(QMainWindow):
         self.setContentsMargins(QMargins(3, 3, 3, 0))
 
         self.tabs.addTab(self.servitor, 'Servitor')
+        self.tabs.addTab(self.diagnostics, 'Diagnostics')
         # self.tabs.addTab(self.tuner_controls, 'Tuner')
 
         # init dockwidget settings
