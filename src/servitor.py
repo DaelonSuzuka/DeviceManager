@@ -237,6 +237,30 @@ class TimeoutButton(IconToggleButton):
         self.update_icon()
 
 
+@DeviceManager.subscribe_to("RadioInterface")
+class RadioInterfaceButton(QPushButton):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setText('Tune')
+        self.setCheckable(True)
+
+        self.timer = QTimer(self, timeout=self.uncheck)
+        self.toggled.connect(self.on_toggle)
+
+    def on_toggle(self, state):
+        if state == True:
+            if self.device is not None:
+                self.device.send('t')
+
+            self.timer.start(3000)
+            self.setEnabled(False)
+
+    def uncheck(self):
+        self.setChecked(False)
+        self.setEnabled(True)
+        self.timer.stop()
+
+
 @DeviceManager.subscribe_to("TS-480")
 class KeyButton(IconToggleButton):
     def __init__(self, *args, **kwargs):
@@ -367,6 +391,7 @@ class RadioControls(Widget):
         self.time = TimeoutButton()
 
         self.timeout = TimeoutBar()
+        self.radio_interface = RadioInterfaceButton()
         self.key = KeyButton()
 
         self.time.toggled.connect(self.timeout.set_suppressed)
@@ -386,7 +411,7 @@ class RadioControls(Widget):
 
             with CVBoxLayout(hbox, 2, **margins) as vbox:
                 with CHBoxLayout(vbox, 1, **margins) as box:
-                    box.add(QPushButton())
+                    box.add(QPushButton(disabled=True))
                     box.add(self.mode)
 
                 vbox.add(self.key, 5)
@@ -394,8 +419,8 @@ class RadioControls(Widget):
 
                 with CHBoxLayout(vbox, 1, **margins) as box:
                     # box.add(self.heat)
-                    box.add(QPushButton())
-                    box.add(QPushButton())
+                    box.add(self.radio_interface)
+                    box.add(QPushButton(disabled=True))
                     box.add(self.time)
 
     def connected(self, device):
