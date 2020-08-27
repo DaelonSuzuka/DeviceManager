@@ -1,7 +1,6 @@
 from qt import *
-from devices import SerialDevice, DeviceWidget
+from devices import SerialDevice
 from serial import SerialException
-from serial_monitor import SerialMonitorWidget
 
 
 class NullBuffer:
