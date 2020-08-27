@@ -327,7 +327,7 @@ class BypassButton(QPushButton):
             if self.device is not None:
                 self.device.send('b')
 
-            self.timer.start(100)
+            self.timer.start(250)
             self.setEnabled(False)
             for button in self.peers:
                 button.setEnabled(False)
@@ -497,9 +497,9 @@ class RadioControls(Widget):
 
             with CVBoxLayout(hbox, 2, **margins) as vbox:
                 with CHBoxLayout(vbox, 1, **margins) as box:
-                    # box.add(QPushButton(disabled=True))
-                    box.add(self.mode)
                     box.add(self.time)
+                    box.add(QPushButton(disabled=True))
+                    box.add(self.mode)
 
                 vbox.add(self.key, 5)
                 vbox.add(self.timeout)
