@@ -247,6 +247,12 @@ class FullTuneButton(QPushButton):
         self.timer = QTimer(self, timeout=self.uncheck)
         self.toggled.connect(self.on_toggle)
 
+        self.peers = []
+
+    def register(self, *buttons):
+        for button in buttons:
+            self.peers.append(button)
+
     def on_toggle(self, state):
         if state == True:
             if self.device is not None:
@@ -254,11 +260,15 @@ class FullTuneButton(QPushButton):
 
             self.timer.start(3000)
             self.setEnabled(False)
+            for button in self.peers:
+                button.setEnabled(False)
 
     def uncheck(self):
+        self.timer.stop()
         self.setChecked(False)
         self.setEnabled(True)
-        self.timer.stop()
+        for button in self.peers:
+            button.setEnabled(True)
 
 
 @DeviceManager.subscribe_to("RadioInterface")
@@ -271,6 +281,12 @@ class MemoryTuneButton(QPushButton):
         self.timer = QTimer(self, timeout=self.uncheck)
         self.toggled.connect(self.on_toggle)
 
+        self.peers = []
+
+    def register(self, *buttons):
+        for button in buttons:
+            self.peers.append(button)
+
     def on_toggle(self, state):
         if state == True:
             if self.device is not None:
@@ -278,11 +294,50 @@ class MemoryTuneButton(QPushButton):
 
             self.timer.start(1500)
             self.setEnabled(False)
+            for button in self.peers:
+                button.setEnabled(False)
 
     def uncheck(self):
+        self.timer.stop()
         self.setChecked(False)
         self.setEnabled(True)
+        for button in self.peers:
+            button.setEnabled(True)
+
+
+@DeviceManager.subscribe_to("RadioInterface")
+class BypassButton(QPushButton):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setText('Bypass')
+        self.setCheckable(True)
+
+        self.timer = QTimer(self, timeout=self.uncheck)
+        self.toggled.connect(self.on_toggle)
+
+        self.peers = []
+
+    def register(self, *buttons):
+        for button in buttons:
+            self.peers.append(button)
+
+
+    def on_toggle(self, state):
+        if state == True:
+            if self.device is not None:
+                self.device.send('b')
+
+            self.timer.start(100)
+            self.setEnabled(False)
+            for button in self.peers:
+                button.setEnabled(False)
+
+    def uncheck(self):
         self.timer.stop()
+        self.setChecked(False)
+        self.setEnabled(True)
+        for button in self.peers:
+            button.setEnabled(True)
 
 
 @DeviceManager.subscribe_to("TS-480")
@@ -414,9 +469,15 @@ class RadioControls(Widget):
         self.heat = HeatButton()
         self.time = TimeoutButton()
 
-        self.timeout = TimeoutBar()
-        self.full_tune = FullTuneButton()
+        self.bypass = BypassButton()
         self.memory_tune = MemoryTuneButton()
+        self.full_tune = FullTuneButton()
+
+        self.bypass.register(self.memory_tune, self.full_tune)
+        self.memory_tune.register(self.bypass, self.full_tune)
+        self.full_tune.register(self.bypass, self.memory_tune)
+
+        self.timeout = TimeoutBar()
         self.key = KeyButton()
 
         self.time.toggled.connect(self.timeout.set_suppressed)
@@ -436,17 +497,18 @@ class RadioControls(Widget):
 
             with CVBoxLayout(hbox, 2, **margins) as vbox:
                 with CHBoxLayout(vbox, 1, **margins) as box:
-                    box.add(QPushButton(disabled=True))
+                    # box.add(QPushButton(disabled=True))
                     box.add(self.mode)
+                    box.add(self.time)
 
                 vbox.add(self.key, 5)
                 vbox.add(self.timeout)
 
                 with CHBoxLayout(vbox, 1, **margins) as box:
                     # box.add(self.heat)
-                    box.add(self.full_tune)
+                    box.add(self.bypass)
                     box.add(self.memory_tune)
-                    box.add(self.time)
+                    box.add(self.full_tune)
 
     def connected(self, device):
         self.setEnabled(True)
