@@ -28,6 +28,10 @@ class RadioInfo(Widget):
         device.signals.frequency.connect(lambda s: self.frequency.setText(s))
         device.signals.mode.connect(lambda s: self.mode.setText(s))
 
+        device.get_power_level()
+        device.get_mode()
+        device.get_vfoA_frequency()
+
     def disconnected(self, guid):
         self.power.setText("  ?  ")
         self.frequency.setText("  ?  ")
@@ -402,9 +406,6 @@ class RadioControls(Widget):
         self.setEnabled(True)
         
         device.unkey()
-        device.get_power_level()
-        device.get_mode()
-        device.get_vfoA_frequency()
 
     def disconnected(self, guid):
         self.setEnabled(False)
