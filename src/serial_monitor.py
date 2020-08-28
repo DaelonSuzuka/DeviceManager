@@ -28,44 +28,23 @@ bg_map = {
 }
 
 
-def render_to_html(buffer):
-    html = []
-    html.append('<body>')
-
-    for _, chars in buffer.items():
-        text = ''
-        for _, char in chars.items():
-
-            # background and highlighting in chitin use the 'reverse' text attribute instead of setting the bg-color
-            if char.reverse:
-                text += f'<span style="color: {colors.black}; background-color: {fg_map[char.fg]}">'
-            else:
-                text += f'<span style="color: {fg_map[char.fg]};">'
-
-            if char.data == ' ':
-                text += '&nbsp;' # html collapses multiple spaces but not the nbsp character
-            else:
-                text += char.data
-            text += '</span>'
-
-        text += '<br>'
-        html.append(text)
-
-    html.append('</body>')
-    return "\n".join(html)
 
 
 class SerialMonitorWidget(QWidget):
     tx = Signal(str)
 
-    def __init__(self, *args, columns=120, rows=30, **kwargs):
+    def __init__(self, *args, columns=120, rows=1000, **kwargs):
         super().__init__(*args, **kwargs)
         self.text = QTextEdit()
         self.text.setReadOnly(True)
-        self.text.installEventFilter(self)
+        self.text.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.text.verticalScrollBar().setDisabled(True);
 
-        self.setMinimumWidth(600)
-        self.setMinimumHeight(400)
+        self.text.installEventFilter(self)
+        self.installEventFilter(self)
+
+        self.setMinimumWidth(400)
+        self.setMinimumHeight(200)
 
         with CVBoxLayout(self) as layout:
             layout.addWidget(self.text)
@@ -77,12 +56,38 @@ class SerialMonitorWidget(QWidget):
         self.screen = Screen(columns, rows)
         self.stream = Stream(self.screen)
 
-        html = render_to_html(self.screen.buffer)
-        self.text.setHtml(html)
+        self.position = 0
+        self.visible_lines = 30
+
+        self.render_screen()
+
+    def resizeEvent(self, event: PySide2.QtGui.QResizeEvent):
+        super().resizeEvent(event)
+
+        self.visible_lines = self.text.height() // self.text.fontMetrics().lineSpacing()
+        self.render_screen()
 
     def eventFilter(self, watched: PySide2.QtCore.QObject, event: PySide2.QtCore.QEvent) -> bool:
         if event.type() == QEvent.Type.KeyPress:
             self.keyPressEvent(event)
+            event.accept()
+            return True
+        elif event.type() == QEvent.Type.Wheel:
+            if event.angleDelta().y() > 0: # up
+                if self.position > 0:
+                    self.position -= 1
+
+                    print(self.position)
+                    self.render_screen()
+
+
+            elif event.angleDelta().y() < 0: # down
+                if self.position < len(self.screen.buffer.keys()):
+                    self.position += 1
+            
+                    print(self.position)
+                    self.render_screen()
+                
             event.accept()
             return True
 
@@ -121,7 +126,56 @@ class SerialMonitorWidget(QWidget):
         self.tx.emit(key)
 
     def rx(self, string):
-        self.stream.feed(string)
+        sticky = False
+        if self.position == (len(self.screen.buffer.keys()) - self.visible_lines):
+            sticky = True
 
-        html = render_to_html(self.screen.buffer)
+        self.stream.feed(string)
+        self.render_screen()
+
+        if sticky == True:
+            self.position = len(self.screen.buffer.keys()) - self.visible_lines
+        
+        print(self.position)
+        
+
+    def render_screen(self):
+        
+        if self.visible_lines < len(self.screen.buffer.keys()):
+            self.position = 0
+        
+
+        lines = list(self.screen.buffer.keys())
+        lines = lines[self.position:self.position + self.visible_lines]
+        print(lines)
+
+
+        html = self.render_to_html(self.screen.buffer, lines)
         self.text.setHtml(html)
+
+
+    def render_to_html(self, buffer, lines):
+        html = []
+        html.append('<body>')
+
+        for line in lines:
+            text = ''
+            for _, char in buffer[line].items():
+
+                # background and highlighting in chitin use the 'reverse' text attribute instead of setting the bg-color
+                if char.reverse:
+                    text += f'<span style="color: {colors.black}; background-color: {fg_map[char.fg]}">'
+                else:
+                    text += f'<span style="color: {fg_map[char.fg]};">'
+
+                if char.data == ' ':
+                    text += '&nbsp;' # html collapses multiple spaces but not the nbsp character
+                else:
+                    text += char.data
+                text += '</span>'
+
+            text += '<br>'
+            html.append(text)
+
+        html.append('</body>')
+        return "\n".join(html)

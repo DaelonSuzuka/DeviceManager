@@ -19,10 +19,10 @@ class NullBuffer:
         return False
 
 
-class ConsoleDevice(SerialDevice):
-    profile_name = "ConsoleDevice"
+class RadioInterface(SerialDevice):
+    profile_name = "RadioInterface"
 
-    def __init__(self, port=None, baud=115200, device=None):
+    def __init__(self, port=None, baud=9600, device=None):
         super().__init__(port=port, baud=baud, device=device)
 
         self.msg = NullBuffer()
