@@ -19,8 +19,10 @@ class CommonMessagesMixin:
         return {
             'update': {
                 'device_info': {
-                    'name': lambda s: self.__setattr__('name', s),
-                    'guid': lambda s: self.__setattr__('guid', s),
+                    'product_name': lambda s: self.__setattr__('name', s),
+                    'serial_number': lambda s: self.__setattr__('guid', s),
+                    'firmware_version': lambda s: self.__setattr__('firmware_version', s),
+                    'protocol_version': lambda s: self.__setattr__('protocol_version', s),
                 }
             },
             'response': {
