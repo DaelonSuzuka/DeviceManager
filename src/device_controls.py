@@ -66,6 +66,9 @@ class DeviceTree(QTreeWidget):
         if hasattr(item.device, 'widget'):
             menu.addAction(QAction("Show Control Widget", self, triggered=lambda: self.open_widget(item)))
 
+        if hasattr(item.device, 'locate'):
+            menu.addAction(QAction("Locate Device", self, triggered=item.device.locate))
+
         menu.addAction(QAction("Open Serial Monitor", self, triggered=lambda: self.open_monitor(item)))
         menu.addAction(QAction("Remove", self, triggered=lambda: self.remove_clicked(item)))
         menu.exec_(pos)
