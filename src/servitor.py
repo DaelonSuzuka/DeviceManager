@@ -27,10 +27,12 @@ class RadioInfo(Widget):
         device.signals.power.connect(lambda s: self.power.setText(s))
         device.signals.frequency.connect(lambda s: self.frequency.setText(s))
         device.signals.mode.connect(lambda s: self.mode.setText(s))
+        QTimer.singleShot(50, self.get_initial_radio_state)
 
-        device.get_power_level()
-        device.get_mode()
-        device.get_vfoA_frequency()
+    def get_initial_radio_state(self):
+        self.device.get_power_level()
+        self.device.get_mode()
+        self.device.get_vfoA_frequency()
 
     def disconnected(self, guid):
         self.power.setText("  ?  ")
