@@ -260,7 +260,7 @@ class FullTuneButton(QPushButton):
     def on_toggle(self, state):
         if state == True:
             if self.device is not None:
-                self.device.send('t')
+                self.device.set_output(True)
 
             self.timer.start(3000)
             self.setEnabled(False)
@@ -268,6 +268,7 @@ class FullTuneButton(QPushButton):
                 button.setEnabled(False)
 
     def uncheck(self):
+        self.device.set_output(False)
         self.timer.stop()
         self.setChecked(False)
         self.setEnabled(True)
@@ -294,7 +295,7 @@ class MemoryTuneButton(QPushButton):
     def on_toggle(self, state):
         if state == True:
             if self.device is not None:
-                self.device.send('m')
+                self.device.set_output(True)
 
             self.timer.start(1500)
             self.setEnabled(False)
@@ -302,6 +303,7 @@ class MemoryTuneButton(QPushButton):
                 button.setEnabled(False)
 
     def uncheck(self):
+        self.device.set_output(False)
         self.timer.stop()
         self.setChecked(False)
         self.setEnabled(True)
@@ -329,7 +331,7 @@ class BypassButton(QPushButton):
     def on_toggle(self, state):
         if state == True:
             if self.device is not None:
-                self.device.send('b')
+                self.device.set_output(True)
 
             self.timer.start(250)
             self.setEnabled(False)
@@ -337,6 +339,7 @@ class BypassButton(QPushButton):
                 button.setEnabled(False)
 
     def uncheck(self):
+        self.device.set_output(False)
         self.timer.stop()
         self.setChecked(False)
         self.setEnabled(True)
