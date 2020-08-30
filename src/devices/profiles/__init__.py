@@ -49,3 +49,4 @@ from .variable_dummy_load import VariableDummyLoad
 from .yaesuFT991 import FT991
 from .console_device import ConsoleDevice
 from .radio_interface import RadioInterface
+from .judi_pedals import JudiPedals
