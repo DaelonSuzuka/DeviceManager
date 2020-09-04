@@ -11,6 +11,7 @@ from settings import SettingsManager
 
 from command_palette import CommandPalette, Command
 from tuner import Tuner
+from manual_tuner import ManualTuner
 from servitor import ServitorWidget
 from diagnostics import DiagnosticWidget
 from device_controls import DeviceControlsDockWidget
@@ -30,8 +31,7 @@ class MainWindow(QMainWindow):
         self.dm = DeviceManager(self)
         self.server = DeviceServer(self)
         self.client = DeviceClient(self)
-        self.tuner = Tuner()
-        self.tuner_controls = self.tuner.controls
+        self.manual_tuner = ManualTuner()
         self.device_controls = DeviceControlsDockWidget(self)
         self.servitor = ServitorWidget()
         self.diagnostics = DiagnosticWidget()
@@ -52,9 +52,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.tabs)
         self.setContentsMargins(QMargins(3, 3, 3, 0))
 
-        self.tabs.addTab(self.servitor, 'Servitor')
-        self.tabs.addTab(self.diagnostics, 'Diagnostics')
-        # self.tabs.addTab(self.tuner_controls, 'Tuner')
+        self.tabs.addTab(self.manual_tuner, 'Manual Tuner')
 
         # init dockwidget settings
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
@@ -147,8 +145,6 @@ class MainWindow(QMainWindow):
         self.dm.update_timer.stop()
         self.dm.close()
         self.servitor.radio.timeout.timer.stop()
-        self.tuner.worker.slots.stop()
-        self.tuner.thread.quit()
         
         self.save_settings()
         SettingsManager().save_now()
