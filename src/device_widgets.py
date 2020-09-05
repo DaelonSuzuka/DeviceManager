@@ -146,6 +146,8 @@ class RFSensorWidget(QWidget):
     def connected(self, device):
         device.signals.forward.connect(lambda x: self.rf_panel.forward.setText(f"{x:10.2f}"))
         device.signals.reverse.connect(lambda x: self.rf_panel.reverse.setText(f"{x:10.2f}"))
+        device.signals.phase.connect(lambda x: self.rf_panel.phase.setText(f"{x}"))
+        device.signals.frequency.connect(lambda x: self.rf_panel.frequency.setText(f"{x}"))
 
         self.setEnabled(True)
 
@@ -161,6 +163,7 @@ class RFPanel(QGroupBox):
         # create widgets
         self.frequency = QLabel("?")
         self.forward = QLabel("?")
+        self.phase = QLabel("?")
         self.reverse = QLabel("?")
 
         # create layout
@@ -169,8 +172,10 @@ class RFPanel(QGroupBox):
         grid.addWidget(self.forward, 0, 1)
         grid.addWidget(QLabel("Reverse:"), 0, 2)
         grid.addWidget(self.reverse, 0, 3)
-        grid.addWidget(QLabel("Frequency:"), 0, 4)
-        grid.addWidget(self.frequency, 0, 5)
+        grid.addWidget(QLabel("Phase:"), 0, 4)
+        grid.addWidget(self.phase, 0, 5)
+        grid.addWidget(QLabel("Frequency:"), 0, 6)
+        grid.addWidget(self.frequency, 0, 7)
 
 
 @DeviceManager.subscribe_to("SW-100")
