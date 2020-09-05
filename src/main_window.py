@@ -52,6 +52,8 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.tabs)
         self.setContentsMargins(QMargins(3, 3, 3, 0))
 
+        self.tabs.addTab(self.servitor, 'Servitor')
+        self.tabs.addTab(self.diagnostics, 'Diagnostics')
         self.tabs.addTab(self.manual_tuner, 'Manual Tuner')
 
         # init dockwidget settings
