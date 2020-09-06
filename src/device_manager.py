@@ -21,7 +21,6 @@ startup = [
 #     "TS-480:/dev/ttyS0",
 #     "Alpha4510A:/dev/ttyS1",
 #     "DTS-4:/dev/ttyS2",
-#     'RadioInterface:/dev/ttyACM0',
 # ]
 
 
