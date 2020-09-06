@@ -16,6 +16,7 @@ class VariableCapacitorWidget(QWidget):
                 max-height: 34px;  
             } 
         """)
+        self.setEnabled(False)
         
         self.edit = QLineEdit()
         self.set_btn = QPushButton("Set")
@@ -57,8 +58,6 @@ class VariableCapacitorWidget(QWidget):
                 grid.add(QPushButton(enabled=False), 1, 3)
                 grid.add(self.input_btn, 0, 4)
                 grid.add(self.output_btn, 1, 4)
-            
-        self.setEnabled(False)
 
     def caps_changed(self, caps):
         self.edit.setText(str(caps))
@@ -108,6 +107,7 @@ class VariableInductorWidget(QWidget):
                 max-height: 34px; 
             } 
         """)
+        self.setEnabled(False)
 
         self.edit = QLineEdit()
         self.set_btn = QPushButton("Set")
@@ -148,8 +148,6 @@ class VariableInductorWidget(QWidget):
                 grid.add(QPushButton(enabled=False), 1, 3)
                 grid.add(self.input_btn, 0, 4)
                 grid.add(self.output_btn, 1, 4)
-
-        self.setEnabled(False)
         
     def inds_changed(self, inds):
         self.edit.setText(str(inds))
@@ -187,6 +185,7 @@ class VariableInductorWidget(QWidget):
 class RFSensorWidget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.setEnabled(False)
         
         self.forward = QLabel("?")
         self.reverse = QLabel("?")
@@ -211,11 +210,10 @@ class RFSensorWidget(QWidget):
                 hbox.addWidget(QLabel(""))
                 hbox.addWidget(QLabel(""))
 
-        self.setEnabled(False)
-
     def connected(self, device):
-        device.signals.forward.connect(lambda x: self.forward.setText(f"{x:10.2f}"))
-        device.signals.reverse.connect(lambda x: self.reverse.setText(f"{x:10.2f}"))
+        device.signals.forward.connect(lambda x: self.forward.setText(f"{x:.2f}"))
+        device.signals.reverse.connect(lambda x: self.reverse.setText(f"{x:.2f}"))
+        device.signals.swr.connect(lambda x: self.swr.setText(f"{x:.2f}"))
         device.signals.phase.connect(lambda x: self.phase.setText(f"{x}"))
         device.signals.frequency.connect(lambda x: self.frequency.setText(f"{x}"))
 
@@ -224,11 +222,26 @@ class RFSensorWidget(QWidget):
     def disconnected(self, guid):
         self.setEnabled(False)
 
+        self.forward.setText("?")
+        self.reverse.setText("?")
+        self.swr.setText("?")
+        self.phase.setText("?")
+        self.frequency.setText("?")
+
 
 @DeviceManager.subscribe_to("SW-100")
 class SW100Widget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.setStyleSheet("""
+            QPushButton { 
+                width: 80px; 
+                height: 34px; 
+                max-width: 80px; 
+                max-height: 34px; 
+            } 
+        """)
+        self.setEnabled(False)
         
         self.rx = QPushButton("RX", checkable=True)
         self.none = QPushButton("none", checkable=True, checked=True)
@@ -241,8 +254,6 @@ class SW100Widget(QWidget):
                 hbox.addWidget(self.none)
                 hbox.addWidget(self.tx)
                 hbox.addWidget(QLabel(""), 1)
-
-        self.setEnabled(False)
 
     def connected(self, device):
         self.rx.clicked.connect(lambda: device.set_antenna("tx"))

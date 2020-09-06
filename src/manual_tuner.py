@@ -22,12 +22,12 @@ class ManualTuner(QWidget):
 
         with CHBoxLayout(self) as layout:
             with CVBoxLayout(layout, 1) as vbox:
-                with CHBoxLayout(vbox) as hbox:
-                    hbox.addWidget(self.key)
+                vbox.addWidget(self.key)
+                vbox.addWidget(QLabel(), 5)
                 vbox.addWidget(HLine())
-                vbox.addWidget(RadioInfo(), 1)
+                vbox.addWidget(RadioInfo())
                 vbox.addWidget(HLine())
-                vbox.addWidget(MeterInfo(), 1)
+                vbox.addWidget(MeterInfo())
             
             layout.addWidget(VLine())
             
