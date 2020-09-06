@@ -53,8 +53,8 @@ class VariableInductor(CommonMessagesMixin, SerialDevice):
     def request_current_relays(self):
         self.send('{"request":"current_relays"}')
 
-    def set_input_relay(self, state):
+    def set_input(self, state):
         self.send('{"command":{"set_input":%s}}' % (int(state)))
 
-    def set_output_relay(self, state):
+    def set_output(self, state):
         self.send('{"command":{"set_output":%s}}' % (int(state)))

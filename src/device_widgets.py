@@ -72,8 +72,8 @@ class VariableCapacitorWidget(QWidget):
             self.min_btn.setChecked(False)
 
     def connected(self, device):
-        self.cup_btn.clicked.connect(lambda: device.relays_cup())
-        self.cdn_btn.clicked.connect(lambda: device.relays_cdn())
+        self.cup_btn.clicked.connect(device.relays_cup)
+        self.cdn_btn.clicked.connect(device.relays_cdn)
         self.max_btn.clicked.connect(device.relays_max)
         self.min_btn.clicked.connect(device.relays_min)
 
@@ -168,8 +168,8 @@ class VariableInductorWidget(QWidget):
         self.max_btn.clicked.connect(device.relays_max)
         self.min_btn.clicked.connect(device.relays_min)
 
-        self.input_btn.clicked.connect(device.set_input_relay)
-        self.output_btn.clicked.connect(device.set_output_relay)
+        self.input_btn.clicked.connect(device.set_input)
+        self.output_btn.clicked.connect(device.set_output)
 
         self.set_relays.connect(device.set_inds)
 
@@ -208,6 +208,8 @@ class RFSensorWidget(QWidget):
                 hbox.addWidget(self.phase)
                 hbox.addWidget(QLabel("Frequency:"))
                 hbox.addWidget(self.frequency)
+                hbox.addWidget(QLabel(""))
+                hbox.addWidget(QLabel(""))
 
         self.setEnabled(False)
 
@@ -234,9 +236,11 @@ class SW100Widget(QWidget):
 
         with CVBoxLayout(self) as vbox:
             with CHBoxLayout(vbox) as hbox:
+                hbox.addWidget(QLabel(""), 1)
                 hbox.addWidget(self.rx)
                 hbox.addWidget(self.none)
                 hbox.addWidget(self.tx)
+                hbox.addWidget(QLabel(""), 1)
 
         self.setEnabled(False)
 
