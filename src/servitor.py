@@ -6,22 +6,21 @@ from style import qcolors
 
 
 @DeviceManager.subscribe_to("TS-480")
-class RadioInfo(Widget):        
-    def create_widgets(self):
+class RadioInfo(QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.power = QLabel("  ?  ")
         self.frequency = QLabel("  ?  ")
         self.mode = QLabel("  ?  ")
         
-    def build_layout(self):
-        grid = CGridLayout(self, margins=(0, 0, 0, 0))
-
-        grid.add(QLabel("Kenwood TS-480"), 0, 0, 1, 2)
-        grid.add(QLabel("Power:"), 1, 0)
-        grid.add(self.power, 1, 1)
-        grid.add(QLabel("Frequency:"), 2, 0)
-        grid.add(self.frequency, 2, 1)
-        grid.add(QLabel("Mode:"), 3, 0)
-        grid.add(self.mode, 3, 1)
+        with CGridLayout(self, margins=(0, 0, 0, 0)) as grid:
+            grid.add(QLabel("Kenwood TS-480"), 0, 0, 1, 2)
+            grid.add(QLabel("Power:"), 1, 0)
+            grid.add(self.power, 1, 1)
+            grid.add(QLabel("Frequency:"), 2, 0)
+            grid.add(self.frequency, 2, 1)
+            grid.add(QLabel("Mode:"), 3, 0)
+            grid.add(self.mode, 3, 1)
 
     def connected(self, device):
         device.signals.power.connect(lambda s: self.power.setText(s))
@@ -41,25 +40,24 @@ class RadioInfo(Widget):
 
 
 @DeviceManager.subscribe_to("Alpha4510A")
-class MeterInfo(Widget):        
-    def create_widgets(self):
+class MeterInfo(QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.forward = QLabel("  ?  ")
         self.reverse = QLabel("  ?  ")
         self.swr = QLabel("  ?  ")
         self.frequency = QLabel("  ?  ")
 
-    def build_layout(self):
-        grid = CGridLayout(self, margins=(0, 0, 0, 0))
-
-        grid.add(QLabel("Alpha 4510"), 0, 0, 1, 2)
-        grid.add(QLabel("Forward:"), 1, 0)
-        grid.add(self.forward, 1, 1)
-        grid.add(QLabel("Reverse:"), 2, 0)
-        grid.add(self.reverse, 2, 1)
-        grid.add(QLabel("Frequency:"), 3, 0)
-        grid.add(self.frequency, 3, 1)
-        grid.add(QLabel("SWR:"), 4, 0)
-        grid.add(self.swr, 4, 1)
+        with CGridLayout(self, margins=(0, 0, 0, 0)) as grid:
+            grid.add(QLabel("Alpha 4510"), 0, 0, 1, 2)
+            grid.add(QLabel("Forward:"), 1, 0)
+            grid.add(self.forward, 1, 1)
+            grid.add(QLabel("Reverse:"), 2, 0)
+            grid.add(self.reverse, 2, 1)
+            grid.add(QLabel("Frequency:"), 3, 0)
+            grid.add(self.frequency, 3, 1)
+            grid.add(QLabel("SWR:"), 4, 0)
+            grid.add(self.swr, 4, 1)
 
     def connected(self, device):
         device.signals.forward.connect(lambda s: self.forward.setText(s))
@@ -87,29 +85,30 @@ class LockButton(ConfirmToggleButton):
 
 
 @DeviceManager.subscribe_to("TS-480")
-class PowerButtons(Widget):
+class PowerButtons(QWidget):
     power_changed = Signal(str)
-
-    def create_widgets(self):
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.power = '5'
         self.limit = True
-
-        grid = CGridLayout(self, margins=(0, 0, 0, 0))
         self.btns = QButtonGroup()
 
         powers = ["200", "175", "150", "125", "100", "75", "50", "25", "10", "5"]
-        for i, power in enumerate(powers):
-            btn = QPushButton(power, checkable=True)
-            self.btns.addButton(btn)
-            grid.add(btn, i + 1, 0)
-            btn.clicked.connect(lambda: self.btns.setExclusive(True))
-            btn.clicked.connect(partial(self.update_power, btn.text()))
 
-        self.lock = grid.add(LockButton(iconSize=QSize(35, 35)), 0, 0)
-        grid.add(QPushButton(disabled=True), 0, 1)
-        grid.add(QPushButton(disabled=True), 0, 2)
-        grid.add(QPushButton('+', clicked=lambda: self.update_power(int(self.power) + 5)), 1, 1, 5, 2)
-        grid.add(QPushButton('-', clicked=lambda: self.update_power(int(self.power) - 5)), 6, 1, 5, 2)
+        with CGridLayout(self, margins=(0, 0, 0, 0)) as grid:
+            for i, power in enumerate(powers):
+                btn = QPushButton(power, checkable=True)
+                self.btns.addButton(btn)
+                grid.add(btn, i + 1, 0)
+                btn.clicked.connect(lambda: self.btns.setExclusive(True))
+                btn.clicked.connect(partial(self.update_power, btn.text()))
+
+            self.lock = grid.add(LockButton(iconSize=QSize(35, 35)), 0, 0)
+            grid.add(QPushButton(disabled=True), 0, 1)
+            grid.add(QPushButton(disabled=True), 0, 2)
+            grid.add(QPushButton('+', clicked=lambda: self.update_power(int(self.power) + 5)), 1, 1, 5, 2)
+            grid.add(QPushButton('-', clicked=lambda: self.update_power(int(self.power) - 5)), 6, 1, 5, 2)
 
         self.lock.toggled.connect(lambda s: self.set_limit(not s))
         self.set_limit(True)
@@ -158,32 +157,32 @@ class PowerButtons(Widget):
 
 
 @DeviceManager.subscribe_to("TS-480")
-class FrequencyButtons(Widget):
+class FrequencyButtons(QWidget):
     set_frequency = Signal(str)
 
-    def create_widgets(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.freqs = [
             "50000000", "28000000", "24890000", "21000000", "18068000",
             "14000000", "10100000", "07000000", "03500000", "01800000"
         ]
-
-        grid = CGridLayout(self, margins=(0, 0, 0, 0))
+        band_names = ["50", "28", "24", "21", "18", "14", "10", "7", "3.4", "1.8"]
         self.btns = QButtonGroup()
 
-        band_names = ["50", "28", "24", "21", "18", "14", "10", "7", "3.4", "1.8"]
-        for i, band in enumerate(band_names):
-            btn = QPushButton(band + ' Mhz', checkable=True)
-            self.btns.addButton(btn)
-            grid.add(btn, i + 1, 0)
-            btn.clicked.connect(lambda: self.btns.setExclusive(True))
-            btn.clicked.connect(partial(self.set_frequency.emit, self.freqs[i]))
-        
-        grid.add(QPushButton(disabled=True), 0, 0)
-        grid.add(QPushButton(disabled=True), 0, 1)
-        grid.add(QPushButton(disabled=True), 0, 2)
+        with CGridLayout(self, margins=(0, 0, 0, 0)) as grid:
+            for i, band in enumerate(band_names):
+                btn = QPushButton(band + ' Mhz', checkable=True)
+                self.btns.addButton(btn)
+                grid.add(btn, i + 1, 0)
+                btn.clicked.connect(lambda: self.btns.setExclusive(True))
+                btn.clicked.connect(partial(self.set_frequency.emit, self.freqs[i]))
+            
+            grid.add(QPushButton(disabled=True), 0, 0)
+            grid.add(QPushButton(disabled=True), 0, 1)
+            grid.add(QPushButton(disabled=True), 0, 2)
 
-        self.up = grid.add(QPushButton('^', clicked=lambda: self.uncheck_all()), 1, 1, 5, 2)
-        self.down = grid.add(QPushButton('v', clicked=lambda: self.uncheck_all()), 6, 1, 5, 2)
+            self.up = grid.add(QPushButton('^', clicked=lambda: self.uncheck_all()), 1, 1, 5, 2)
+            self.down = grid.add(QPushButton('v', clicked=lambda: self.uncheck_all()), 6, 1, 5, 2)
 
     def connected(self, device):
         device.signals.frequency.connect(lambda s: self.select(s))
@@ -329,7 +328,6 @@ class BypassButton(QPushButton):
         for button in buttons:
             self.peers.append(button)
 
-
     def on_toggle(self, state):
         if state == True:
             if self.device is not None:
@@ -358,11 +356,16 @@ class KeyButton(IconToggleButton):
         self.icon_checked = qta.icon('mdi.radio-tower', color=qcolors.silver)
         self.icon_unchecked = qta.icon('mdi.radio-tower', color='gray')
         self.update_icon()
+        self.setEnabled(False)
 
     def connected(self, device):
         device.signals.keyed.connect(lambda: self.setChecked(True))
         device.signals.unkeyed.connect(lambda: self.setChecked(False))
         self.clicked.connect(device.toggle_key)
+        self.setEnabled(True)
+
+    def disconnected(self, guid):
+        self.setEnabled(False)
 
 
 @DeviceManager.subscribe_to("TS-480")
