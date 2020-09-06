@@ -8,11 +8,9 @@ class ManualTuner(QWidget):
         super().__init__(parent=parent)
         self.setStyleSheet("""
             QWidget { font-size: 16pt; }
-            QPushButton { 
-                max-width: 2000px; 
-                max-height: 2000px; 
-            } 
         """)
+        self.setBackgroundRole(QPalette.Base)
+        self.setAutoFillBackground(True)
 
         self.key = KeyButton()
 
