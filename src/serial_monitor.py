@@ -66,9 +66,6 @@ class SerialMonitorWidget(QWidget):
         self.text.installEventFilter(self)
         self.installEventFilter(self)
 
-        self.setMinimumWidth(400)
-        self.setMinimumHeight(200)
-
         with CVBoxLayout(self) as layout:
             layout.addWidget(self.text)
 
@@ -80,9 +77,12 @@ class SerialMonitorWidget(QWidget):
         self.stream = Stream(self.screen)
 
         self.position = 0
-        self.visible_lines = 30
+        self.visible_lines = self.text.height() // self.text.fontMetrics().lineSpacing()
 
         self.render_screen()
+
+    def sizeHint(self) -> PySide2.QtCore.QSize:
+        return QSize(600, 400)
 
     def resizeEvent(self, event: PySide2.QtGui.QResizeEvent):
         super().resizeEvent(event)
@@ -107,7 +107,7 @@ class SerialMonitorWidget(QWidget):
                     self.render_screen()
 
             elif event.angleDelta().y() < 0: # down
-                if self.position < len(self.screen.buffer.keys()):
+                if self.position < len(self.screen.buffer):
                     self.position += 1
                     self.render_screen()
                 
@@ -116,23 +116,30 @@ class SerialMonitorWidget(QWidget):
 
         return False
 
+    @property
+    def max_pos(self):
+        return len(self.screen.buffer) - self.visible_lines
+
     def rx(self, string):
-        sticky = False
-        if self.position == (len(self.screen.buffer.keys()) - self.visible_lines):
-            sticky = True
+        sticky = True
+        if self.max_pos >= 0:
+            if self.position != self.max_pos:
+                sticky = False
 
         self.stream.feed(string)
-        self.render_screen()
-
-        if sticky == True:
-            self.position = len(self.screen.buffer.keys()) - self.visible_lines
+        self.render_screen(sticky)
         
-    def render_screen(self):
-        if self.visible_lines < len(self.screen.buffer.keys()):
+    def render_screen(self, sticky=False):
+        if sticky or self.position > self.max_pos:
+            self.position = self.max_pos
+
+        if self.position < 0:
             self.position = 0
         
         lines = list(self.screen.buffer.keys())
         lines = lines[self.position:self.position + self.visible_lines]
+
+        print('screen:', self.position, 'cursor:', self.screen.cursor.y, 'length:', len(self.screen.buffer), 'max_pos:', len(self.screen.buffer) - self.visible_lines, 'sticky:', sticky)
 
         html = self.render_to_html(self.screen.buffer, lines)
         self.text.setHtml(html)
