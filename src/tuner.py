@@ -196,7 +196,7 @@ class TunerControls(QWidget):
         self.stop.clicked.connect(self.stop_clicked)
 
     def build_layout(self):
-        layout = QHBoxLayout(self, contentsMargins=QMargins(10, 10, 10, 10), alignment=Qt.AlignmentFlag.AlignCenter)
+        layout = QHBoxLayout(self, margins=(10, 10, 10, 10), alignment=Qt.AlignmentFlag.AlignCenter)
         layout.setSpacing(10)
 
         layout.addWidget(self.cup)

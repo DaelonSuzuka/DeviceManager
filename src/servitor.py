@@ -13,7 +13,7 @@ class RadioInfo(Widget):
         self.mode = QLabel("  ?  ")
         
     def build_layout(self):
-        grid = CGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
+        grid = CGridLayout(self, margins=(0, 0, 0, 0))
 
         grid.add(QLabel("Kenwood TS-480"), 0, 0, 1, 2)
         grid.add(QLabel("Power:"), 1, 0)
@@ -49,7 +49,7 @@ class MeterInfo(Widget):
         self.frequency = QLabel("  ?  ")
 
     def build_layout(self):
-        grid = CGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
+        grid = CGridLayout(self, margins=(0, 0, 0, 0))
 
         grid.add(QLabel("Alpha 4510"), 0, 0, 1, 2)
         grid.add(QLabel("Forward:"), 1, 0)
@@ -94,7 +94,7 @@ class PowerButtons(Widget):
         self.power = '5'
         self.limit = True
 
-        grid = CGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
+        grid = CGridLayout(self, margins=(0, 0, 0, 0))
         self.btns = QButtonGroup()
 
         powers = ["200", "175", "150", "125", "100", "75", "50", "25", "10", "5"]
@@ -167,7 +167,7 @@ class FrequencyButtons(Widget):
             "14000000", "10100000", "07000000", "03500000", "01800000"
         ]
 
-        grid = CGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
+        grid = CGridLayout(self, margins=(0, 0, 0, 0))
         self.btns = QButtonGroup()
 
         band_names = ["50", "28", "24", "21", "18", "14", "10", "7", "3.4", "1.8"]
@@ -206,7 +206,7 @@ class FrequencyButtons(Widget):
 
 class DummyLoadControls(Widget):
     def create_widgets(self):
-        vbox = CVBoxLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
+        vbox = CVBoxLayout(self, margins=(0, 0, 0, 0))
         self.cup = vbox.add(QPushButton("CUP"))
         self.cdn = vbox.add(QPushButton("CDN"))
         self.lup = vbox.add(QPushButton("LUP"))
@@ -494,9 +494,7 @@ class RadioControls(Widget):
         self.timeout.timeout.connect(lambda: self.key.click())
 
     def build_layout(self):
-        margins = { 'contentsMargins': QMargins(0, 0, 0, 0) }
-
-        with CHBoxLayout(self, **margins) as hbox:
+        with CHBoxLayout(self, margins=(0, 0, 0, 0)) as hbox:
             hbox.add(self.power_btns, 2)
             hbox.add(VLine(), 1)
             hbox.add(self.freq_btns, 2)
@@ -504,8 +502,8 @@ class RadioControls(Widget):
             # hbox.add(self.dummy_load, 1)
             # hbox.add(VLine(), 1)
 
-            with CVBoxLayout(hbox, 2, **margins) as vbox:
-                with CHBoxLayout(vbox, 1, **margins) as box:
+            with CVBoxLayout(hbox, 2, margins=(0, 0, 0, 0)) as vbox:
+                with CHBoxLayout(vbox, 1, margins=(0, 0, 0, 0)) as box:
                     box.add(self.time)
                     box.add(QPushButton(disabled=True))
                     box.add(self.mode)
@@ -513,7 +511,7 @@ class RadioControls(Widget):
                 vbox.add(self.key, 5)
                 vbox.add(self.timeout)
 
-                with CHBoxLayout(vbox, 1, **margins) as box:
+                with CHBoxLayout(vbox, 1, margins=(0, 0, 0, 0)) as box:
                     # box.add(self.heat)
                     box.add(self.bypass)
                     box.add(self.memory_tune)
@@ -532,7 +530,7 @@ class RadioControls(Widget):
 class SwitchControls(Widget):
     def create_widgets(self):
         self.switch = None
-        grid = CHBoxLayout(self, contentsMargins=QMargins(0, 0, 0, 0))
+        grid = CHBoxLayout(self, margins=(0, 0, 0, 0))
 
         self.one = grid.add(QPushButton("Ant 1", checkable=True))
         self.two = grid.add(QPushButton("Ant 2", checkable=True))
@@ -575,10 +573,8 @@ class ServitorWidget(QWidget):
         self.radio_info = RadioInfo()
         self.meter_info = MeterInfo()
 
-        margins = { 'contentsMargins': QMargins(0, 0, 0, 0) }
-
         with CHBoxLayout(self) as hbox:
-            with CVBoxLayout(hbox, 1, **margins) as vbox:
+            with CVBoxLayout(hbox, 1, margins=(0, 0, 0, 0)) as vbox:
                 vbox.setAlignment(Qt.AlignTop)
                 vbox.add(self.radio_info)
                 vbox.add(HLine())
@@ -586,7 +582,7 @@ class ServitorWidget(QWidget):
 
             hbox.addWidget(VLine())
 
-            with CVBoxLayout(hbox, 4, **margins) as vbox:
+            with CVBoxLayout(hbox, 4, margins=(0, 0, 0, 0)) as vbox:
                 vbox.add(self.radio, 4)
                 vbox.add(HLine())
                 vbox.add(self.switch, 1)

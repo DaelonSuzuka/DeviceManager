@@ -304,7 +304,7 @@ class ProfileSelector(QWidget):
         self.accept.clicked.connect(self.on_accept)
         self.editor.returnPressed.connect(self.on_accept)
         
-        grid = CGridLayout(self, contentsMargins=QMargins(0, 0, 0, 0), spacing=2)
+        grid = CGridLayout(self, margins=(0, 0, 0, 0), spacing=2)
 
         grid.add(self.selector, 0, 0, 1, 3)
         grid.add(self.editor, 0, 0, 1, 3)
@@ -414,13 +414,13 @@ class FilterControls(QStackedWidget):
         self.addWidget(QWidget())
 
         # controls layout
-        grid = CGridLayout(self.widget(0), contentsMargins=QMargins(0, 0, 0, 0))
+        grid = CGridLayout(self.widget(0), margins=(0, 0, 0, 0))
         grid.add(self.profiles, 0, 0, 1, 5)
         grid.add(self.text_filter, 1, 0, 1, 5)
         grid.add(self.logger_filter, 2, 0, 1, 5)
 
         # editor layout
-        grid = CGridLayout(self.widget(1), contentsMargins=QMargins(0, 0, 0, 0))
+        grid = CGridLayout(self.widget(1), margins=(0, 0, 0, 0))
         grid.add(QPushButton('X', maximumWidth=20, clicked=lambda: self.setCurrentIndex(0)), 0, 1)
         grid.setRowStretch(1, 1)
         grid.setColumnStretch(0, 1)

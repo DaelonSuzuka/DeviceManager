@@ -2,6 +2,19 @@ from .qt import *
 
 
 class ContextLayout:
+    def __init__(self, parent=None, stretch=None, margins=None, **kwargs):
+        if parent is None or isinstance(parent, QWidget):
+            super().__init__(parent, **kwargs)
+        else:
+            super().__init__(**kwargs)
+            if stretch:
+                parent.addLayout(self, stretch)
+            else:
+                parent.addLayout(self)
+
+        if margins:
+            self.setContentsMargins(*margins)
+
     def add(self, item, *args):
         if isinstance(item, QWidget):
             self.addWidget(item, *args)
@@ -17,40 +30,16 @@ class ContextLayout:
         pass
 
 
-class CVBoxLayout(QVBoxLayout, ContextLayout):
-    def __init__(self, parent=None, stretch=None, **kwargs):
-        if parent is None or isinstance(parent, QWidget):
-            super().__init__(parent, **kwargs)
-        else:
-            super().__init__(**kwargs)
-            if stretch:
-                parent.addLayout(self, stretch)
-            else:
-                parent.addLayout(self)
+class CVBoxLayout(ContextLayout, QVBoxLayout):
+    pass
 
 
-class CHBoxLayout(QHBoxLayout, ContextLayout):
-    def __init__(self, parent=None, stretch=None, **kwargs):
-        if parent is None or isinstance(parent, QWidget):
-            super().__init__(parent, **kwargs)
-        else:
-            super().__init__(**kwargs)
-            if stretch:
-                parent.addLayout(self, stretch)
-            else:
-                parent.addLayout(self)
+class CHBoxLayout(ContextLayout, QHBoxLayout):
+    pass
 
 
-class CGridLayout(QGridLayout, ContextLayout):
-    def __init__(self, parent=None, stretch=None, **kwargs):
-        if parent is None or isinstance(parent, QWidget):
-            super().__init__(parent, **kwargs)
-        else:
-            super().__init__(**kwargs)
-            if stretch:
-                parent.addLayout(self, stretch)
-            else:
-                parent.addLayout(self)
+class CGridLayout(ContextLayout, QGridLayout):
+    pass
 
 
 class VLine(QFrame):
