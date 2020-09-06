@@ -1,12 +1,10 @@
-from device_client import DeviceClient
 from qt import *
 import qtawesome as qta
 import logging
 from style import qcolors
 
 from device_manager import DeviceManager
-from device_server import DeviceServer
-from device_client import DeviceClient
+from remote_devices import DeviceClient, DeviceServer, RemoteStatusWidget
 from settings import SettingsManager
 
 from command_palette import CommandPalette, Command
@@ -31,6 +29,8 @@ class MainWindow(QMainWindow):
         self.dm = DeviceManager(self)
         self.server = DeviceServer(self)
         self.client = DeviceClient(self)
+        self.remote_widget = RemoteStatusWidget(self, client=self.client, server=self.server)
+
         self.manual_tuner = ManualTuner()
         self.device_controls = DeviceControlsDockWidget(self)
         self.servitor = ServitorWidget()
@@ -140,7 +140,7 @@ class MainWindow(QMainWindow):
         # spacer widget
         self.tool.addWidget(QWidget(sizePolicy=QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)))
         
-        self.tool.addWidget(self.client.status_widget)
+        self.tool.addWidget(self.remote_widget)
 
     def closeEvent(self, event):
         self.dm.scan_timer.stop()
