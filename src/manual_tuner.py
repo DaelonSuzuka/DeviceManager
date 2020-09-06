@@ -5,13 +5,6 @@ from bundles import SigBundle, SlotBundle
 from device_widgets import *
 
 
-class SwitchWidget(QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent=parent)
-        grid = QGridLayout(self)
-        grid.addWidget(QLabel("test"))
-
-
 class ManualTuner(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
