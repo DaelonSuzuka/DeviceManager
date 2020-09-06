@@ -3,12 +3,16 @@ from device_manager import DeviceManager
 
 
 @DeviceManager.subscribe_to("VariableCapacitor")
-class VariableCapacitorWidget(Widget):
+class VariableCapacitorWidget(QWidget):
     set_relays = Signal(int)
 
-    def create_widgets(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
         self.edit = QLineEdit()
         self.set_btn = QPushButton("Set")
+        self.set_btn.clicked.connect(lambda: self.set_relays.emit(int(self.edit.text())))
+        self.edit.returnPressed.connect(self.set_btn.clicked)
 
         self.cup_btn = QPushButton("CUP", autoRepeat=True)
         self.cdn_btn = QPushButton("CDN", autoRepeat=True)
@@ -18,29 +22,21 @@ class VariableCapacitorWidget(Widget):
         self.input_btn = QPushButton("Input", checkable=True)
         self.output_btn = QPushButton("Output", checkable=True)
 
-    def connect_signals(self):
-        self.set_btn.clicked.connect(lambda: self.set_relays.emit(int(self.edit.text())))
-        self.edit.returnPressed.connect(self.set_btn.clicked)
-
-    def build_layout(self):
         hbox = QHBoxLayout()
         hbox.addWidget(QLabel("Capacitors: "))
         hbox.addWidget(self.edit)
         hbox.addWidget(self.set_btn)
         gbox = QGroupBox("", layout=hbox)
 
-        grid = QGridLayout(self)
-        grid.setContentsMargins(10, 20, 10, 10)
-
-        grid.addWidget(gbox, 0, 0, 2, 1)
-        grid.addWidget(self.cup_btn, 0, 1)
-        grid.addWidget(self.cdn_btn, 1, 1)
-        grid.addWidget(self.max_btn, 0, 2)
-        grid.addWidget(self.min_btn, 1, 2)
-        grid.addWidget(self.bypass_btn, 0, 3)
-        grid.addWidget(self.input_btn, 0, 4)
-        grid.addWidget(self.output_btn, 1, 4)
-        grid.setColumnStretch(5, 1)
+        with CGridLayout(self) as grid:
+            grid.addWidget(gbox, 0, 0, 2, 1)
+            grid.addWidget(self.cup_btn, 0, 1)
+            grid.addWidget(self.cdn_btn, 1, 1)
+            grid.addWidget(self.max_btn, 0, 2)
+            grid.addWidget(self.min_btn, 1, 2)
+            grid.addWidget(self.bypass_btn, 0, 3)
+            grid.addWidget(self.input_btn, 0, 4)
+            grid.addWidget(self.output_btn, 1, 4)
         
         self.setEnabled(False)
 
@@ -69,42 +65,38 @@ class VariableCapacitorWidget(Widget):
 
 
 @DeviceManager.subscribe_to("VariableInductor")
-class VariableInductorWidget(Widget):
+class VariableInductorWidget(QWidget):
     set_relays = Signal(int)
 
-    def create_widgets(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.edit = QLineEdit()
+        self.set_btn = QPushButton("Set")
+        self.set_btn.clicked.connect(lambda: self.set_relays.emit(int(self.edit.text())))
+        self.edit.returnPressed.connect(self.set_btn.clicked)
+
         self.input_btn = QPushButton("Input", checkable=True)
         self.output_btn = QPushButton("Output", checkable=True)
-
         self.lup_btn = QPushButton("LUP", autoRepeat=True)
         self.ldn_btn = QPushButton("LDN", autoRepeat=True)
         self.max_btn = QPushButton("Max")
         self.min_btn = QPushButton("Min")
-        self.edit = QLineEdit()
-        self.set_btn = QPushButton("Set")
 
-    def connect_signals(self):
-        self.set_btn.clicked.connect(lambda: self.set_relays.emit(int(self.edit.text())))
-        self.edit.returnPressed.connect(self.set_btn.clicked)
-
-    def build_layout(self):
         hbox = QHBoxLayout()
         hbox.addWidget(QLabel("Inductors:  "))
         hbox.addWidget(self.edit)
         hbox.addWidget(self.set_btn)
         gbox = QGroupBox("", layout=hbox)
 
-        grid = QGridLayout(self)
-        grid.setContentsMargins(10, 20, 10, 10)
-
-        grid.addWidget(gbox, 0, 0, 2, 1)
-        grid.addWidget(self.lup_btn, 0, 1)
-        grid.addWidget(self.ldn_btn, 1, 1)
-        grid.addWidget(self.max_btn, 0, 2)
-        grid.addWidget(self.min_btn, 1, 2)
-        grid.addWidget(self.input_btn, 0, 3)
-        grid.addWidget(self.output_btn, 1, 3)
-        grid.setColumnStretch(5, 1)
+        with CGridLayout(self) as grid:
+            grid.addWidget(gbox, 0, 0, 2, 1)
+            grid.addWidget(self.lup_btn, 0, 1)
+            grid.addWidget(self.ldn_btn, 1, 1)
+            grid.addWidget(self.max_btn, 0, 2)
+            grid.addWidget(self.min_btn, 1, 2)
+            grid.addWidget(self.input_btn, 0, 3)
+            grid.addWidget(self.output_btn, 1, 3)
 
         self.setEnabled(False)
         
@@ -134,20 +126,26 @@ class RFSensorWidget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        self.frequency = QLabel("?")
         self.forward = QLabel("?")
-        self.phase = QLabel("?")
         self.reverse = QLabel("?")
+        self.swr = QLabel("?")
+        self.phase = QLabel("?")
+        self.frequency = QLabel("?")
 
-        grid = QGridLayout(self)
-        grid.addWidget(QLabel("Forward:"), 0, 0)
-        grid.addWidget(self.forward, 0, 1)
-        grid.addWidget(QLabel("Reverse:"), 0, 2)
-        grid.addWidget(self.reverse, 0, 3)
-        grid.addWidget(QLabel("Phase:"), 0, 4)
-        grid.addWidget(self.phase, 0, 5)
-        grid.addWidget(QLabel("Frequency:"), 0, 6)
-        grid.addWidget(self.frequency, 0, 7)
+        with CVBoxLayout(self) as vbox:
+            with CHBoxLayout(vbox) as hbox:
+                hbox.addWidget(QLabel("Forward:"))
+                hbox.addWidget(self.forward)
+                hbox.addWidget(QLabel("Reverse:"))
+                hbox.addWidget(self.reverse)
+                hbox.addWidget(QLabel("SWR:"))
+                hbox.addWidget(self.swr)
+
+            with CHBoxLayout(vbox) as hbox:
+                hbox.addWidget(QLabel("Phase:"))
+                hbox.addWidget(self.phase)
+                hbox.addWidget(QLabel("Frequency:"))
+                hbox.addWidget(self.frequency)
 
         self.setEnabled(False)
 
@@ -172,10 +170,11 @@ class SW100Widget(QWidget):
         self.none = QPushButton("none", checkable=True, checked=True)
         self.tx = QPushButton("TX", checkable=True)
 
-        hbox = QHBoxLayout(self)
-        hbox.addWidget(self.rx)
-        hbox.addWidget(self.none)
-        hbox.addWidget(self.tx)
+        with CVBoxLayout(self) as vbox:
+            with CHBoxLayout(vbox) as hbox:
+                hbox.addWidget(self.rx)
+                hbox.addWidget(self.none)
+                hbox.addWidget(self.tx)
 
         self.setEnabled(False)
 

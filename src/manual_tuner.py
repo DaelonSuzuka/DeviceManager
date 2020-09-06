@@ -1,7 +1,4 @@
 from qt import *
-from device_manager import DeviceManager
-from bundles import SigBundle, SlotBundle
-
 from device_widgets import *
 
 
@@ -15,7 +12,7 @@ class ManualTuner(QWidget):
         self.inds = VariableInductorWidget(self)
 
         with CGridLayout(self) as grid:
-            grid.setRowStretch(0, 1)
+            grid.setRowStretch(2, 1)
 
             grid.addWidget(self.sensor, 0, 0)
             grid.addWidget(self.switch, 0, 1)
