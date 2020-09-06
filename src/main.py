@@ -90,8 +90,6 @@ def run():
 
     # Run the main Qt loop
     result = app.exec_()
-
-    SettingsManager().save_now()
     
     sys.exit(result)
 
