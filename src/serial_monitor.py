@@ -1,6 +1,30 @@
 from qt import *
-from pyte import HistoryScreen, Screen, Stream
+from pyte import Screen, Stream
 from style import colors
+
+
+key_map = {
+    Qt.Key_Up: '\033[A',
+    Qt.Key_Down: '\033[B',
+    Qt.Key_Right: '\033[C',
+    Qt.Key_Left: '\033[D',
+    Qt.Key_Home: '\033[1~',
+    Qt.Key_End: '\033[OF',
+    Qt.Key_PageUp: '\033[5~',
+    Qt.Key_PageDown: '\033[6~',
+    Qt.Key_F1: '\033OP',
+    Qt.Key_F2: '\033OQ',
+    Qt.Key_F3: '\033OR',
+    Qt.Key_F4: '\033OS',
+    Qt.Key_F5: '\033[16~',
+    Qt.Key_F6: '\033[17~',
+    Qt.Key_F7: '\033[18~',
+    Qt.Key_F8: '\033[19~',
+    Qt.Key_F9: '\033[20~',
+    Qt.Key_F10: '\033[21~',
+    Qt.Key_F11: '\033[22~',
+    Qt.Key_F12: '\033[24~',
+}
 
 
 fg_map = {
@@ -15,6 +39,7 @@ fg_map = {
     "default": colors.gray,
 }
 
+
 bg_map = {
     "black": '#2a2a2a',
     "red": colors.red,
@@ -26,8 +51,6 @@ bg_map = {
     "white": colors.gray,
     "default": '#2a2a2a',
 }
-
-
 
 
 class SerialMonitorWidget(QWidget):
@@ -69,61 +92,29 @@ class SerialMonitorWidget(QWidget):
 
     def eventFilter(self, watched: PySide2.QtCore.QObject, event: PySide2.QtCore.QEvent) -> bool:
         if event.type() == QEvent.Type.KeyPress:
-            self.keyPressEvent(event)
+            key = event.text()
+
+            if event.key() in key_map:
+                key = key_map[event.key()]
+
+            self.tx.emit(key)
             event.accept()
             return True
         elif event.type() == QEvent.Type.Wheel:
             if event.angleDelta().y() > 0: # up
                 if self.position > 0:
                     self.position -= 1
-
-                    print(self.position)
                     self.render_screen()
-
 
             elif event.angleDelta().y() < 0: # down
                 if self.position < len(self.screen.buffer.keys()):
                     self.position += 1
-            
-                    print(self.position)
                     self.render_screen()
                 
             event.accept()
             return True
 
         return False
-
-    def keyPressEvent(self, event: PySide2.QtGui.QKeyEvent):
-        key = event.text()
-
-        esc = '\033'
-        key_map = {
-            Qt.Key_Up: '[A',
-            Qt.Key_Down: '[B',
-            Qt.Key_Right: '[C',
-            Qt.Key_Left: '[D',
-            Qt.Key_Home: '[1~',
-            Qt.Key_End: '[OF',
-            Qt.Key_PageUp: '[5~',
-            Qt.Key_PageDown: '[6~',
-            Qt.Key_F1: 'OP',
-            Qt.Key_F2: 'OQ',
-            Qt.Key_F3: 'OR',
-            Qt.Key_F4: 'OS',
-            Qt.Key_F5: '[16~',
-            Qt.Key_F6: '[17~',
-            Qt.Key_F7: '[18~',
-            Qt.Key_F8: '[19~',
-            Qt.Key_F9: '[20~',
-            Qt.Key_F10: '[21~',
-            Qt.Key_F11: '[22~',
-            Qt.Key_F12: '[24~',
-        }
-
-        if event.key() in key_map:
-            key = esc + key_map[event.key()]
-
-        self.tx.emit(key)
 
     def rx(self, string):
         sticky = False
@@ -136,23 +127,15 @@ class SerialMonitorWidget(QWidget):
         if sticky == True:
             self.position = len(self.screen.buffer.keys()) - self.visible_lines
         
-        print(self.position)
-        
-
     def render_screen(self):
-        
         if self.visible_lines < len(self.screen.buffer.keys()):
             self.position = 0
         
-
         lines = list(self.screen.buffer.keys())
         lines = lines[self.position:self.position + self.visible_lines]
-        print(lines)
-
 
         html = self.render_to_html(self.screen.buffer, lines)
         self.text.setHtml(html)
-
 
     def render_to_html(self, buffer, lines):
         html = []
