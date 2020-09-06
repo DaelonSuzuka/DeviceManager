@@ -373,13 +373,11 @@ class FilterControls(QStackedWidget):
         self.profiles = ProfileSelector()
 
         self.text_filter = QLineEdit()
-        self.text_filter.setFixedWidth(widget_width)
         self.text_filter.textChanged.connect(self.update_filter)
         self.text_filter.setClearButtonEnabled(True)
         self.text_filter.setPlaceholderText('filter by text')
 
         self.logger_filter = LoggerTreeWidget()
-        self.logger_filter.setFixedWidth(widget_width)
 
         # load settings and send filter components to widgets
         self.settings = {}
@@ -728,10 +726,15 @@ class LogMonitorWidget(QWidget):
         self.filter_controls.filter_updated.connect(self.log_table.filter_model.set_filter)
         self.filter_controls.update_filter()
         
-        grid = QGridLayout(self)
-        grid.setContentsMargins(10, 10, 10, 10)
-        grid.addWidget(self.filter_controls, 0, 0)
-        grid.addWidget(self.log_table, 0, 1)
+        hbox = QHBoxLayout(self)
+
+        splitter = QSplitter(self)
+        hbox.addWidget(splitter)
+        # splitter.setContentsMargins(10, 10, 10, 10)
+        splitter.addWidget(self.filter_controls)
+        splitter.addWidget(self.log_table)
+        splitter.setStretchFactor(0, 1)
+        splitter.setStretchFactor(1, 10)
 
     def open_profile_prompt(self):
         profiles = list(self.filter_controls.settings['profiles'].keys())
