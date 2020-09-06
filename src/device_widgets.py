@@ -18,7 +18,7 @@ class VariableCapacitorWidget(QWidget):
         self.cdn_btn = QPushButton("CDN", autoRepeat=True)
         self.max_btn = QPushButton("Max")
         self.min_btn = QPushButton("Min")
-        self.bypass_btn = QPushButton("Bypass")
+        self.bypass_btn = QPushButton("Bypass", checkable=True)
         self.input_btn = QPushButton("Input", checkable=True)
         self.output_btn = QPushButton("Output", checkable=True)
 
@@ -57,6 +57,7 @@ class VariableCapacitorWidget(QWidget):
         device.signals.capacitors.connect(lambda x: self.edit.setText(str(x)))
         device.signals.input.connect(self.input_btn.setChecked)
         device.signals.output.connect(self.output_btn.setChecked)
+        device.signals.bypass.connect(self.bypass_btn.setChecked)
 
         self.setEnabled(True)
 

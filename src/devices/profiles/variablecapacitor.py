@@ -6,6 +6,7 @@ class Signals(QObject):
     capacitors = Signal(int)
     input = Signal(int)
     output = Signal(int)
+    bypass = Signal(int)
     
     @property
     def message_tree(self):
@@ -15,6 +16,7 @@ class Signals(QObject):
                     "capacitors": self.capacitors.emit,
                     "input": self.input.emit,
                     "output": self.output.emit,
+                    "bypass": self.bypass.emit,
                 }
             }
         }
