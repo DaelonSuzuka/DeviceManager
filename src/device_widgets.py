@@ -133,40 +133,12 @@ class VariableInductorWidget(Widget):
 class RFSensorWidget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.rf_panel = RFPanel()
-
-        grid = QGridLayout(self)
-        grid.setContentsMargins(10, 20, 10, 10)
-
-        grid.addWidget(self.rf_panel, 0, 0)
-        grid.setRowStretch(2, 1)
-
-        self.setEnabled(False)
-
-    def connected(self, device):
-        device.signals.forward.connect(lambda x: self.rf_panel.forward.setText(f"{x:10.2f}"))
-        device.signals.reverse.connect(lambda x: self.rf_panel.reverse.setText(f"{x:10.2f}"))
-        device.signals.phase.connect(lambda x: self.rf_panel.phase.setText(f"{x}"))
-        device.signals.frequency.connect(lambda x: self.rf_panel.frequency.setText(f"{x}"))
-
-        self.setEnabled(True)
-
-    def disconnected(self, guid):
-        self.setEnabled(False)
-
-
-class RFPanel(QGroupBox):
-    def __init__(self):
-        super().__init__("RF Sensor")
-        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         
-        # create widgets
         self.frequency = QLabel("?")
         self.forward = QLabel("?")
         self.phase = QLabel("?")
         self.reverse = QLabel("?")
 
-        # create layout
         grid = QGridLayout(self)
         grid.addWidget(QLabel("Forward:"), 0, 0)
         grid.addWidget(self.forward, 0, 1)
@@ -177,27 +149,13 @@ class RFPanel(QGroupBox):
         grid.addWidget(QLabel("Frequency:"), 0, 6)
         grid.addWidget(self.frequency, 0, 7)
 
-
-@DeviceManager.subscribe_to("SW-100")
-class SW100Widget(QWidget):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.ant_btns = AntennaButtons()
-
-        grid = QGridLayout(self)
-        grid.setContentsMargins(10, 20, 10, 10)
-
-        grid.addWidget(self.ant_btns, 0, 0)
-        grid.setColumnStretch(5, 1)
-
         self.setEnabled(False)
 
     def connected(self, device):
-        self.ant_btns.rx.clicked.connect(lambda: device.set_antenna("tx"))
-        self.ant_btns.none.clicked.connect(lambda: device.set_antenna("none"))
-        self.ant_btns.tx.clicked.connect(lambda: device.set_antenna("rx")) 
-
-        device.signals.antenna.connect(self.ant_btns.select_antenna)
+        device.signals.forward.connect(lambda x: self.forward.setText(f"{x:10.2f}"))
+        device.signals.reverse.connect(lambda x: self.reverse.setText(f"{x:10.2f}"))
+        device.signals.phase.connect(lambda x: self.phase.setText(f"{x}"))
+        device.signals.frequency.connect(lambda x: self.frequency.setText(f"{x}"))
 
         self.setEnabled(True)
 
@@ -205,21 +163,33 @@ class SW100Widget(QWidget):
         self.setEnabled(False)
 
 
-class AntennaButtons(QGroupBox):
-    def __init__(self):
-        super().__init__("SW-100")
+@DeviceManager.subscribe_to("SW-100")
+class SW100Widget(QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         
-        # create widgets
         self.rx = QPushButton("RX", checkable=True)
-        self.none = QPushButton("none", checkable=True)
-        self.none.setChecked(True)
+        self.none = QPushButton("none", checkable=True, checked=True)
         self.tx = QPushButton("TX", checkable=True)
 
-        # create layout
         hbox = QHBoxLayout(self)
         hbox.addWidget(self.rx)
         hbox.addWidget(self.none)
         hbox.addWidget(self.tx)
+
+        self.setEnabled(False)
+
+    def connected(self, device):
+        self.rx.clicked.connect(lambda: device.set_antenna("tx"))
+        self.none.clicked.connect(lambda: device.set_antenna("none"))
+        self.tx.clicked.connect(lambda: device.set_antenna("rx")) 
+
+        device.signals.antenna.connect(self.select_antenna)
+
+        self.setEnabled(True)
+
+    def disconnected(self, guid):
+        self.setEnabled(False)
 
     def select_antenna(self, antenna):
         self.rx.setChecked(False)
