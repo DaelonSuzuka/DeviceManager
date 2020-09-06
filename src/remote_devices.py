@@ -117,9 +117,6 @@ class DeviceClient(QObject):
         self.commands = [
             Command('Device Client: Connect', self, triggered=self.open_socket),
             Command('Device Client: Disconnect', self, triggered=self.close_socket),
-            Command('Device Client: Set Address', self),
-            Command('Device Client: Connect on startup', self),
-            Command("Device Client: Don't connect on startup", self),
         ]
 
         self.socket = QWebSocket()
@@ -154,7 +151,6 @@ class DeviceClient(QObject):
 
     def send_message(self, message):
         self.log.debug(f"TX: {message}")
-        
         self.socket.sendTextMessage(message)
 
     def process_message(self, message):
