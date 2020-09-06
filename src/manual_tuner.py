@@ -1,3 +1,4 @@
+from ctypes import alignment
 from qt import *
 from device_widgets import *
 from servitor import KeyButton, RadioInfo, MeterInfo
@@ -9,8 +10,8 @@ class ManualTuner(QWidget):
         self.setStyleSheet("""
             QWidget { font-size: 16pt; }
         """)
-        self.setBackgroundRole(QPalette.Base)
-        self.setAutoFillBackground(True)
+        # self.setBackgroundRole(QPalette.Base)
+        # self.setAutoFillBackground(True)
 
         self.key = KeyButton()
 
@@ -19,20 +20,22 @@ class ManualTuner(QWidget):
         self.caps = VariableCapacitorWidget(self)
         self.inds = VariableInductorWidget(self)
 
-        with CGridLayout(self) as grid:
-            with CVBoxLayout() as vbox:
-                grid.addLayout(vbox, 0, 0, 2, 1)
+        with CHBoxLayout(self) as layout:
+            with CVBoxLayout(layout, 1) as vbox:
                 with CHBoxLayout(vbox) as hbox:
-                    hbox.addWidget(QPushButton())
                     hbox.addWidget(self.key)
                 vbox.addWidget(HLine())
                 vbox.addWidget(RadioInfo(), 1)
                 vbox.addWidget(HLine())
                 vbox.addWidget(MeterInfo(), 1)
             
-            grid.addWidget(VLine(), 0, 1, 2, 1)
-
-            grid.addWidget(self.sensor, 0, 2)
-            grid.addWidget(self.switch, 0, 3)
-            grid.addWidget(self.caps, 1, 2)
-            grid.addWidget(self.inds, 1, 3)
+            layout.addWidget(VLine())
+            
+            with CVBoxLayout(layout, 2, alignment=Qt.AlignLeft) as vbox:
+                vbox.addWidget(self.sensor)
+                vbox.addWidget(HLine())
+                vbox.addWidget(self.switch)
+                vbox.addWidget(HLine())
+                vbox.addWidget(self.caps)
+                vbox.addWidget(HLine())
+                vbox.addWidget(self.inds)

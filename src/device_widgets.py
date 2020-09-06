@@ -8,6 +8,12 @@ class VariableCapacitorWidget(QWidget):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.setStyleSheet("""
+            QPushButton { 
+                width: 80px; 
+                height: 34px; 
+            } 
+        """)
         
         self.edit = QLineEdit()
         self.set_btn = QPushButton("Set")
@@ -16,29 +22,51 @@ class VariableCapacitorWidget(QWidget):
 
         self.cup_btn = QPushButton("CUP", autoRepeat=True)
         self.cdn_btn = QPushButton("CDN", autoRepeat=True)
-        self.max_btn = QPushButton("Max")
-        self.min_btn = QPushButton("Min")
+        self.max_btn = QPushButton("Max", checkable=True)
+        self.min_btn = QPushButton("Min", checkable=True)
         self.bypass_btn = QPushButton("Bypass", checkable=True)
         self.input_btn = QPushButton("Input", checkable=True)
         self.output_btn = QPushButton("Output", checkable=True)
 
-        hbox = QHBoxLayout()
-        hbox.addWidget(QLabel("Capacitors: "))
-        hbox.addWidget(self.edit)
-        hbox.addWidget(self.set_btn)
-        gbox = QGroupBox("", layout=hbox)
+        with CHBoxLayout(self) as layout:
+            gbox = QGroupBox("Capacitors:")
+            layout.addWidget(gbox)
+            with CVBoxLayout(gbox) as vbox:
+                with CHBoxLayout(vbox) as hbox:
+                    hbox.addWidget(self.edit)
+                    hbox.addWidget(self.set_btn)
+                with CHBoxLayout(vbox) as hbox:
+                    hbox.addWidget(QPushButton())
+                    hbox.addWidget(QPushButton())
+                    hbox.addWidget(QPushButton())
+                    hbox.addWidget(QPushButton())
+                    hbox.addWidget(QPushButton())
+                    hbox.addWidget(QPushButton())
 
-        with CGridLayout(self) as grid:
-            grid.addWidget(gbox, 0, 0, 2, 1)
-            grid.addWidget(self.cup_btn, 0, 1)
-            grid.addWidget(self.cdn_btn, 1, 1)
-            grid.addWidget(self.max_btn, 0, 2)
-            grid.addWidget(self.min_btn, 1, 2)
-            grid.addWidget(self.bypass_btn, 0, 3)
-            grid.addWidget(self.input_btn, 0, 4)
-            grid.addWidget(self.output_btn, 1, 4)
-        
+            gbox = QGroupBox("Controls:")
+            layout.addWidget(gbox)
+            with CGridLayout(gbox) as grid:
+                grid.addWidget(self.cup_btn, 0, 1)
+                grid.addWidget(self.cdn_btn, 1, 1)
+                grid.addWidget(self.max_btn, 0, 2)
+                grid.addWidget(self.min_btn, 1, 2)
+                grid.addWidget(self.bypass_btn, 0, 3)
+                grid.addWidget(QPushButton(enabled=False), 1, 3)
+                grid.addWidget(self.input_btn, 0, 4)
+                grid.addWidget(self.output_btn, 1, 4)
+            
         self.setEnabled(False)
+
+    def caps_changed(self, caps):
+        self.edit.setText(str(caps))
+        if caps == 255:
+            self.max_btn.setChecked(True)
+        if caps == 0:
+            self.min_btn.setChecked(True)
+        if caps < 255:
+            self.max_btn.setChecked(False)
+        if caps > 0:
+            self.min_btn.setChecked(False)
 
     def connected(self, device):
         self.cup_btn.clicked.connect(device.relays_cup)
@@ -48,13 +76,12 @@ class VariableCapacitorWidget(QWidget):
         self.min_btn.clicked.connect(device.relays_min)
 
         self.bypass_btn.clicked.connect(device.set_bypass)
-        
         self.input_btn.clicked.connect(device.set_input_relay)
         self.output_btn.clicked.connect(device.set_output_relay)
 
         self.set_relays.connect(device.set_caps)
 
-        device.signals.capacitors.connect(lambda x: self.edit.setText(str(x)))
+        device.signals.capacitors.connect(self.caps_changed)
         device.signals.input.connect(self.input_btn.setChecked)
         device.signals.output.connect(self.output_btn.setChecked)
         device.signals.bypass.connect(self.bypass_btn.setChecked)
@@ -71,36 +98,65 @@ class VariableInductorWidget(QWidget):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.setStyleSheet("""
+            QPushButton { 
+                width: 80px; 
+                height: 34px; 
+            } 
+        """)
 
         self.edit = QLineEdit()
         self.set_btn = QPushButton("Set")
         self.set_btn.clicked.connect(lambda: self.set_relays.emit(int(self.edit.text())))
         self.edit.returnPressed.connect(self.set_btn.clicked)
 
-        self.input_btn = QPushButton("Input", checkable=True)
-        self.output_btn = QPushButton("Output", checkable=True)
         self.lup_btn = QPushButton("LUP", autoRepeat=True)
         self.ldn_btn = QPushButton("LDN", autoRepeat=True)
-        self.max_btn = QPushButton("Max")
-        self.min_btn = QPushButton("Min")
+        self.max_btn = QPushButton("Max", checkable=True)
+        self.min_btn = QPushButton("Min", checkable=True)
+        self.input_btn = QPushButton("Input", checkable=True)
+        self.output_btn = QPushButton("Output", checkable=True)
 
-        hbox = QHBoxLayout()
-        hbox.addWidget(QLabel("Inductors:  "))
-        hbox.addWidget(self.edit)
-        hbox.addWidget(self.set_btn)
-        gbox = QGroupBox("", layout=hbox)
-
-        with CGridLayout(self) as grid:
-            grid.addWidget(gbox, 0, 0, 2, 1)
-            grid.addWidget(self.lup_btn, 0, 1)
-            grid.addWidget(self.ldn_btn, 1, 1)
-            grid.addWidget(self.max_btn, 0, 2)
-            grid.addWidget(self.min_btn, 1, 2)
-            grid.addWidget(self.input_btn, 0, 3)
-            grid.addWidget(self.output_btn, 1, 3)
+        with CHBoxLayout(self) as layout:
+            gbox = QGroupBox("Inductors:")
+            layout.addWidget(gbox)
+            with CVBoxLayout(gbox) as vbox:
+                with CHBoxLayout(vbox) as hbox:
+                    hbox.addWidget(self.edit)
+                    hbox.addWidget(self.set_btn)
+                with CHBoxLayout(vbox) as hbox:
+                    hbox.addWidget(QPushButton())
+                    hbox.addWidget(QPushButton())
+                    hbox.addWidget(QPushButton())
+                    hbox.addWidget(QPushButton())
+                    hbox.addWidget(QPushButton())
+                    hbox.addWidget(QPushButton())
+            
+            gbox = QGroupBox("Controls:")
+            layout.addWidget(gbox)
+            with CGridLayout(gbox) as grid:
+                grid.addWidget(self.lup_btn, 0, 1)
+                grid.addWidget(self.ldn_btn, 1, 1)
+                grid.addWidget(self.max_btn, 0, 2)
+                grid.addWidget(self.min_btn, 1, 2)
+                grid.addWidget(QPushButton(enabled=False), 0, 3)
+                grid.addWidget(QPushButton(enabled=False), 1, 3)
+                grid.addWidget(self.input_btn, 0, 4)
+                grid.addWidget(self.output_btn, 1, 4)
 
         self.setEnabled(False)
         
+    def inds_changed(self, inds):
+        self.edit.setText(str(inds))
+        if inds == 127:
+            self.max_btn.setChecked(True)
+        if inds == 0:
+            self.min_btn.setChecked(True)
+        if inds < 127:
+            self.max_btn.setChecked(False)
+        if inds > 0:
+            self.min_btn.setChecked(False)
+
     def connected(self, device):
         self.lup_btn.clicked.connect(device.relays_lup)
         self.ldn_btn.clicked.connect(device.relays_ldn)
@@ -112,7 +168,7 @@ class VariableInductorWidget(QWidget):
 
         self.set_relays.connect(device.set_inds)
 
-        device.signals.inductors.connect(lambda x: self.edit.setText(str(x)))
+        device.signals.inductors.connect(self.inds_changed)
         device.signals.input.connect(self.input_btn.setChecked)
         device.signals.output.connect(self.output_btn.setChecked)
         
