@@ -30,6 +30,9 @@ class RemoteStatusWidget(QWidget):
         super().__init__(*args, **kwargs)
         self.setObjectName('NetworkStatusBarItem')
         
+        self.client = None
+        self.server = None
+
         if client:
             self.connect_client(client)
         if server:
@@ -84,23 +87,27 @@ class RemoteStatusWidget(QWidget):
         self.close_socket.emit()
 
     def open_address_prompt(self):
-        oct = "(?:[0-1]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])"
-        regexp = QRegExp(f"^{oct}\\.{oct}\\.{oct}\\.{oct}$")
         CommandPalette().open(
-            placeholder='Enter a new IP Address',
-            cb=lambda result: self.address.setText(result),
-            # mask='000.000.000.000; ',
-            validator=QRegExpValidator(regexp)
+            placeholder='Enter new address',
+            cb=self.new_address_entered
         )
 
+    def new_address_entered(self, address):
+        self.address.setText(address)
+        if self.client:
+            self.client.address = address
+            self.close_socket.emit()
+            self.open_socket.emit()
+
     def connect_client(self, client):
+        self.client = client
         client.socket.connected.connect(self.socket_connected)
         client.socket.disconnected.connect(self.socket_disconnected)
         self.open_socket.connect(client.open_socket)
         self.close_socket.connect(client.close_socket)
 
     def connect_server(self, server):
-        pass
+        self.server = server
 
 
 @DeviceManager.subscribe
@@ -113,10 +120,19 @@ class DeviceClient(QObject):
         self.linked_devices = {}
         self.remote_devices = {}
         self.remote_profiles = []
+
+        self.address = '10.0.0.207'
+
+        self.hosts = [
+            'ldg.hopto.org',
+            'daelon.hopto.org',
+            '10.0.0.207',
+        ]
         
         self.commands = [
             Command('Device Client: Connect', self, triggered=self.open_socket),
             Command('Device Client: Disconnect', self, triggered=self.close_socket),
+            Command('Device Client: Add new remote', self, triggered=self.close_socket),
         ]
 
         self.socket = QWebSocket()
@@ -126,7 +142,7 @@ class DeviceClient(QObject):
         self.socket.disconnected.connect(self.unlink_all_devices)
 
     def on_subscribed(self):
-        if urlparse('10.0.0.207').path != urlparse(get_ip()).path:
+        if urlparse(self.address).path != urlparse(get_ip()).path:
             self.open_socket()
 
     def on_device_added(self, device):
@@ -141,7 +157,7 @@ class DeviceClient(QObject):
         self.devices.pop(guid)
 
     def open_socket(self):
-        url = f'ws://10.0.0.207:43000/control'
+        url = f'ws://{self.address}:43000/control'
         self.log.info(f"Attempting to connect to server at: {QUrl(url)}")
         self.socket.open(QUrl(url))
 
@@ -164,7 +180,7 @@ class DeviceClient(QObject):
         if 'device_added' in msg.keys():
             device = msg["device_added"]
             self.remote_devices[device['guid']] = device
-            self.link_to_remote_device('10.0.0.207', device['guid'])
+            self.link_to_remote_device(self.address, device['guid'])
 
         if 'device_removed' in msg.keys():
             device = msg["device_removed"]
