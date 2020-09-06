@@ -39,8 +39,6 @@ class MainWindow(QMainWindow):
             Command("Preferences: Open Settings (JSON)", self),
             Command("Preferences: Open Settings (UI)", self, shortcut='Ctrl+,'),
             Command("Device Manager: Check for port changes", self),
-            Command("Device Manager: Fizz", self),
-            Command("Device Manager: Buzz", self),
             Command("Quit Application", self, triggered=self.close),
         ])
 
