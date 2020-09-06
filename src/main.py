@@ -7,7 +7,6 @@ import sys
 import signal
 import logging
 from log_monitor import log_handler
-from settings import SettingsManager
 import qtawesome as qta
 
 
@@ -33,8 +32,6 @@ class MyApplication(QApplication):
         font = self.font()
         font.setPointSize(10)
         self.setFont(font)
-
-        self.settings_manager = SettingsManager()
 
         # configure logging
         logging.basicConfig(filename='log.txt', level=logging.DEBUG)

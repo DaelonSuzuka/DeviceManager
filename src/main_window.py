@@ -5,7 +5,6 @@ from style import qcolors
 
 from device_manager import DeviceManager
 from remote_devices import DeviceClient, DeviceServer, RemoteStatusWidget
-from settings import SettingsManager
 
 from command_palette import CommandPalette, Command
 from tuner import Tuner
@@ -60,7 +59,6 @@ class MainWindow(QMainWindow):
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
         self.setDockNestingEnabled(True)
 
-        # self.init_menu_bar()
         self.init_toolbar()
 
         self.load_settings() # do this last
@@ -71,40 +69,6 @@ class MainWindow(QMainWindow):
         #         print_all_children(child, '  ' + prefix )
 
         # print_all_children(self)
-    
-    def init_menu_bar(self):
-        menu = QMenuBar()
-        file_ = menu.addMenu('File')
-
-        file_.addAction(QAction('&Settings', self, 
-            shortcut='Ctrl+,', 
-            statusTip='Open settings',
-            triggered=lambda: SettingsManager().show_dialog()))
-
-        file_.addSeparator()
-
-        file_.addAction(QAction('&Exit', self, 
-            shortcut='Ctrl+Q', 
-            statusTip='Exit application',
-            triggered=self.close))
-    
-        view = menu.addMenu('View')
-    
-        view.addAction(self.command_palette.action)
-        view.addSeparator()
-        view.addAction(self.device_controls.toggleViewAction())
-        view.addAction(self.log_monitor.toggleViewAction())
-
-        settings = menu.addMenu('Settings')
-        settings.addAction(QAction('Settings', menu))
-
-        plugins = menu.addMenu('Plugins')
-        plugins.addAction(QAction('Plugins', menu))
-
-        help_ = menu.addMenu('Help')
-        help_.addAction(QAction('Help', menu))
-
-        self.setMenuBar(menu)
 
     def init_toolbar(self):
         self.tool = QToolBar()
@@ -127,10 +91,6 @@ class MainWindow(QMainWindow):
         menu.addAction(self.log_monitor.toggleViewAction())
 
         menu.addSeparator()
-        menu.addAction(QAction('&Settings', menu, 
-            shortcut='Ctrl+,', 
-            statusTip='Open settings',
-            triggered=lambda: SettingsManager().show_dialog()))
             
         menu.addAction(QAction('&Exit', menu, 
             shortcut='Ctrl+Q', 
@@ -149,7 +109,6 @@ class MainWindow(QMainWindow):
         self.servitor.radio.timeout.timer.stop()
         
         self.save_settings()
-        SettingsManager().save_now()
 
         super().closeEvent(event)
 

@@ -4,35 +4,25 @@ import time
 import logging
 from qt import *
 from bundles import SigBundle, SlotBundle
-from settings import Settings
-import typing
 
 
+# servitor-prime
+startup = [
+    'TS-480:/dev/ttyS0',
+    'Alpha4510A:/dev/ttyUSB0',
+    'DTS-4:/dev/ttyS2',
+    'VariableDummyLoad:/dev/ttyS3',
+    'ConsoleDevice:/dev/ttyS4',
+    'ConsoleDevice:/dev/ttyS5',
+]
 
-class Settings(Settings):
-    scan_period: int = 250
-    update_period: int = 1
-
-    # servitor-prime
-    startup: typing.List[str] = [
-        'TS-480:/dev/ttyS0',
-        'Alpha4510A:/dev/ttyUSB0',
-        'DTS-4:/dev/ttyS2',
-        'VariableDummyLoad:/dev/ttyS3',
-        'ConsoleDevice:/dev/ttyS4',
-        'ConsoleDevice:/dev/ttyS5',
-    ]
-    
-    # servitor-production
-    # startup: typing.List[str] = [
-    #     "TS-480:/dev/ttyS0",
-    #     "Alpha4510A:/dev/ttyS1",
-    #     "DTS-4:/dev/ttyS2",
-    #     'RadioInterface:/dev/ttyACM0',
-    # ]
-
-
-settings = Settings().register('Devices')
+# servitor-production
+# startup = [
+#     "TS-480:/dev/ttyS0",
+#     "Alpha4510A:/dev/ttyS1",
+#     "DTS-4:/dev/ttyS2",
+#     'RadioInterface:/dev/ttyACM0',
+# ]
 
 
 class DeviceManager(QObject):
@@ -109,7 +99,6 @@ class DeviceManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        self.settings = settings
         self.log = logging.getLogger(__name__)
         self.log.info("Initializing DeviceManager...")
 
@@ -126,11 +115,11 @@ class DeviceManager(QObject):
         
         self.scan_timer = QTimer()
         self.scan_timer.timeout.connect(lambda: self.scan())
-        self.scan_timer.start(self.settings.scan_period())
+        self.scan_timer.start(250)
 
         self.update_timer = QTimer()
         self.update_timer.timeout.connect(lambda: self.update())
-        self.update_timer.start(self.settings.update_period())
+        self.update_timer.start(1)
         
         self.check_for_new_subscribers()
 
@@ -178,7 +167,7 @@ class DeviceManager(QObject):
 
         if self.first_scan:
             for p in new_ports:
-                for string in self.settings.startup():
+                for string in startup:
                     profile = string.split(':')[0]
                     port = string.split(':')[1]
                     if p == port:
