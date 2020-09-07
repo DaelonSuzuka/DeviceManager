@@ -16,7 +16,6 @@ class VariableCapacitorWidget(QWidget):
                 max-height: 34px;  
             } 
         """)
-        self.setEnabled(False)
         
         self.edit = QLineEdit()
         self.set_btn = QPushButton("Set")
@@ -87,11 +86,6 @@ class VariableCapacitorWidget(QWidget):
         device.signals.output.connect(self.output_btn.setChecked)
         device.signals.bypass.connect(self.bypass_btn.setChecked)
 
-        self.setEnabled(True)
-
-    def disconnected(self, guid):
-        self.setEnabled(False)
-
 
 @DeviceManager.subscribe_to("VariableInductor")
 class VariableInductorWidget(QWidget):
@@ -107,7 +101,6 @@ class VariableInductorWidget(QWidget):
                 max-height: 34px; 
             } 
         """)
-        self.setEnabled(False)
 
         self.edit = QLineEdit()
         self.set_btn = QPushButton("Set")
@@ -174,18 +167,12 @@ class VariableInductorWidget(QWidget):
         device.signals.inductors.connect(self.inds_changed)
         device.signals.input.connect(self.input_btn.setChecked)
         device.signals.output.connect(self.output_btn.setChecked)
-        
-        self.setEnabled(True)
-
-    def disconnected(self, guid):
-        self.setEnabled(False)
 
 
 @DeviceManager.subscribe_to("RFSensor")
 class RFSensorWidget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setEnabled(False)
         
         self.forward = QLabel("?")
         self.reverse = QLabel("?")
@@ -217,11 +204,7 @@ class RFSensorWidget(QWidget):
         device.signals.phase.connect(lambda x: self.phase.setText(f"{x}"))
         device.signals.frequency.connect(lambda x: self.frequency.setText(f"{x}"))
 
-        self.setEnabled(True)
-
     def disconnected(self, guid):
-        self.setEnabled(False)
-
         self.forward.setText("?")
         self.reverse.setText("?")
         self.swr.setText("?")
@@ -241,7 +224,6 @@ class SW100Widget(QWidget):
                 max-height: 34px; 
             } 
         """)
-        self.setEnabled(False)
         
         self.rx = QPushButton("RX", checkable=True)
         self.none = QPushButton("none", checkable=True, checked=True)
@@ -259,13 +241,7 @@ class SW100Widget(QWidget):
         self.rx.clicked.connect(lambda: device.set_antenna("tx"))
         self.none.clicked.connect(lambda: device.set_antenna("none"))
         self.tx.clicked.connect(lambda: device.set_antenna("rx")) 
-
         device.signals.antenna.connect(self.select_antenna)
-
-        self.setEnabled(True)
-
-    def disconnected(self, guid):
-        self.setEnabled(False)
 
     def select_antenna(self, antenna):
         self.rx.setChecked(False)

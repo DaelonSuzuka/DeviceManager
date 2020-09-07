@@ -62,6 +62,7 @@ class DeviceManager(QObject):
                     if self.device:
                         return
                     self.device = device
+                    self.setEnabled(True)
                     if hasattr(self, 'connected'):
                         self.connected(device)
             return on_device_added
@@ -71,6 +72,7 @@ class DeviceManager(QObject):
                 if self.device is None or self.device.guid != guid:
                     return
                 self.device = None
+                self.setEnabled(False)
                 if hasattr(self, 'disconnected'):
                     self.disconnected(guid)
             return on_device_removed
@@ -88,6 +90,7 @@ class DeviceManager(QObject):
                 obj.slots.link_to(obj)
 
                 obj.device = None
+                obj.setEnabled(False)
                 
                 cls.new_subscribers.append(obj)
 

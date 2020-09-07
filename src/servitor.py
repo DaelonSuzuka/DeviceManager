@@ -356,16 +356,11 @@ class KeyButton(IconToggleButton):
         self.icon_checked = qta.icon('mdi.radio-tower', color=qcolors.silver)
         self.icon_unchecked = qta.icon('mdi.radio-tower', color='gray')
         self.update_icon()
-        self.setEnabled(False)
 
     def connected(self, device):
         device.signals.keyed.connect(lambda: self.setChecked(True))
         device.signals.unkeyed.connect(lambda: self.setChecked(False))
         self.clicked.connect(device.toggle_key)
-        self.setEnabled(True)
-
-    def disconnected(self, guid):
-        self.setEnabled(False)
 
 
 @DeviceManager.subscribe_to("TS-480")
@@ -467,14 +462,13 @@ class TimeoutBar(QProgressBar):
                         self.setValue(val - 500)
 
 
-@DeviceManager.subscribe_to("TS-480")
 class RadioControls(Widget):
     def create_widgets(self):
         self.setStyleSheet('QProgressBar { border: 1px solid grey; }')
 
         self.power_btns = PowerButtons()
         self.freq_btns = FrequencyButtons()
-        self.dummy_load = DummyLoadControls(enabled=False)
+        self.dummy_load = DummyLoadControls()
 
         self.mode = ModeComboBox()
 
@@ -520,14 +514,6 @@ class RadioControls(Widget):
                     box.add(self.memory_tune)
                     box.add(self.full_tune)
 
-    def connected(self, device):
-        self.setEnabled(True)
-        
-        device.unkey()
-
-    def disconnected(self, guid):
-        self.setEnabled(False)
-
 
 @DeviceManager.subscribe_to("DTS-4")
 class SwitchControls(Widget):
@@ -547,15 +533,10 @@ class SwitchControls(Widget):
         self.btns.addButton(self.four)
         
     def connected(self, device):
-        self.setEnabled(True)
-
         self.one.clicked.connect(lambda: device.select_antenna(1))
         self.two.clicked.connect(lambda: device.select_antenna(2))
         self.three.clicked.connect(lambda: device.select_antenna(3))
         self.four.clicked.connect(lambda: device.select_antenna(4))
-
-    def disconnected(self, guid):
-        self.setEnabled(False)
 
 
 class ServitorWidget(QWidget):
@@ -571,8 +552,8 @@ class ServitorWidget(QWidget):
         self.setBackgroundRole(QPalette.Base)
         self.setAutoFillBackground(True)
 
-        self.radio = RadioControls(enabled=False)
-        self.switch = SwitchControls(enabled=False)
+        self.radio = RadioControls()
+        self.switch = SwitchControls()
         self.radio_info = RadioInfo()
         self.meter_info = MeterInfo()
 
