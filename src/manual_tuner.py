@@ -25,6 +25,8 @@ class ManualTuner(QWidget):
                 vbox.addWidget(self.key)
                 vbox.addWidget(QLabel(), 5)
                 vbox.addWidget(HLine())
+                vbox.addWidget(RFSensorWidget())
+                vbox.addWidget(HLine())
                 vbox.addWidget(RadioInfo())
                 vbox.addWidget(HLine())
                 vbox.addWidget(MeterInfo())
@@ -32,9 +34,7 @@ class ManualTuner(QWidget):
             layout.addWidget(VLine())
             
             with CVBoxLayout(layout, 2, alignment=Qt.AlignLeft) as vbox:
-                vbox.addWidget(self.sensor)
-                vbox.addWidget(HLine())
-                vbox.addWidget(self.switch)
+                vbox.addStretch(1)
                 vbox.addWidget(HLine())
                 vbox.addWidget(self.caps)
                 vbox.addWidget(HLine())

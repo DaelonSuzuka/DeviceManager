@@ -8,6 +8,7 @@ class VariableCapacitorWidget(QWidget):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.setStyleSheet("""
             QPushButton { 
                 width: 80px; 
@@ -22,6 +23,10 @@ class VariableCapacitorWidget(QWidget):
         self.set_btn.clicked.connect(lambda: self.set_relays.emit(int(self.edit.text())))
         self.edit.returnPressed.connect(self.set_btn.clicked)
 
+        self.slider = QSlider(Qt.Horizontal)
+        self.slider.setMaximum(127)
+        self.slider.installEventFilter(self)
+
         self.cup_btn = QPushButton("CUP", autoRepeat=True)
         self.cdn_btn = QPushButton("CDN", autoRepeat=True)
         self.max_btn = QPushButton("Max", checkable=True)
@@ -32,11 +37,15 @@ class VariableCapacitorWidget(QWidget):
 
         with CHBoxLayout(self) as layout:
             gbox = QGroupBox("Capacitors:")
+            gbox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
             layout.add(gbox)
             with CVBoxLayout(gbox) as vbox:
                 with CHBoxLayout(vbox) as hbox:
                     hbox.add(self.edit)
                     hbox.add(self.set_btn)
+
+                vbox.add(self.slider)
+
                 with CHBoxLayout(vbox) as hbox:
                     hbox.add(QPushButton('4', clicked=lambda: self.set_relays.emit(4)))
                     hbox.add(QPushButton('8', clicked=lambda: self.set_relays.emit(8)))
@@ -47,6 +56,7 @@ class VariableCapacitorWidget(QWidget):
                     hbox.add(QPushButton('255', clicked=lambda: self.set_relays.emit(255)))
 
             gbox = QGroupBox("Controls:")
+            gbox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
             layout.add(gbox)
             with CGridLayout(gbox) as grid:
                 grid.add(self.cup_btn, 0, 1)
@@ -58,8 +68,14 @@ class VariableCapacitorWidget(QWidget):
                 grid.add(self.input_btn, 0, 4)
                 grid.add(self.output_btn, 1, 4)
 
+    def eventFilter(self, watched: PySide2.QtCore.QObject, event: PySide2.QtCore.QEvent) -> bool:
+        if watched == self.slider and event.type() == QEvent.MouseButtonRelease:
+            self.set_relays.emit(self.slider.value())
+        return False
+
     def caps_changed(self, caps):
         self.edit.setText(str(caps))
+        self.slider.setValue(caps)
         if caps == 255:
             self.max_btn.setChecked(True)
         if caps == 0:
@@ -93,6 +109,7 @@ class VariableInductorWidget(QWidget):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.setStyleSheet("""
             QPushButton { 
                 width: 80px; 
@@ -107,6 +124,10 @@ class VariableInductorWidget(QWidget):
         self.set_btn.clicked.connect(lambda: self.set_relays.emit(int(self.edit.text())))
         self.edit.returnPressed.connect(self.set_btn.clicked)
 
+        self.slider = QSlider(Qt.Horizontal)
+        self.slider.setMaximum(127)
+        self.slider.installEventFilter(self)
+
         self.lup_btn = QPushButton("LUP", autoRepeat=True)
         self.ldn_btn = QPushButton("LDN", autoRepeat=True)
         self.max_btn = QPushButton("Max", checkable=True)
@@ -116,11 +137,15 @@ class VariableInductorWidget(QWidget):
 
         with CHBoxLayout(self) as layout:
             gbox = QGroupBox("Inductors:")
+            gbox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
             layout.add(gbox)
             with CVBoxLayout(gbox) as vbox:
                 with CHBoxLayout(vbox) as hbox:
                     hbox.add(self.edit)
                     hbox.add(self.set_btn)
+
+                vbox.add(self.slider)
+
                 with CHBoxLayout(vbox) as hbox:
                     hbox.add(QPushButton('0', clicked=lambda: self.set_relays.emit(0)))
                     hbox.add(QPushButton('4', clicked=lambda: self.set_relays.emit(4)))
@@ -131,6 +156,7 @@ class VariableInductorWidget(QWidget):
                     hbox.add(QPushButton('127', clicked=lambda: self.set_relays.emit(127)))
             
             gbox = QGroupBox("Controls:")
+            gbox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
             layout.add(gbox)
             with CGridLayout(gbox) as grid:
                 grid.add(self.lup_btn, 0, 1)
@@ -141,9 +167,15 @@ class VariableInductorWidget(QWidget):
                 grid.add(QPushButton(enabled=False), 1, 3)
                 grid.add(self.input_btn, 0, 4)
                 grid.add(self.output_btn, 1, 4)
+
+    def eventFilter(self, watched: PySide2.QtCore.QObject, event: PySide2.QtCore.QEvent) -> bool:
+        if watched == self.slider and event.type() == QEvent.MouseButtonRelease:
+            self.set_relays.emit(self.slider.value())
+        return False
         
     def inds_changed(self, inds):
         self.edit.setText(str(inds))
+        self.slider.setValue(inds)
         if inds == 127:
             self.max_btn.setChecked(True)
         if inds == 0:
@@ -173,6 +205,7 @@ class VariableInductorWidget(QWidget):
 class RFSensorWidget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         
         self.forward = QLabel("?")
         self.reverse = QLabel("?")
@@ -180,23 +213,23 @@ class RFSensorWidget(QWidget):
         self.phase = QLabel("?")
         self.frequency = QLabel("?")
 
-        with CVBoxLayout(self) as vbox:
-            with CHBoxLayout(vbox) as hbox:
-                hbox.addWidget(QLabel("Forward:"))
-                hbox.addWidget(self.forward)
-                hbox.addWidget(QLabel("Reverse:"))
-                hbox.addWidget(self.reverse)
-                hbox.addWidget(QLabel("SWR:"))
-                hbox.addWidget(self.swr)
-
-            with CHBoxLayout(vbox) as hbox:
-                hbox.addWidget(QLabel("Phase:"))
-                hbox.addWidget(self.phase)
-                hbox.addWidget(QLabel("Frequency:"))
-                hbox.addWidget(self.frequency)
-                hbox.addWidget(QLabel(""))
-                hbox.addWidget(QLabel(""))
-
+        with CHBoxLayout(self) as hbox:
+            with CVBoxLayout(hbox) as vbox:
+                vbox.addWidget(QLabel("Forward:"))
+                vbox.addWidget(QLabel("Reverse:"))
+                vbox.addWidget(QLabel("SWR:"))
+                vbox.addWidget(QLabel("Phase:"))
+                vbox.addWidget(QLabel("Frequency:"))
+            hbox.addWidget(QLabel())
+            hbox.addWidget(QLabel())
+            hbox.addWidget(QLabel())
+            with CVBoxLayout(hbox) as vbox:
+                vbox.addWidget(self.forward)
+                vbox.addWidget(self.reverse)
+                vbox.addWidget(self.swr)
+                vbox.addWidget(self.phase)
+                vbox.addWidget(self.frequency)
+    
     def connected(self, device):
         device.signals.forward.connect(lambda x: self.forward.setText(f"{x:.2f}"))
         device.signals.reverse.connect(lambda x: self.reverse.setText(f"{x:.2f}"))
@@ -216,6 +249,7 @@ class RFSensorWidget(QWidget):
 class SW100Widget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.setStyleSheet("""
             QPushButton { 
                 width: 80px; 
