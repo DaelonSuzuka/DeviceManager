@@ -52,6 +52,7 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.servitor, 'Servitor')
         self.tabs.addTab(self.diagnostics, 'Diagnostics')
         self.tabs.addTab(self.manual_tuner, 'Manual Tuner')
+        self.tabs.setCurrentWidget(self.manual_tuner)
 
         # init dockwidget settings
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)

@@ -21,20 +21,20 @@ class ManualTuner(QWidget):
         self.inds = VariableInductorWidget(self)
 
         with CHBoxLayout(self) as layout:
-            with CVBoxLayout(layout, 1) as vbox:
-                vbox.addWidget(self.key)
-                vbox.addWidget(QLabel(), 5)
-                vbox.addWidget(HLine())
-                vbox.addWidget(RFSensorWidget())
-                vbox.addWidget(HLine())
-                vbox.addWidget(RadioInfo())
-                vbox.addWidget(HLine())
-                vbox.addWidget(MeterInfo())
+            # with CVBoxLayout(layout, 1) as vbox:
+            #     vbox.addWidget(self.key)
+            #     vbox.addWidget(QLabel(), 5)
+            #     vbox.addWidget(HLine())
+            #     vbox.addWidget(RadioInfo())
+            #     vbox.addWidget(HLine())
+            #     vbox.addWidget(MeterInfo())
+            #     # vbox.addWidget(HLine())
             
-            layout.addWidget(VLine())
+            # layout.addWidget(VLine())
             
             with CVBoxLayout(layout, 2, alignment=Qt.AlignLeft) as vbox:
                 vbox.addStretch(1)
+                vbox.addWidget(RFSensorWidget())
                 vbox.addWidget(HLine())
                 vbox.addWidget(self.caps)
                 vbox.addWidget(HLine())
