@@ -355,6 +355,14 @@ class FilterControls(QStackedWidget):
         'text': '',
     }
 
+    default_settings = {
+        'selected_profile': 'default',
+        'registered_loggers': ['global'],
+        'profiles': {
+            'default': empty_profile
+        }
+    }
+
     def __init__(self):
         super().__init__()
 
@@ -367,8 +375,6 @@ class FilterControls(QStackedWidget):
         """)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
 
-        widget_width = 200
-
         # create widgets
         self.profiles = ProfileSelector()
 
@@ -380,8 +386,7 @@ class FilterControls(QStackedWidget):
         self.logger_filter = LoggerTreeWidget()
 
         # load settings and send filter components to widgets
-        self.settings = {}
-        self.load_settings()
+        self.settings = QSettings().value('log_monitor', self.default_settings)
 
         profiles = self.settings['profiles']
         current_profile_name = self.settings['selected_profile']
@@ -423,28 +428,8 @@ class FilterControls(QStackedWidget):
         grid.setRowStretch(1, 1)
         grid.setColumnStretch(0, 1)
 
-    def load_settings(self):
-        try:
-            with open('settings-logviewer.json') as f:
-                settings = json.load(f)
-                if settings != {}:
-                    self.settings = settings
-                    return
-        except FileNotFoundError:
-            pass
-
-        self.settings = {
-            'selected_profile': 'default',
-            'registered_loggers': ['global'],
-            'profiles': {
-                'default': self.empty_profile
-            }
-        }
-
     def save_settings(self):
-        string = json.dumps(self.settings, indent=4)
-        with open('settings-logviewer.json', 'w') as f:
-            f.write(string)
+        QSettings().setValue('log_monitor', self.settings)
 
     def add_profile(self, name):
         new_profile = dict(self.empty_profile)
@@ -710,8 +695,6 @@ class LogTableView(QTableView):
 class LogMonitorWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        
-        self.setMinimumWidth(1000)
 
         self.commands = [
             Command("Log Monitor: Show log monitor", shortcut='Ctrl+l', triggered=self.show),
