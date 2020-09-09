@@ -1,6 +1,7 @@
 from ctypes import alignment
 from qt import *
 from device_manager import DeviceManager
+from style import qcolors
 
 
 @DeviceManager.subscribe_to("VariableCapacitor")
@@ -157,6 +158,110 @@ class VariableInductorWidget(QWidget):
 
 
 @DeviceManager.subscribe_to("RFSensor")
+class RFSensorChartWidget(QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.forward = []
+        self.prev_forward = 0.0
+        self.forward_series = QtCharts.QLineSeries(color=qcolors.red, name='forward')
+        self.reverse = []
+        self.prev_reverse = 0.0
+        self.reverse_series = QtCharts.QLineSeries(color=qcolors.blue, name='reverse')
+        self.swr = []
+        self.prev_swr = 0.0
+        self.swr_series = QtCharts.QLineSeries(color=qcolors.green, name='swr')
+
+        self.chart_view = QtCharts.QChartView()
+        self.chart_view.chart().addSeries(self.forward_series)
+        self.chart_view.chart().addSeries(self.reverse_series)
+        self.chart_view.chart().addSeries(self.swr_series)
+
+        self.chart_view.chart().createDefaultAxes()
+        self.chart_view.chart().axisX().setRange(0, 1000)
+        self.chart_view.chart().axisY().setRange(0, 4096)
+        
+        with CHBoxLayout(self) as hbox:
+            hbox.add(self.chart_view)
+
+        self.sample_num = 0
+        self.timer = QTimer(timeout=self.add_data)
+        self.timer.start(10)
+
+    def add_data(self):
+        if len(self.forward) != 0:
+            self.prev_forward = avg = sum(self.forward) / len(self.forward)
+            self.forward_series.append(float(self.sample_num), avg)
+            self.forward = []
+        else:
+            self.forward_series.append(float(self.sample_num), self.prev_forward)
+
+        if len(self.reverse) != 0:
+            self.prev_reverse = avg = sum(self.reverse) / len(self.reverse)
+            self.reverse_series.append(float(self.sample_num), avg)
+            self.reverse = []
+        else:
+            self.reverse_series.append(float(self.sample_num), self.prev_reverse)
+            
+        if len(self.swr) != 0:
+            self.prev_swr = avg = sum(self.swr) / len(self.swr)
+            self.swr_series.append(float(self.sample_num), avg)
+            self.swr = []
+        else:
+            self.swr_series.append(float(self.sample_num), self.prev_swr)
+
+        self.sample_num += 1
+
+        if self.sample_num > 1000:
+            self.chart_view.chart().axisX().setRange(self.sample_num - 1000, self.sample_num)
+
+    def connected(self, device):
+        device.signals.forward.connect(lambda x: self.forward.append(x))
+        device.signals.reverse.connect(lambda x: self.reverse.append(x))
+        device.signals.swr.connect(lambda x: self.swr.append(x))
+
+        # device.signals.phase.connect(lambda x: self.phase.append(x))
+
+
+@DeviceManager.subscribe_to("RFSensor")
+class FlatRFSensorWidget(QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.forward = QLabel("?")
+        self.reverse = QLabel("?")
+        self.swr = QLabel("?")
+        self.phase = QLabel("?")
+        self.frequency = QLabel("?")
+
+        with CHBoxLayout(self) as hbox:
+            hbox.addWidget(QLabel("Forward:"))
+            hbox.addWidget(self.forward)
+            hbox.addWidget(QLabel("Reverse:"))
+            hbox.addWidget(self.reverse)
+            hbox.addWidget(QLabel("SWR:"))
+            hbox.addWidget(self.swr)
+            hbox.addWidget(QLabel("Phase:"))
+            hbox.addWidget(self.phase)
+            hbox.addWidget(QLabel("Frequency:"))
+            hbox.addWidget(self.frequency)
+    
+    def connected(self, device):
+        device.signals.forward.connect(lambda x: self.forward.setText(f"{x:.2f}"))
+        device.signals.reverse.connect(lambda x: self.reverse.setText(f"{x:.2f}"))
+        device.signals.swr.connect(lambda x: self.swr.setText(f"{x:.2f}"))
+        device.signals.phase.connect(lambda x: self.phase.setText(f"{x}"))
+        device.signals.frequency.connect(lambda x: self.frequency.setText(f"{x}"))
+
+    def disconnected(self, guid):
+        self.forward.setText("?")
+        self.reverse.setText("?")
+        self.swr.setText("?")
+        self.phase.setText("?")
+        self.frequency.setText("?")
+
+
+@DeviceManager.subscribe_to("RFSensor")
 class RFSensorWidget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -168,22 +273,21 @@ class RFSensorWidget(QWidget):
         self.phase = QLabel("?")
         self.frequency = QLabel("?")
 
-        with CHBoxLayout(self) as hbox:
-            with CVBoxLayout(hbox) as vbox:
-                vbox.addWidget(QLabel("Forward:"))
-                vbox.addWidget(QLabel("Reverse:"))
-                vbox.addWidget(QLabel("SWR:"))
-                vbox.addWidget(QLabel("Phase:"))
-                vbox.addWidget(QLabel("Frequency:"))
-            hbox.addWidget(QLabel())
-            hbox.addWidget(QLabel())
-            hbox.addWidget(QLabel())
-            with CVBoxLayout(hbox) as vbox:
-                vbox.addWidget(self.forward)
-                vbox.addWidget(self.reverse)
-                vbox.addWidget(self.swr)
-                vbox.addWidget(self.phase)
-                vbox.addWidget(self.frequency)
+        with CVBoxLayout(self) as layout:
+            layout.add(QLabel('RFSensor:'))
+            with CHBoxLayout(layout) as hbox:
+                with CVBoxLayout(hbox) as vbox:
+                    vbox.addWidget(QLabel("Forward:"))
+                    vbox.addWidget(QLabel("Reverse:"))
+                    vbox.addWidget(QLabel("SWR:"))
+                    vbox.addWidget(QLabel("Phase:"))
+                    vbox.addWidget(QLabel("Frequency:"))
+                with CVBoxLayout(hbox) as vbox:
+                    vbox.addWidget(self.forward)
+                    vbox.addWidget(self.reverse)
+                    vbox.addWidget(self.swr)
+                    vbox.addWidget(self.phase)
+                    vbox.addWidget(self.frequency)
     
     def connected(self, device):
         device.signals.forward.connect(lambda x: self.forward.setText(f"{x:.2f}"))

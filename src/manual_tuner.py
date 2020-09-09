@@ -28,6 +28,8 @@ class ManualTuner(QWidget):
         self.key = KeyButton()
 
         self.sensor = RFSensorWidget(self)
+        self.chart = RFSensorChartWidget(self)
+
         self.switch = SW100Widget(self)
         self.caps = VariableCapacitorWidget(self)
         self.caps.setStyleSheet(stylesheet)
@@ -36,19 +38,18 @@ class ManualTuner(QWidget):
 
         with CHBoxLayout(self) as layout:
             with CVBoxLayout(layout) as vbox:
-                vbox.add(QLabel())
                 vbox.add(self.key)
+                vbox.addStretch(5)
                 vbox.add(HLine())
                 vbox.add(RadioInfo())
                 vbox.add(HLine())
                 vbox.add(MeterInfo())
-                vbox.addStretch(5)
             
             layout.add(VLine())
             
-            with CVBoxLayout(layout) as vbox:
-                vbox.add(RFSensorWidget())
-                vbox.addStretch(1)
+            with CVBoxLayout(layout, 1) as vbox:
+                vbox.add(self.chart, 1)
+                vbox.add(FlatRFSensorWidget())
                 vbox.add(HLine())
                 with CHBoxLayout(vbox) as hbox:
                     hbox.add(self.caps)
