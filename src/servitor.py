@@ -13,14 +13,17 @@ class RadioInfo(QWidget):
         self.frequency = QLabel("  ?  ")
         self.mode = QLabel("  ?  ")
         
-        with CGridLayout(self, margins=(0, 0, 0, 0)) as grid:
-            grid.add(QLabel("Kenwood TS-480"), 0, 0, 1, 2)
-            grid.add(QLabel("Power:"), 1, 0)
-            grid.add(self.power, 1, 1)
-            grid.add(QLabel("Frequency:"), 2, 0)
-            grid.add(self.frequency, 2, 1)
-            grid.add(QLabel("Mode:"), 3, 0)
-            grid.add(self.mode, 3, 1)
+        with CVBoxLayout(self) as layout:
+            layout.add(QLabel('Kenwood TS-480:'))
+            with CHBoxLayout(layout) as hbox:
+                with CVBoxLayout(hbox) as vbox:
+                    vbox.addWidget(QLabel("Power:"))
+                    vbox.addWidget(QLabel("Frequency:"))
+                    vbox.addWidget(QLabel("Mode:"))
+                with CVBoxLayout(hbox) as vbox:
+                    vbox.addWidget(self.power)
+                    vbox.addWidget(self.frequency)
+                    vbox.addWidget(self.mode)
 
     def connected(self, device):
         device.signals.power.connect(lambda s: self.power.setText(s))
@@ -48,16 +51,19 @@ class MeterInfo(QWidget):
         self.swr = QLabel("  ?  ")
         self.frequency = QLabel("  ?  ")
 
-        with CGridLayout(self, margins=(0, 0, 0, 0)) as grid:
-            grid.add(QLabel("Alpha 4510"), 0, 0, 1, 2)
-            grid.add(QLabel("Forward:"), 1, 0)
-            grid.add(self.forward, 1, 1)
-            grid.add(QLabel("Reverse:"), 2, 0)
-            grid.add(self.reverse, 2, 1)
-            grid.add(QLabel("Frequency:"), 3, 0)
-            grid.add(self.frequency, 3, 1)
-            grid.add(QLabel("SWR:"), 4, 0)
-            grid.add(self.swr, 4, 1)
+        with CVBoxLayout(self) as layout:
+            layout.add(QLabel('Alpha4510A:'))
+            with CHBoxLayout(layout) as hbox:
+                with CVBoxLayout(hbox) as vbox:
+                    vbox.addWidget(QLabel("Forward:"))
+                    vbox.addWidget(QLabel("Reverse:"))
+                    vbox.addWidget(QLabel("SWR:"))
+                    vbox.addWidget(QLabel("Frequency:"))
+                with CVBoxLayout(hbox) as vbox:
+                    vbox.addWidget(self.forward)
+                    vbox.addWidget(self.reverse)
+                    vbox.addWidget(self.swr)
+                    vbox.addWidget(self.frequency)
 
     def connected(self, device):
         device.signals.forward.connect(lambda s: self.forward.setText(s))
