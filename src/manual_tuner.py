@@ -9,6 +9,12 @@ class ManualTuner(QWidget):
         super().__init__(parent=parent)
         self.setStyleSheet("""
             QWidget { font-size: 16pt; }
+            QPushButton { 
+                width: 160px; 
+                height: 60px;
+                max-width: 160px; 
+                max-height: 60px;  
+            } 
         """)
         # self.setBackgroundRole(QPalette.Base)
         # self.setAutoFillBackground(True)
@@ -32,8 +38,7 @@ class ManualTuner(QWidget):
             
             # layout.addWidget(VLine())
             
-            with CVBoxLayout(layout, 2, alignment=Qt.AlignLeft) as vbox:
-                vbox.addStretch(1)
+            with CVBoxLayout(layout, 2, alignment=Qt.AlignHCenter|Qt.AlignTop) as vbox:
                 vbox.addWidget(RFSensorWidget())
                 vbox.addWidget(HLine())
                 vbox.addWidget(self.caps)

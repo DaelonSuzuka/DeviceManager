@@ -9,14 +9,6 @@ class VariableCapacitorWidget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.setStyleSheet("""
-            QPushButton { 
-                width: 80px; 
-                height: 34px;
-                max-width: 80px; 
-                max-height: 34px;  
-            } 
-        """)
         
         self.edit = QLineEdit()
         self.set_btn = QPushButton("Set")
@@ -110,14 +102,6 @@ class VariableInductorWidget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.setStyleSheet("""
-            QPushButton { 
-                width: 80px; 
-                height: 34px; 
-                max-width: 80px; 
-                max-height: 34px; 
-            } 
-        """)
 
         self.edit = QLineEdit()
         self.set_btn = QPushButton("Set")
@@ -250,14 +234,6 @@ class SW100Widget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.setStyleSheet("""
-            QPushButton { 
-                width: 80px; 
-                height: 34px; 
-                max-width: 80px; 
-                max-height: 34px; 
-            } 
-        """)
         
         self.rx = QPushButton("RX", checkable=True)
         self.none = QPushButton("none", checkable=True, checked=True)
