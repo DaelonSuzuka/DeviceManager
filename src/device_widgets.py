@@ -1,3 +1,4 @@
+from ctypes import alignment
 from qt import *
 from device_manager import DeviceManager
 
@@ -11,34 +12,31 @@ class VariableCapacitorWidget(QWidget):
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         
         self.edit = QLineEdit()
+        self.edit.setAlignment(QtCore.Qt.AlignCenter)
         self.set_btn = QPushButton("Set")
         self.set_btn.clicked.connect(lambda: self.set_relays.emit(int(self.edit.text())))
         self.edit.returnPressed.connect(self.set_btn.clicked)
 
         self.slider = QSlider(Qt.Horizontal)
-        self.slider.setMaximum(127)
+        self.slider.setMaximum(255)
         self.slider.installEventFilter(self)
 
-        self.cup_btn = QPushButton("CUP", autoRepeat=True)
-        self.cdn_btn = QPushButton("CDN", autoRepeat=True)
-        self.max_btn = QPushButton("Max", checkable=True)
-        self.min_btn = QPushButton("Min", checkable=True)
-        self.bypass_btn = QPushButton("Bypass", checkable=True)
-        self.input_btn = QPushButton("Input", checkable=True)
-        self.output_btn = QPushButton("Output", checkable=True)
+        self.up_btn = QPushButton("UP", autoRepeat=True)
+        self.dn_btn = QPushButton("DN", autoRepeat=True)
+        self.clear_btn = QPushButton("CLR")
+        self.input_btn = QPushButton("IN", checkable=True)
+        self.output_btn = QPushButton("OUT", checkable=True)
+        self.shunt_btn = QPushButton("Shunt", checkable=True)
 
-        with CHBoxLayout(self) as layout:
-            gbox = QGroupBox("Capacitors:")
+        with CVBoxLayout(self) as layout:
+            gbox = QGroupBox("Variable Capacitor:")
             gbox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
             layout.add(gbox)
             with CVBoxLayout(gbox) as vbox:
-                with CHBoxLayout(vbox) as hbox:
-                    hbox.add(self.edit)
-                    hbox.add(self.set_btn)
-
                 vbox.add(self.slider)
 
                 with CHBoxLayout(vbox) as hbox:
+                    hbox.add(QPushButton('0', clicked=lambda: self.set_relays.emit(0)))
                     hbox.add(QPushButton('4', clicked=lambda: self.set_relays.emit(4)))
                     hbox.add(QPushButton('8', clicked=lambda: self.set_relays.emit(8)))
                     hbox.add(QPushButton('16', clicked=lambda: self.set_relays.emit(16)))
@@ -47,18 +45,17 @@ class VariableCapacitorWidget(QWidget):
                     hbox.add(QPushButton('128', clicked=lambda: self.set_relays.emit(128)))
                     hbox.add(QPushButton('255', clicked=lambda: self.set_relays.emit(255)))
 
-            gbox = QGroupBox("Controls:")
-            gbox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-            layout.add(gbox)
-            with CGridLayout(gbox) as grid:
-                grid.add(self.cup_btn, 0, 1)
-                grid.add(self.cdn_btn, 1, 1)
-                grid.add(self.max_btn, 0, 2)
-                grid.add(self.min_btn, 1, 2)
-                grid.add(self.bypass_btn, 0, 3)
-                grid.add(QPushButton(enabled=False), 1, 3)
-                grid.add(self.input_btn, 0, 4)
-                grid.add(self.output_btn, 1, 4)
+                vbox.add(HLine())
+
+                with CHBoxLayout(vbox, alignment=Qt.AlignLeft) as hbox:
+                    hbox.add(self.up_btn)
+                    hbox.add(self.dn_btn)
+                    hbox.add(self.clear_btn)
+                    hbox.add(self.input_btn)
+                    hbox.add(self.output_btn)
+                    hbox.add(self.shunt_btn)
+                    hbox.add(self.edit)
+                    hbox.add(self.set_btn)
 
     def eventFilter(self, watched: PySide2.QtCore.QObject, event: PySide2.QtCore.QEvent) -> bool:
         if watched == self.slider and event.type() == QEvent.MouseButtonRelease:
@@ -68,31 +65,21 @@ class VariableCapacitorWidget(QWidget):
     def caps_changed(self, caps):
         self.edit.setText(str(caps))
         self.slider.setValue(caps)
-        if caps == 255:
-            self.max_btn.setChecked(True)
-        if caps == 0:
-            self.min_btn.setChecked(True)
-        if caps < 255:
-            self.max_btn.setChecked(False)
-        if caps > 0:
-            self.min_btn.setChecked(False)
 
     def connected(self, device):
-        self.cup_btn.clicked.connect(device.relays_cup)
-        self.cdn_btn.clicked.connect(device.relays_cdn)
-        self.max_btn.clicked.connect(device.relays_max)
-        self.min_btn.clicked.connect(device.relays_min)
+        self.up_btn.clicked.connect(device.relays_cup)
+        self.dn_btn.clicked.connect(device.relays_cdn)
 
-        self.bypass_btn.clicked.connect(device.set_bypass)
         self.input_btn.clicked.connect(device.set_input)
         self.output_btn.clicked.connect(device.set_output)
+        self.shunt_btn.clicked.connect(device.set_bypass)
 
         self.set_relays.connect(device.set_caps)
 
         device.signals.capacitors.connect(self.caps_changed)
         device.signals.input.connect(self.input_btn.setChecked)
         device.signals.output.connect(self.output_btn.setChecked)
-        device.signals.bypass.connect(self.bypass_btn.setChecked)
+        device.signals.bypass.connect(self.shunt_btn.setChecked)
 
 
 @DeviceManager.subscribe_to("VariableInductor")
@@ -104,6 +91,7 @@ class VariableInductorWidget(QWidget):
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
         self.edit = QLineEdit()
+        self.edit.setAlignment(QtCore.Qt.AlignCenter)
         self.set_btn = QPushButton("Set")
         self.set_btn.clicked.connect(lambda: self.set_relays.emit(int(self.edit.text())))
         self.edit.returnPressed.connect(self.set_btn.clicked)
@@ -112,22 +100,17 @@ class VariableInductorWidget(QWidget):
         self.slider.setMaximum(127)
         self.slider.installEventFilter(self)
 
-        self.lup_btn = QPushButton("LUP", autoRepeat=True)
-        self.ldn_btn = QPushButton("LDN", autoRepeat=True)
-        self.max_btn = QPushButton("Max", checkable=True)
-        self.min_btn = QPushButton("Min", checkable=True)
-        self.input_btn = QPushButton("Input", checkable=True)
-        self.output_btn = QPushButton("Output", checkable=True)
+        self.up_btn = QPushButton("UP", autoRepeat=True)
+        self.dn_btn = QPushButton("DN", autoRepeat=True)
+        self.clear_btn = QPushButton("CLR")
+        self.input_btn = QPushButton("IN", checkable=True)
+        self.output_btn = QPushButton("OUT", checkable=True)
 
-        with CHBoxLayout(self) as layout:
-            gbox = QGroupBox("Inductors:")
+        with CVBoxLayout(self) as layout:
+            gbox = QGroupBox("Variable Inductor:")
             gbox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
             layout.add(gbox)
             with CVBoxLayout(gbox) as vbox:
-                with CHBoxLayout(vbox) as hbox:
-                    hbox.add(self.edit)
-                    hbox.add(self.set_btn)
-
                 vbox.add(self.slider)
 
                 with CHBoxLayout(vbox) as hbox:
@@ -138,19 +121,17 @@ class VariableInductorWidget(QWidget):
                     hbox.add(QPushButton('32', clicked=lambda: self.set_relays.emit(32)))
                     hbox.add(QPushButton('64', clicked=lambda: self.set_relays.emit(64)))
                     hbox.add(QPushButton('127', clicked=lambda: self.set_relays.emit(127)))
-            
-            gbox = QGroupBox("Controls:")
-            gbox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-            layout.add(gbox)
-            with CGridLayout(gbox) as grid:
-                grid.add(self.lup_btn, 0, 1)
-                grid.add(self.ldn_btn, 1, 1)
-                grid.add(self.max_btn, 0, 2)
-                grid.add(self.min_btn, 1, 2)
-                grid.add(QPushButton(enabled=False), 0, 3)
-                grid.add(QPushButton(enabled=False), 1, 3)
-                grid.add(self.input_btn, 0, 4)
-                grid.add(self.output_btn, 1, 4)
+
+                vbox.add(HLine())
+
+                with CHBoxLayout(vbox, alignment=Qt.AlignLeft) as hbox:
+                    hbox.add(self.up_btn)
+                    hbox.add(self.dn_btn)
+                    hbox.add(self.clear_btn)
+                    hbox.add(self.input_btn)
+                    hbox.add(self.output_btn)
+                    hbox.add(self.edit)
+                    hbox.add(self.set_btn)
 
     def eventFilter(self, watched: PySide2.QtCore.QObject, event: PySide2.QtCore.QEvent) -> bool:
         if watched == self.slider and event.type() == QEvent.MouseButtonRelease:
@@ -160,20 +141,10 @@ class VariableInductorWidget(QWidget):
     def inds_changed(self, inds):
         self.edit.setText(str(inds))
         self.slider.setValue(inds)
-        if inds == 127:
-            self.max_btn.setChecked(True)
-        if inds == 0:
-            self.min_btn.setChecked(True)
-        if inds < 127:
-            self.max_btn.setChecked(False)
-        if inds > 0:
-            self.min_btn.setChecked(False)
 
     def connected(self, device):
-        self.lup_btn.clicked.connect(device.relays_lup)
-        self.ldn_btn.clicked.connect(device.relays_ldn)
-        self.max_btn.clicked.connect(device.relays_max)
-        self.min_btn.clicked.connect(device.relays_min)
+        self.up_btn.clicked.connect(device.relays_lup)
+        self.dn_btn.clicked.connect(device.relays_ldn)
 
         self.input_btn.clicked.connect(device.set_input)
         self.output_btn.clicked.connect(device.set_output)

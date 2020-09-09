@@ -14,6 +14,12 @@ class ManualTuner(QWidget):
                 max-width: 80px; 
                 max-height: 35px;  
             } 
+            QLineEdit { 
+                width: 80px; 
+                height: 35px;
+                max-width: 80px; 
+                max-height: 35px;  
+            } 
         """
         self.setStyleSheet('QWidget { font-size: 16pt; }')
         # self.setBackgroundRole(QPalette.Base)
@@ -29,20 +35,22 @@ class ManualTuner(QWidget):
         self.inds.setStyleSheet(stylesheet)
 
         with CHBoxLayout(self) as layout:
-            with CVBoxLayout(layout, 1) as vbox:
-                vbox.addWidget(self.key)
-                vbox.addWidget(QLabel(), 5)
-                vbox.addWidget(HLine())
-                vbox.addWidget(RadioInfo())
-                vbox.addWidget(HLine())
-                vbox.addWidget(MeterInfo())
-                # vbox.addWidget(HLine())
+            with CVBoxLayout(layout) as vbox:
+                vbox.add(QLabel())
+                vbox.add(self.key)
+                vbox.add(HLine())
+                vbox.add(RadioInfo())
+                vbox.add(HLine())
+                vbox.add(MeterInfo())
+                vbox.addStretch(5)
             
-            layout.addWidget(VLine())
+            layout.add(VLine())
             
-            with CVBoxLayout(layout, 2, alignment=Qt.AlignHCenter|Qt.AlignTop) as vbox:
-                vbox.addWidget(RFSensorWidget())
-                vbox.addWidget(HLine())
-                vbox.addWidget(self.caps)
-                vbox.addWidget(HLine())
-                vbox.addWidget(self.inds)
+            with CVBoxLayout(layout) as vbox:
+                vbox.add(RFSensorWidget())
+                vbox.addStretch(1)
+                vbox.add(HLine())
+                with CHBoxLayout(vbox) as hbox:
+                    hbox.add(self.caps)
+                    hbox.add(VLine())
+                    hbox.add(self.inds)
