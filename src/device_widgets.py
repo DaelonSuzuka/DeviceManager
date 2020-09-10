@@ -1,4 +1,3 @@
-from ctypes import alignment
 from qt import *
 from device_manager import DeviceManager
 from style import qcolors
@@ -34,6 +33,17 @@ class VariableCapacitorWidget(QWidget):
             gbox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
             layout.add(gbox)
             with CVBoxLayout(gbox) as vbox:
+                with CHBoxLayout(vbox, alignment=Qt.AlignLeft) as hbox:
+                    hbox.add(self.edit)
+                    hbox.add(self.set_btn)
+                    hbox.add(self.up_btn)
+                    hbox.add(self.dn_btn)
+                    hbox.add(self.clear_btn)
+                    hbox.add(self.input_btn)
+                    hbox.add(self.output_btn)
+                    hbox.add(self.shunt_btn)
+
+                vbox.add(HLine())
                 vbox.add(self.slider)
 
                 with CHBoxLayout(vbox) as hbox:
@@ -45,18 +55,6 @@ class VariableCapacitorWidget(QWidget):
                     hbox.add(QPushButton('64', clicked=lambda: self.set_relays.emit(64)))
                     hbox.add(QPushButton('128', clicked=lambda: self.set_relays.emit(128)))
                     hbox.add(QPushButton('255', clicked=lambda: self.set_relays.emit(255)))
-
-                vbox.add(HLine())
-
-                with CHBoxLayout(vbox, alignment=Qt.AlignLeft) as hbox:
-                    hbox.add(self.up_btn)
-                    hbox.add(self.dn_btn)
-                    hbox.add(self.clear_btn)
-                    hbox.add(self.input_btn)
-                    hbox.add(self.output_btn)
-                    hbox.add(self.shunt_btn)
-                    hbox.add(self.edit)
-                    hbox.add(self.set_btn)
 
     def eventFilter(self, watched: PySide2.QtCore.QObject, event: PySide2.QtCore.QEvent) -> bool:
         if watched == self.slider and event.type() == QEvent.MouseButtonRelease:
@@ -70,6 +68,7 @@ class VariableCapacitorWidget(QWidget):
     def connected(self, device):
         self.up_btn.clicked.connect(device.relays_cup)
         self.dn_btn.clicked.connect(device.relays_cdn)
+        self.clear_btn.clicked.connect(lambda: self.set_relays.emit(0))
 
         self.input_btn.clicked.connect(device.set_input)
         self.output_btn.clicked.connect(device.set_output)
@@ -81,6 +80,8 @@ class VariableCapacitorWidget(QWidget):
         device.signals.input.connect(self.input_btn.setChecked)
         device.signals.output.connect(self.output_btn.setChecked)
         device.signals.bypass.connect(self.shunt_btn.setChecked)
+        device.request_current_relays()
+        device.request_current_relays()
 
 
 @DeviceManager.subscribe_to("VariableInductor")
@@ -102,7 +103,7 @@ class VariableInductorWidget(QWidget):
         self.slider.installEventFilter(self)
 
         self.up_btn = QPushButton("UP", autoRepeat=True)
-        self.dn_btn = QPushButton("DN", autoRepeat=True)
+        self.down_btn = QPushButton("DN", autoRepeat=True)
         self.clear_btn = QPushButton("CLR")
         self.input_btn = QPushButton("IN", checkable=True)
         self.output_btn = QPushButton("OUT", checkable=True)
@@ -112,6 +113,16 @@ class VariableInductorWidget(QWidget):
             gbox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
             layout.add(gbox)
             with CVBoxLayout(gbox) as vbox:
+                with CHBoxLayout(vbox, alignment=Qt.AlignLeft) as hbox:
+                    hbox.add(self.edit)
+                    hbox.add(self.set_btn)
+                    hbox.add(self.up_btn)
+                    hbox.add(self.down_btn)
+                    hbox.add(self.clear_btn)
+                    hbox.add(self.input_btn)
+                    hbox.add(self.output_btn)
+
+                vbox.add(HLine())
                 vbox.add(self.slider)
 
                 with CHBoxLayout(vbox) as hbox:
@@ -122,17 +133,6 @@ class VariableInductorWidget(QWidget):
                     hbox.add(QPushButton('32', clicked=lambda: self.set_relays.emit(32)))
                     hbox.add(QPushButton('64', clicked=lambda: self.set_relays.emit(64)))
                     hbox.add(QPushButton('127', clicked=lambda: self.set_relays.emit(127)))
-
-                vbox.add(HLine())
-
-                with CHBoxLayout(vbox, alignment=Qt.AlignLeft) as hbox:
-                    hbox.add(self.up_btn)
-                    hbox.add(self.dn_btn)
-                    hbox.add(self.clear_btn)
-                    hbox.add(self.input_btn)
-                    hbox.add(self.output_btn)
-                    hbox.add(self.edit)
-                    hbox.add(self.set_btn)
 
     def eventFilter(self, watched: PySide2.QtCore.QObject, event: PySide2.QtCore.QEvent) -> bool:
         if watched == self.slider and event.type() == QEvent.MouseButtonRelease:
@@ -145,8 +145,8 @@ class VariableInductorWidget(QWidget):
 
     def connected(self, device):
         self.up_btn.clicked.connect(device.relays_lup)
-        self.dn_btn.clicked.connect(device.relays_ldn)
-
+        self.down_btn.clicked.connect(device.relays_ldn)
+        self.clear_btn.clicked.connect(lambda: self.set_relays.emit(0))
         self.input_btn.clicked.connect(device.set_input)
         self.output_btn.clicked.connect(device.set_output)
 
@@ -155,6 +155,7 @@ class VariableInductorWidget(QWidget):
         device.signals.inductors.connect(self.inds_changed)
         device.signals.input.connect(self.input_btn.setChecked)
         device.signals.output.connect(self.output_btn.setChecked)
+        device.request_current_relays()
 
 
 @DeviceManager.subscribe_to("RFSensor")
@@ -165,24 +166,51 @@ class RFSensorChartWidget(QWidget):
         self.forward = []
         self.prev_forward = 0.0
         self.forward_series = QtCharts.QLineSeries(color=qcolors.red, name='forward')
+
         self.reverse = []
         self.prev_reverse = 0.0
         self.reverse_series = QtCharts.QLineSeries(color=qcolors.blue, name='reverse')
+
         self.swr = []
         self.prev_swr = 0.0
         self.swr_series = QtCharts.QLineSeries(color=qcolors.green, name='swr')
 
-        self.chart_view = QtCharts.QChartView()
-        self.chart_view.chart().addSeries(self.forward_series)
-        self.chart_view.chart().addSeries(self.reverse_series)
-        self.chart_view.chart().addSeries(self.swr_series)
+        self.phase = []
+        self.prev_phase = 0.0
+        self.phase_series = QtCharts.QLineSeries(color=qcolors.green, name='phase')
 
-        self.chart_view.chart().createDefaultAxes()
-        self.chart_view.chart().axisX().setRange(0, 1000)
-        self.chart_view.chart().axisY().setRange(0, 4096)
-        
-        with CHBoxLayout(self) as hbox:
-            hbox.add(self.chart_view)
+        self.chart_1 = QtCharts.QChartView()
+        self.chart_1.chart().addSeries(self.forward_series)
+        self.chart_1.chart().addSeries(self.reverse_series)
+
+        self.chart_1.chart().createDefaultAxes()
+        self.chart_1.chart().axisX().setRange(0, 1000)
+        self.chart_1.chart().axisX().setLabelsVisible(False)
+        self.chart_1.chart().axisY().setRange(0, 4096)
+
+        self.chart_2 = QtCharts.QChartView()
+        self.chart_2.chart().addSeries(self.swr_series)
+
+        self.chart_2.chart().createDefaultAxes()
+        self.chart_2.chart().axisX().setRange(0, 1000)
+        self.chart_2.chart().axisX().setLabelsVisible(False)
+        self.chart_2.chart().axisY().setRange(0, 4096)
+
+        self.chart_3 = QtCharts.QChartView()
+        self.chart_3.chart().addSeries(self.phase_series)
+
+        self.chart_3.chart().createDefaultAxes()
+        self.chart_3.chart().axisX().setRange(0, 1000)
+        self.chart_3.chart().axisX().setLabelsVisible(False)
+        self.chart_3.chart().axisY().setRange(-1000, 1000)
+
+        self.chart_4 = QtCharts.QChartView()
+
+        with CGridLayout(self) as layout:
+            layout.add(self.chart_1, 0, 0)
+            layout.add(self.chart_2, 0, 1)
+            layout.add(self.chart_3, 1, 0)
+            # layout.add(self.chart_4, 1, 1)
 
         self.sample_num = 0
         self.timer = QTimer(timeout=self.add_data)
@@ -209,18 +237,27 @@ class RFSensorChartWidget(QWidget):
             self.swr = []
         else:
             self.swr_series.append(float(self.sample_num), self.prev_swr)
+        
+        if len(self.phase) != 0:
+            self.prev_phase = avg = sum(self.phase) / len(self.phase)
+            self.phase_series.append(float(self.sample_num), avg)
+            self.phase = []
+        else:
+            self.phase_series.append(float(self.sample_num), self.prev_phase)
 
         self.sample_num += 1
 
         if self.sample_num > 1000:
-            self.chart_view.chart().axisX().setRange(self.sample_num - 1000, self.sample_num)
+            self.chart_1.chart().axisX().setRange(self.sample_num - 1000, self.sample_num)
+            self.chart_2.chart().axisX().setRange(self.sample_num - 1000, self.sample_num)
+            self.chart_3.chart().axisX().setRange(self.sample_num - 1000, self.sample_num)
 
     def connected(self, device):
         device.signals.forward.connect(lambda x: self.forward.append(x))
         device.signals.reverse.connect(lambda x: self.reverse.append(x))
         device.signals.swr.connect(lambda x: self.swr.append(x))
 
-        # device.signals.phase.connect(lambda x: self.phase.append(x))
+        device.signals.phase.connect(lambda x: self.phase.append(x))
 
 
 @DeviceManager.subscribe_to("RFSensor")

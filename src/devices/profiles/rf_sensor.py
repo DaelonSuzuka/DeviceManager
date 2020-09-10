@@ -15,7 +15,7 @@ class Signals(QObject):
             "update": {
                 "forward": self.forward.emit,
                 "reverse": self.reverse.emit,
-                "swr": self.swr.emit,
+                "match_quality": self.swr.emit,
                 "frequency": self.frequency.emit,
                 "phase": self.phase.emit,
             }
