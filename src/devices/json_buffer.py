@@ -17,7 +17,7 @@ class JSONBuffer:
             self.depth += 1
         if self.depth > 0:
             self.buffer += c
-        if c == "}":
+        if c == "}" and self.depth > 0:  #* <- and here's the fix
             self.depth -= 1
 
     def completed(self):
