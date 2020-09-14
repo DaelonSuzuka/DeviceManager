@@ -38,7 +38,15 @@ class SerialDeviceBase:
 
     def connect_socket(self, socket):
         socket.textMessageReceived.connect(self.send)
-        self.base_signals.send.connect(lambda s: socket.sendTextMessage(s))
+
+        def send_text_message(s):
+            try:
+                socket.sendTextMessage(s)
+            except ValueError as e:
+                print(self.port, e)
+            
+        self.base_signals.send.connect(lambda s: send_text_message(s))
+
 
     def connect_monitor(self, monitor):
         monitor.tx.connect(self.send)
