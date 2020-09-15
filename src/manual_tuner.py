@@ -48,10 +48,12 @@ class ManualTuner(QWidget):
             layout.add(VLine())
             
             with CVBoxLayout(layout, 1) as vbox:
-                vbox.add(self.chart, 1)
-                vbox.add(FlatRFSensorWidget())
-                vbox.add(HLine())
                 with CHBoxLayout(vbox) as hbox:
-                    hbox.add(self.caps)
-                    hbox.add(VLine())
-                    hbox.add(self.inds)
+                    hbox.add(RFSensorWidget())
+                    hbox.add(self.chart, 1)
+                # vbox.add(self.chart, 1)
+                # vbox.add(FlatRFSensorWidget(self))
+                vbox.add(HLine())
+                vbox.add(self.caps)
+                vbox.add(HLine())
+                vbox.add(self.inds)

@@ -104,7 +104,6 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         self.dm.scan_timer.stop()
         self.dm.update_timer.stop()
-        self.manual_tuner.chart.timer.stop()
         self.dm.close()
         self.servitor.radio.timeout.timer.stop()
         

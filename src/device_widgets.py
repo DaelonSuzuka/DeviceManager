@@ -163,102 +163,44 @@ class RFSensorChartWidget(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.forward = []
-        self.prev_forward = 0.0
-        self.forward_series = QtCharts.QLineSeries(color=qcolors.red, name='forward')
+        self.swr_meter = AnalogGaugeWidget()
+        self.swr_meter.set_start_scale_angle(200)
+        self.swr_meter.set_total_scale_angle_size(140)
+        self.swr_meter.set_MinValue(0)
+        self.swr_meter.set_MaxValue(4096)
+        self.swr_meter.set_enable_value_text(False)
+        self.swr_meter.set_NeedleColor(R=200, G=200, B=200)
+        self.swr_meter.set_ScaleValueColor(R=200, G=200, B=200)
+        self.swr_meter.set_CenterPointColor(R=150, G=150, B=150)
 
-        self.reverse = []
-        self.prev_reverse = 0.0
-        self.reverse_series = QtCharts.QLineSeries(color=qcolors.blue, name='reverse')
+        self.phase_meter = AnalogGaugeWidget()
+        self.phase_meter.set_start_scale_angle(200)
+        self.phase_meter.set_total_scale_angle_size(140)
+        self.phase_meter.set_MinValue(-500)
+        self.phase_meter.set_MaxValue(500)
+        self.phase_meter.set_enable_value_text(False)
+        self.phase_meter.set_NeedleColor(R=200, G=200, B=200)
+        self.phase_meter.set_ScaleValueColor(R=200, G=200, B=200)
+        self.phase_meter.set_CenterPointColor(R=150, G=150, B=150)
 
-        self.swr = []
-        self.prev_swr = 0.0
-        self.swr_series = QtCharts.QLineSeries(color=qcolors.green, name='swr')
-
-        self.phase = []
-        self.prev_phase = 0.0
-        self.phase_series = QtCharts.QLineSeries(color=qcolors.green, name='phase')
-
-        self.chart_1 = QtCharts.QChartView()
-        self.chart_1.chart().addSeries(self.forward_series)
-        self.chart_1.chart().addSeries(self.reverse_series)
-
-        self.chart_1.chart().createDefaultAxes()
-        self.chart_1.chart().axisX().setRange(0, 1000)
-        self.chart_1.chart().axisX().setLabelsVisible(False)
-        self.chart_1.chart().axisY().setRange(0, 4096)
-
-        self.chart_2 = QtCharts.QChartView()
-        self.chart_2.chart().addSeries(self.swr_series)
-
-        self.chart_2.chart().createDefaultAxes()
-        self.chart_2.chart().axisX().setRange(0, 1000)
-        self.chart_2.chart().axisX().setLabelsVisible(False)
-        self.chart_2.chart().axisY().setRange(0, 4096)
-
-        self.chart_3 = QtCharts.QChartView()
-        self.chart_3.chart().addSeries(self.phase_series)
-
-        self.chart_3.chart().createDefaultAxes()
-        self.chart_3.chart().axisX().setRange(0, 1000)
-        self.chart_3.chart().axisX().setLabelsVisible(False)
-        self.chart_3.chart().axisY().setRange(-1000, 1000)
-
-        self.chart_4 = QtCharts.QChartView()
+        self.mag_meter = AnalogGaugeWidget()
+        self.mag_meter.set_start_scale_angle(200)
+        self.mag_meter.set_total_scale_angle_size(140)
+        self.mag_meter.set_MinValue(0)
+        self.mag_meter.set_MaxValue(4096)
+        self.mag_meter.set_enable_value_text(False)
+        self.mag_meter.set_NeedleColor(R=200, G=200, B=200)
+        self.mag_meter.set_ScaleValueColor(R=200, G=200, B=200)
+        self.mag_meter.set_CenterPointColor(R=150, G=150, B=150)
 
         with CGridLayout(self) as layout:
-            layout.add(self.chart_1, 0, 0)
-            layout.add(self.chart_2, 0, 1)
-            layout.add(self.chart_3, 1, 0)
-            # layout.add(self.chart_4, 1, 1)
-
-        self.sample_num = 0
-        self.timer = QTimer(timeout=self.add_data)
-        self.timer.start(10)
-
-    def add_data(self):
-        if len(self.forward) != 0:
-            self.prev_forward = avg = sum(self.forward) / len(self.forward)
-            self.forward_series.append(float(self.sample_num), avg)
-            self.forward = []
-        else:
-            self.forward_series.append(float(self.sample_num), self.prev_forward)
-
-        if len(self.reverse) != 0:
-            self.prev_reverse = avg = sum(self.reverse) / len(self.reverse)
-            self.reverse_series.append(float(self.sample_num), avg)
-            self.reverse = []
-        else:
-            self.reverse_series.append(float(self.sample_num), self.prev_reverse)
-            
-        if len(self.swr) != 0:
-            self.prev_swr = avg = sum(self.swr) / len(self.swr)
-            self.swr_series.append(float(self.sample_num), avg)
-            self.swr = []
-        else:
-            self.swr_series.append(float(self.sample_num), self.prev_swr)
-        
-        if len(self.phase) != 0:
-            self.prev_phase = avg = sum(self.phase) / len(self.phase)
-            self.phase_series.append(float(self.sample_num), avg)
-            self.phase = []
-        else:
-            self.phase_series.append(float(self.sample_num), self.prev_phase)
-
-        self.sample_num += 1
-
-        if self.sample_num > 1000:
-            self.chart_1.chart().axisX().setRange(self.sample_num - 1000, self.sample_num)
-            self.chart_2.chart().axisX().setRange(self.sample_num - 1000, self.sample_num)
-            self.chart_3.chart().axisX().setRange(self.sample_num - 1000, self.sample_num)
+            layout.add(self.swr_meter, 0, 0)
+            layout.add(self.phase_meter, 0, 1)
+            layout.add(self.mag_meter, 0, 2)
 
     def connected(self, device):
-        device.signals.forward.connect(lambda x: self.forward.append(x))
-        device.signals.reverse.connect(lambda x: self.reverse.append(x))
-        device.signals.swr.connect(lambda x: self.swr.append(x))
-
-        device.signals.phase.connect(lambda x: self.phase.append(x))
-
+        device.signals.swr.connect(lambda x: self.swr_meter.update_value(x))
+        device.signals.phase.connect(lambda x: self.phase_meter.update_value(x))
 
 @DeviceManager.subscribe_to("RFSensor")
 class FlatRFSensorWidget(QWidget):
@@ -311,20 +253,16 @@ class RFSensorWidget(QWidget):
         self.frequency = QLabel("?")
 
         with CVBoxLayout(self) as layout:
-            layout.add(QLabel('RFSensor:'))
+            # layout.add(QLabel('RFSensor:'))
             with CHBoxLayout(layout) as hbox:
                 with CVBoxLayout(hbox) as vbox:
+                    vbox.addWidget(QLabel("Frequency:"))
                     vbox.addWidget(QLabel("Forward:"))
                     vbox.addWidget(QLabel("Reverse:"))
-                    vbox.addWidget(QLabel("SWR:"))
-                    vbox.addWidget(QLabel("Phase:"))
-                    vbox.addWidget(QLabel("Frequency:"))
                 with CVBoxLayout(hbox) as vbox:
+                    vbox.addWidget(self.frequency)
                     vbox.addWidget(self.forward)
                     vbox.addWidget(self.reverse)
-                    vbox.addWidget(self.swr)
-                    vbox.addWidget(self.phase)
-                    vbox.addWidget(self.frequency)
     
     def connected(self, device):
         device.signals.forward.connect(lambda x: self.forward.setText(f"{x:.2f}"))

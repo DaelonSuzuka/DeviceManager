@@ -7,3 +7,4 @@ from .utils import *
 from .layouts import *
 from .widgets import *
 from .qled import *
+from .gauge import *
