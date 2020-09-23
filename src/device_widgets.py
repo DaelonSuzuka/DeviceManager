@@ -259,10 +259,14 @@ class RFSensorWidget(QWidget):
                     vbox.addWidget(QLabel("Frequency:"))
                     vbox.addWidget(QLabel("Forward:"))
                     vbox.addWidget(QLabel("Reverse:"))
+                    vbox.addWidget(QLabel("SWR:"))
+                    vbox.addWidget(QLabel("Phase:"))
                 with CVBoxLayout(hbox) as vbox:
                     vbox.addWidget(self.frequency)
                     vbox.addWidget(self.forward)
                     vbox.addWidget(self.reverse)
+                    vbox.addWidget(self.swr)
+                    vbox.addWidget(self.phase)
     
     def connected(self, device):
         device.signals.forward.connect(lambda x: self.forward.setText(f"{x:.2f}"))
