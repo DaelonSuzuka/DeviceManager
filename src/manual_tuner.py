@@ -65,13 +65,13 @@ class ManualTuner(QWidget):
 
         self.key = KeyButton()
 
-        self.sensor = RFSensorWidget(self)
-        self.chart = RFSensorChartWidget(self)
+        self.sensor = RFSensorWidget()
+        self.chart = RFSensorChartWidget()
 
-        self.switch = SW100Widget(self)
-        self.caps = VariableCapacitorWidget(self)
+        self.switch = SW100Widget()
+        self.caps = VariableCapacitorWidget()
         self.caps.setStyleSheet(stylesheet)
-        self.inds = VariableInductorWidget(self)
+        self.inds = VariableInductorWidget()
         self.inds.setStyleSheet(stylesheet)
 
         with CHBoxLayout(self) as layout:
@@ -85,13 +85,21 @@ class ManualTuner(QWidget):
             
             layout.add(VLine())
             
-            with CVBoxLayout(layout, 1) as vbox:
-                with CHBoxLayout(vbox) as hbox:
+            with CVBoxLayout(layout) as vbox:
+                with CHBoxLayout(vbox, 1) as hbox:
                     hbox.add(RFSensorWidget())
-                    hbox.add(self.chart, 1)
+                    hbox.add(self.chart)
+                # vbox.add(RFSensorWidget())
                 # vbox.add(self.chart, 1)
                 # vbox.add(FlatRFSensorWidget(self))
+                
                 vbox.add(HLine())
-                vbox.add(self.caps)
-                vbox.add(HLine())
-                vbox.add(self.inds)
+                with CHBoxLayout(vbox) as hbox:
+                    with CVBoxLayout(hbox) as vbox:
+                        vbox.add(self.caps)
+                        vbox.add(HLine())
+                        vbox.add(self.inds)
+
+                    hbox.add(VLine())
+                    hbox.add(TunerButtons(self))
+
