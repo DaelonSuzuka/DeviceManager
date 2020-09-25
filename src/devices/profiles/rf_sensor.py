@@ -5,6 +5,7 @@ from qt import *
 class Signals(QObject):
     forward = Signal(float)
     reverse = Signal(float)
+    match_quality = Signal(float)
     swr = Signal(float)
     frequency = Signal(int)
     phase = Signal(int)
@@ -15,7 +16,7 @@ class Signals(QObject):
             "update": {
                 "forward": self.forward.emit,
                 "reverse": self.reverse.emit,
-                "match_quality": self.swr.emit,
+                "match_quality": self.match_quality.emit,
                 "frequency": self.frequency.emit,
                 "phase": self.phase.emit,
             }
