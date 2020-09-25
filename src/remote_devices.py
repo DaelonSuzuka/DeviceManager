@@ -23,9 +23,6 @@ def get_ip():
 
 
 class RemoteStatusWidget(QWidget):
-    open_socket = Signal()
-    close_socket = Signal()
-
     def __init__(self, *args, client=None, server=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.setObjectName('NetworkStatusBarItem')
@@ -34,14 +31,20 @@ class RemoteStatusWidget(QWidget):
         self.server = None
 
         if client:
-            self.connect_client(client)
+            self.client = client
+            client.socket.connected.connect(self.client_connected)
+            client.socket.disconnected.connect(self.client_disconnected)
         if server:
-            self.connect_server(server)
+            self.server = server
+
+            
+        self.commands = [
+            Command('Device Client: Connect to', self, triggered=self.open_address_prompt),
+        ]
 
         self.setAttribute(Qt.WA_AcceptTouchEvents, True)
     
         self.status = QLabel('Not Connected')
-        self.address = QLabel('10.0.0.207')
         self.icon_on = qta.icon('mdi.lan-connect', color='lightgray').pixmap(QSize(20, 20))
         self.icon_off = qta.icon('mdi.lan-disconnect', color='gray').pixmap(QSize(20, 20))
         self.icon = QLabel('')
@@ -49,65 +52,58 @@ class RemoteStatusWidget(QWidget):
 
         with CHBoxLayout(self, margins=(0, 0, 0, 0)) as hbox:
             hbox.addWidget(self.icon)
-            hbox.addWidget(QLabel('Status:'))
             hbox.addWidget(self.status)
-            hbox.addWidget(self.address)
         
     def mousePressEvent(self, event):
-        act_connect = QAction("Connect", self, triggered=self.open)
-        act_disconnect = QAction("Disconnect", self, triggered=self.close)
-        act_startup = QAction("Connect at Startup", self, checkable=True)
-        act_address = QAction("Set Address", self, triggered=self.open_address_prompt)
-        act_settings = QAction("Network Settings", self, triggered=lambda: print('Settings'))
+        connect = QAction("Connect", self, triggered=self.connect_client)
+        connect_to = QAction("Connect to", self, triggered=self.open_address_prompt)
+        disconnect = QAction("Disconnect", self, triggered=self.disconnect_client)
+
+        startup = QAction(
+            "Connect at Startup", 
+            self, 
+            checkable=True, 
+            checked=bool(self.client.connect_on_startup),
+            triggered=self.client.toggle_connect_on_startup
+        )
 
         menu = QMenu('', self)
-        menu.addAction(act_connect)
-        menu.addAction(act_disconnect)
-        settings_menu = QMenu('Settings')
-        settings_menu.addAction(act_startup)
-        settings_menu.addAction(act_address)
-        settings_menu.addAction(act_settings)
-        menu.addMenu(settings_menu)
+        menu.addAction(connect)
+        menu.addAction(connect_to)
+        menu.addAction(disconnect)
+        
+        if self.client:
+            menu.addSeparator()
+            for address in self.client.previous_connections:
+                menu.addAction(QAction(address, self, triggered=lambda a=address: self.connect_client(a)))
+        
+        menu.addSeparator()
+        menu.addAction(startup)
 
         menu.exec_(event.globalPos())
 
-    def socket_connected(self):
-        self.status.setText("Connected")
+    def client_connected(self):
+        self.status.setText(self.client.current_connection)
         self.icon.setPixmap(self.icon_on)
 
-    def socket_disconnected(self):
+    def client_disconnected(self):
         self.status.setText("Not Connected")
         self.icon.setPixmap(self.icon_off)
 
-    def open(self):
-        self.status.setText("Connecting...")
-        self.open_socket.emit()
+    def connect_client(self, address=None):
+        if self.client:
+            self.status.setText("Connecting...")
+            self.client.disconnect_from_remote()
+            self.client.connect_to_remote(address)
 
-    def close(self):
-        self.close_socket.emit()
+    def disconnect_client(self):
+        self.client.disconnect_from_remote()
 
     def open_address_prompt(self):
         CommandPalette().open(
             placeholder='Enter new address',
-            cb=self.new_address_entered
+            cb=self.connect_client
         )
-
-    def new_address_entered(self, address):
-        self.address.setText(address)
-        if self.client:
-            self.client.address = address
-            self.close_socket.emit()
-            self.open_socket.emit()
-
-    def connect_client(self, client):
-        self.client = client
-        client.socket.connected.connect(self.socket_connected)
-        client.socket.disconnected.connect(self.socket_disconnected)
-        self.open_socket.connect(client.open_socket)
-        self.close_socket.connect(client.close_socket)
-
-    def connect_server(self, server):
-        self.server = server
 
 
 @DeviceManager.subscribe
@@ -115,24 +111,26 @@ class DeviceClient(QObject):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.log = logging.getLogger(__name__ + '.client')
+        self.qsettings = QSettings()
 
         self.devices = {}
         self.linked_devices = {}
         self.remote_devices = {}
         self.remote_profiles = []
+        
+        connect = self.qsettings.value('connect_on_startup', False)
+        self.connect_on_startup = connect == 'true'
 
-        self.address = '10.0.0.207'
-
-        self.hosts = [
+        self.current_connection = self.qsettings.value('current_connection', '10.0.0.207')
+        self.previous_connections = [
             'ldg.hopto.org',
             'daelon.hopto.org',
             '10.0.0.207',
         ]
         
         self.commands = [
-            Command('Device Client: Connect', self, triggered=self.open_socket),
-            Command('Device Client: Disconnect', self, triggered=self.close_socket),
-            Command('Device Client: Add new remote', self, triggered=self.close_socket),
+            Command('Device Client: Connect', self, triggered=self.connect_to_remote),
+            Command('Device Client: Disconnect', self, triggered=self.disconnect_from_remote),
         ]
 
         self.socket = QWebSocket()
@@ -142,8 +140,9 @@ class DeviceClient(QObject):
         self.socket.disconnected.connect(self.unlink_all_devices)
 
     def on_subscribed(self):
-        if urlparse(self.address).path != urlparse(get_ip()).path:
-            self.open_socket()
+        if self.connect_on_startup:
+            if urlparse(self.current_connection).path != urlparse(get_ip()).path:
+                self.connect_to_remote()
 
     def on_device_added(self, device):
         self.devices[device.guid] = device
@@ -156,8 +155,25 @@ class DeviceClient(QObject):
     def on_device_removed(self, guid):
         self.devices.pop(guid)
 
+    def connect_to_remote(self, address=None):
+        if address is not None:
+            self.current_connection = address
+            self.qsettings.setValue('current_connection', self.current_connection)
+            if address not in self.previous_connections:
+                self.previous_connections.append(address)
+
+        self.open_socket()
+
+    def disconnect_from_remote(self):
+        self.close_socket()
+
+    def toggle_connect_on_startup(self):
+        self.connect_on_startup = not self.connect_on_startup
+            
+        self.qsettings.setValue('connect_on_startup', self.connect_on_startup)
+
     def open_socket(self):
-        url = f'ws://{self.address}:43000/control'
+        url = f'ws://{self.current_connection}:43000/control'
         self.log.info(f"Attempting to connect to server at: {QUrl(url)}")
         self.socket.open(QUrl(url))
 
@@ -180,7 +196,7 @@ class DeviceClient(QObject):
         if 'device_added' in msg.keys():
             device = msg["device_added"]
             self.remote_devices[device['guid']] = device
-            self.link_to_remote_device(self.address, device['guid'])
+            self.link_to_remote_device(self.current_connection, device['guid'])
 
         if 'device_removed' in msg.keys():
             device = msg["device_removed"]
@@ -200,6 +216,8 @@ class DeviceClient(QObject):
     def unlink_all_devices(self):
         for _, device in self.linked_devices.items():
             self.signals.remove_device.emit(device.guid)
+
+        self.linked_devices = {}
 
 
 @DeviceManager.subscribe
