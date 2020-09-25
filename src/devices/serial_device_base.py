@@ -43,7 +43,7 @@ class SerialDeviceBase:
             try:
                 socket.sendTextMessage(s)
             except ValueError as e:
-                print(self.port, e)
+                self.log.exception(f'{self.port}')
             
         self.base_signals.send.connect(lambda s: send_text_message(s))
 
