@@ -15,7 +15,7 @@ class MyApplication(QApplication):
 
     def __init__(self) -> None:
         # turn on high dpi scaling - must be done before creating app
-        self.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+        # self.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 
         super().__init__()
         
