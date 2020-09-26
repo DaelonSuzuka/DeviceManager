@@ -1,12 +1,7 @@
-coloredlogs==14.0
-humanfriendly==8.2
-pyreadline==2.1
 pyserial==3.4
-PySide2==5.15.0
+PySide2==5.15.1
 pyte==0.8.0
-QtAwesome==0.7.2
+QtAwesome==1.0.0
 QtPy==1.9.0
-shiboken2==5.15.0
-six==1.15.0
-vt102==0.5
+shiboken2==5.15.1
 wcwidth==0.2.5
