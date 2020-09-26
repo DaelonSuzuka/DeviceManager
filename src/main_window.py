@@ -77,7 +77,7 @@ class MainWindow(QMainWindow):
         self.addToolBar(Qt.BottomToolBarArea, self.tool)
 
         # settings button
-        settings_btn = QToolButton(self.tool, icon=qta.icon('mdi.settings', color='gray'))
+        settings_btn = QToolButton(self.tool, icon=qta.icon('fa.gear', color='gray'))
         menu = QMenu(settings_btn)
         settings_btn.setMenu(menu)
         settings_btn.setPopupMode(QToolButton.InstantPopup)
