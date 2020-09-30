@@ -521,7 +521,7 @@ class RadioControls(Widget):
                     box.add(self.full_tune)
 
 
-@DeviceManager.subscribe_to("DTS-4")
+@DeviceManager.subscribe_to("DTS-6")
 class SwitchControls(Widget):
     def create_widgets(self):
         self.switch = None
@@ -538,11 +538,30 @@ class SwitchControls(Widget):
         self.btns.addButton(self.three)
         self.btns.addButton(self.four)
         
+    def antenna_changed(self, antenna):
+        if antenna == 0:
+            self.one.setChecked(False)
+            self.two.setChecked(False)
+            self.three.setChecked(False)
+            self.four.setChecked(False)
+        if antenna == 1:
+            self.one.setChecked(True)
+        if antenna == 2:
+            self.two.setChecked(True)
+        if antenna == 3:
+            self.three.setChecked(True)
+        if antenna == 4:
+            self.four.setChecked(True)
+
     def connected(self, device):
-        self.one.clicked.connect(lambda: device.select_antenna(1))
-        self.two.clicked.connect(lambda: device.select_antenna(2))
-        self.three.clicked.connect(lambda: device.select_antenna(3))
-        self.four.clicked.connect(lambda: device.select_antenna(4))
+        self.one.clicked.connect(lambda: device.set_antenna(1))
+        self.two.clicked.connect(lambda: device.set_antenna(2))
+        self.three.clicked.connect(lambda: device.set_antenna(3))
+        self.four.clicked.connect(lambda: device.set_antenna(4))
+
+        device.signals.antenna.connect(self.antenna_changed)
+
+        device.get_antenna()
 
 
 class ServitorWidget(QWidget):

@@ -37,6 +37,7 @@
 from .alpha4510A import Alpha4510A
 from .at600proII import AT600ProII
 from .dts4 import DTS4
+from .dts6 import DTS6
 from .kenwoodTS480 import TS480
 from .protoboard import Protoboard
 from .rf_sensor import RFSensor
