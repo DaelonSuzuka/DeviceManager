@@ -13,7 +13,7 @@ from servitor import ServitorWidget
 from diagnostics import DiagnosticWidget
 from device_controls import DeviceControlsDockWidget
 from log_monitor import LogMonitorDockWidget
-
+from sensor_calibration import CalibrationWidget
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -34,6 +34,7 @@ class MainWindow(QMainWindow):
         self.device_controls = DeviceControlsDockWidget(self)
         self.servitor = ServitorWidget()
         self.diagnostics = DiagnosticWidget()
+        self.calibration = CalibrationWidget()
 
         self.addActions([
             Command("Preferences: Open Settings (JSON)", self),
@@ -52,7 +53,8 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.servitor, 'Servitor')
         self.tabs.addTab(self.diagnostics, 'Diagnostics')
         self.tabs.addTab(self.manual_tuner, 'Manual Tuner')
-        self.tabs.setCurrentWidget(self.manual_tuner)
+        self.tabs.addTab(self.calibration, 'Calibration')
+        self.tabs.setCurrentWidget(self.calibration)
 
         # init dockwidget settings
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
@@ -106,6 +108,8 @@ class MainWindow(QMainWindow):
         self.dm.update_timer.stop()
         self.dm.close()
         self.servitor.radio.timeout.timer.stop()
+        self.calibration.worker.stop()
+        self.calibration.thread.terminate()
         
         self.save_settings()
 
