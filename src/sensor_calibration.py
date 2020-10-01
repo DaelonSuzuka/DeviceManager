@@ -27,8 +27,6 @@ class CalibrationWorker(QObject):
     def __init__(self):
         super().__init__()
 
-        self.devices = {}
-
         self.switch = None
         self.meter = None
         self.radio = None
@@ -39,12 +37,6 @@ class CalibrationWorker(QObject):
 
         self.points = []
         self.current_point = 0
-
-    def on_device_added(self, device):
-        self.devices[device.guid] = device
-
-    def on_device_removed(self, guid):
-        self.devices.pop(guid)
 
     @Slot()
     def start(self, script):

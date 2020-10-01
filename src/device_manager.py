@@ -38,6 +38,20 @@ class DeviceManager(QObject):
     def subscribe(cls, target):
         old_init = target.__init__
 
+        def get_added():
+            def on_device_added(self, device):
+                self.devices[device.guid] = device
+                if hasattr(self, 'device_added'):
+                    self.device_added(device)
+            return on_device_added
+
+        def get_removed():
+            def on_device_removed(self, guid):
+                self.devices.pop(guid)
+                if hasattr(self, 'device_removed'):
+                    self.device_removed(guid)
+            return on_device_removed
+
         def new_init(obj, *args, **kwargs):
             old_init(obj, *args, **kwargs)
             
@@ -45,7 +59,12 @@ class DeviceManager(QObject):
             obj.slots = SlotBundle(cls.slots)
             obj.slots.link_to(obj)
             
+            obj.devices = {}
+            
             cls.new_subscribers.append(obj)
+
+        target.on_device_added = get_added()
+        target.on_device_removed = get_removed()
 
         target.__init__ = new_init
 
