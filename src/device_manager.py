@@ -47,9 +47,9 @@ class DeviceManager(QObject):
 
         def get_removed():
             def on_device_removed(self, guid):
-                self.devices.pop(guid)
                 if hasattr(self, 'device_removed'):
                     self.device_removed(guid)
+                self.devices.pop(guid)
             return on_device_removed
 
         def new_init(obj, *args, **kwargs):
