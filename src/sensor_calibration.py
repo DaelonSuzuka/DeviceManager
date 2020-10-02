@@ -24,6 +24,9 @@ class Result:
     sensor_rev: float = 0
     sensor_swr: float = 0
 
+    def __repr__(self):
+        return f'({self.freq:10}, {self.power:3})meter: [F: {self.meter_fwd:6.2f}, R: {self.meter_rev:6.2f}, S: {self.meter_swr:6.2f}] sensor: [F: {self.sensor_fwd:8.2f}, R: {self.sensor_rev:8.2f}, S: {self.sensor_swr:8.2f}]'
+
 
 @DeviceManager.subscribe
 class CalibrationWorker(QObject):
@@ -94,7 +97,6 @@ class CalibrationWorker(QObject):
         for _, device in self.devices.items():
             if device.profile_name == 'DTS-6':
                 self.switch = device
-                self.switch.set_antenna(1)
             if device.profile_name == 'TS-480':
                 self.radio = device
             if device.profile_name == 'Alpha4510A':
@@ -110,15 +112,11 @@ class CalibrationWorker(QObject):
 
         self.started.emit()
         
+        self.switch.set_antenna(1)
         self.radio.set_vfoA_frequency(int(self.points[self.current_point].freq))
         self.radio.set_power_level(int(self.points[self.current_point].power))
         self.radio.key()
-
-    def meter_forward(self, forward):
-        self.points[self.current_point].meter_fwd = forward
-
-    def sensor_forward(self, forward):
-        self.points[self.current_point].sensor_fwd = forward
+        self.clear_data()
 
     @Slot()
     def stop(self):
@@ -166,27 +164,27 @@ class CalibrationWidget(QWidget):
         """)
         self.script = {
             'freqs': [
-                # "01800000",
-                # "03500000",
-                # "07000000",
-                # "10100000",
+                "01800000",
+                "03500000",
+                "07000000",
+                "10100000",
                 "14000000",
-                # "18068000",
-                # "21000000",
-                # "24890000",
-                # "28000000",
-                # "50000000",
+                "18068000",
+                "21000000",
+                "24890000",
+                "28000000",
+                "50000000",
             ],
             'powers': [
                 "005",
                 "010",
                 "015",
                 "020",
-                "025",
-                "030",
-                "035",
-                "040",
-                "050",
+                # "025",
+                # "030",
+                # "035",
+                # "040",
+                # "050",
                 # "060",
                 # "070",
                 # "080",
@@ -211,6 +209,11 @@ class CalibrationWidget(QWidget):
         self.master = QComboBox()
 
         self.results = QTextEdit('')
+
+        font = self.results.font()
+        font.setFamily('Courier New')
+        self.results.setFont(font)
+
         self.worker.finished.connect(self.worker_finished)
 
         with CHBoxLayout(self) as layout:
@@ -252,5 +255,5 @@ class CalibrationWidget(QWidget):
     def worker_finished(self, results):
         s = ''
         for r in results:
-            s += str(r) + '\n'
+            s += repr(r) + '\n'
         self.results.setText(s)
