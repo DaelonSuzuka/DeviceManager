@@ -14,7 +14,6 @@ class DiagnosticWidget(QWidget):
                 max-height: 2000px; 
             } 
         """)
-        self.devices = {}
         self.device_box = QComboBox(placeholderText="Select a device:")
         self.connect = QPushButton("Connect", clicked=self.connect_clicked)
         self.tabs = QTabWidget()
@@ -49,14 +48,10 @@ class DiagnosticWidget(QWidget):
             device.connect_monitor(monitor)
             self.tabs.addTab(monitor, f'{device.profile_name} <{device.port.split("?")[-1]}>')
     
-    def on_device_added(self, device):
-        if device.guid not in self.devices:
-            self.devices[device.guid] = device
-            self.device_box.addItem(device.title, userData=device.guid)
+    def device_added(self, device):
+        self.device_box.addItem(device.title, userData=device.guid)
 
-    def on_device_removed(self, guid):
-        if guid in self.devices:
-            for index in range(self.device_box.count()):
-                if self.device_box.itemData(index) == guid:
-                    self.device_box.removeItem(index)
-            self.devices.pop(guid)
+    def device_removed(self, guid):
+        for index in range(self.device_box.count()):
+            if self.device_box.itemData(index) == guid:
+                self.device_box.removeItem(index)

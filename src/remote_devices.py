@@ -113,7 +113,6 @@ class DeviceClient(QObject):
         self.log = logging.getLogger(__name__ + '.client')
         self.qsettings = QSettings()
 
-        self.devices = {}
         self.linked_devices = {}
         self.remote_devices = {}
         self.remote_profiles = []
@@ -144,16 +143,11 @@ class DeviceClient(QObject):
             if urlparse(self.current_connection).path != urlparse(get_ip()).path:
                 self.connect_to_remote()
 
-    def on_device_added(self, device):
-        self.devices[device.guid] = device
-
+    def device_added(self, device):
         if device.port == "RemoteSerial":
             for k in self.remote_devices.keys():
                 if device.profile_name == self.remote_devices[k]['profile_name']:
                     print("found")
-
-    def on_device_removed(self, guid):
-        self.devices.pop(guid)
 
     def connect_to_remote(self, address=None):
         if address is not None:
@@ -225,10 +219,8 @@ class DeviceServer(QObject):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.log = logging.getLogger(__name__ + '.server')
-        self.devices = {}
 
-        self.commands = [
-        ]
+        self.commands = []
 
         self.server = QWebSocketServer('server-name', QWebSocketServer.NonSecureMode)
         self.client = None
@@ -290,15 +282,12 @@ class DeviceServer(QObject):
     def send_later(self, message):
         QTimer.singleShot(10, lambda: self.client.sendTextMessage(message))
 
-    def on_device_added(self, device):
-        self.devices[device.guid] = device
-
+    def device_added(self, device):
         if self.client:
             self.send_later(json.dumps({"device_added":device.description}))
 
-    def on_device_removed(self, guid):
+    def device_removed(self, guid):
         description = self.devices[guid].description
-        self.devices.pop(guid)
 
         if self.client:
             self.send_later(json.dumps({"device_removed":description}))

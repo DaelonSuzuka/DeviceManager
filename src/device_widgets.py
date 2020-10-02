@@ -271,7 +271,7 @@ class RFSensorWidget(QWidget):
     def connected(self, device):
         device.signals.forward.connect(lambda x: self.forward.setText(f"{x:.2f}"))
         device.signals.reverse.connect(lambda x: self.reverse.setText(f"{x:.2f}"))
-        device.signals.swr.connect(lambda x: self.swr.setText(f"{x:.2f}"))
+        device.signals.match_quality.connect(lambda x: self.swr.setText(f"{x:.2f}"))
         device.signals.phase.connect(lambda x: self.phase.setText(f"{x}"))
         device.signals.frequency.connect(lambda x: self.frequency.setText(f"{x}"))
 

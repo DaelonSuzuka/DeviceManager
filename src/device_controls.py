@@ -100,7 +100,6 @@ class DeviceControlsWidget(QWidget):
         super().__init__(parent=parent)
         self.setObjectName('DeviceControls')
 
-        self.devices = {}
         self.widgets = {}
 
         self.device_tree = DeviceTree(self)
@@ -117,15 +116,11 @@ class DeviceControlsWidget(QWidget):
                     self.widgets[item.guid] = widget
                     self.parent().parent().addDockWidget(widget.starting_area, widget)
 
-    def on_device_added(self, device):
-        if device.guid not in self.devices:
-            self.device_tree.add_node(device)
-            self.devices[device.guid] = device
+    def device_added(self, device):
+        self.device_tree.add_node(device)
 
-    def on_device_removed(self, guid):
-        if guid in self.devices:
-            self.devices.pop(guid)
-            self.device_tree.remove_node(guid)
+    def device_removed(self, guid):
+        self.device_tree.remove_node(guid)
 
         if guid in self.widgets:
             self.widgets[guid].deleteLater()
