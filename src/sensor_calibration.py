@@ -25,7 +25,28 @@ class Result:
     sensor_swr: float = 0
 
     def __repr__(self):
-        return f'({self.freq:10}, {self.power:3})meter: [F: {self.meter_fwd:6.2f}, R: {self.meter_rev:6.2f}, S: {self.meter_swr:6.2f}] sensor: [F: {self.sensor_fwd:8.2f}, R: {self.sensor_rev:8.2f}, S: {self.sensor_swr:8.2f}]'
+        return f'({self.freq:8}, {self.power:3})meter: [F: {self.meter_fwd:6.2f}, R: {self.meter_rev:6.2f}, S: {self.meter_swr:6.2f}] sensor: [F: {self.sensor_fwd:8.2f}, R: {self.sensor_rev:8.2f}, S: {self.sensor_swr:8.2f}]'
+
+
+class DataQueue:
+    def __init__(self, keys, maxlen=10):
+        self._data = {}
+
+        for key in keys:
+            self._data[key] = deque(maxlen=maxlen)
+
+    def __getitem__(self, key):
+        return self._data[key]
+
+    def clear(self):
+        for _, queue in self._data.items():
+            queue.clear()
+
+    def is_ready(self):
+        for _, queue in self._data.items():
+            if len(queue) != queue.maxlen:
+                return False
+        return True
 
 
 @DeviceManager.subscribe
@@ -49,24 +70,8 @@ class CalibrationWorker(QObject):
         self.points = []
         self.current_point = 0
         self.results = []
-        self.data = {
-            'm_fwd': deque(maxlen=10),
-            'm_rev': deque(maxlen=10),
-            'm_swr': deque(maxlen=10),
-            's_fwd': deque(maxlen=10),
-            's_rev': deque(maxlen=10),
-            's_swr': deque(maxlen=10),
-        }
 
-    def clear_data(self):
-        for _, queue in self.data.items():
-            queue.clear()
-
-    def data_is_ready(self) -> bool:
-        for _, queue in self.data.items():
-            if len(queue) != 10:
-                return False
-        return True
+        self.data = DataQueue(['m_fwd', 'm_rev', 'm_swr', 's_fwd', 's_rev', 's_swr'])
 
     def calculate_result(self) -> Result:
         result = Result()
@@ -116,7 +121,7 @@ class CalibrationWorker(QObject):
         self.radio.set_vfoA_frequency(int(self.points[self.current_point].freq))
         self.radio.set_power_level(int(self.points[self.current_point].power))
         self.radio.key()
-        self.clear_data()
+        self.data.clear()
 
     @Slot()
     def stop(self):
@@ -135,7 +140,7 @@ class CalibrationWorker(QObject):
     def update(self):
         self.updated.emit(self.current_point)
 
-        if self.data_is_ready():
+        if self.data.is_ready():
             self.results.append(self.calculate_result())
             self.current_point += 1
 
@@ -144,7 +149,7 @@ class CalibrationWorker(QObject):
             self.radio.set_power_level(int(self.points[self.current_point].power))
             self.radio.key()
 
-            self.clear_data()
+            self.data.clear()
 
         if self.current_point == len(self.points) - 1:
             self.stop()
@@ -167,13 +172,13 @@ class CalibrationWidget(QWidget):
                 "01800000",
                 "03500000",
                 "07000000",
-                "10100000",
-                "14000000",
-                "18068000",
-                "21000000",
-                "24890000",
-                "28000000",
-                "50000000",
+                # "10100000",
+                # "14000000",
+                # "18068000",
+                # "21000000",
+                # "24890000",
+                # "28000000",
+                # "50000000",
             ],
             'powers': [
                 "005",
