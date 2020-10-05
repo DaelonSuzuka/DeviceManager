@@ -523,21 +523,24 @@ class RadioControls(Widget):
 
 
 @DeviceManager.subscribe_to("DTS-6")
-class SwitchControls(Widget):
-    def create_widgets(self):
-        self.switch = None
-        grid = CHBoxLayout(self, margins=(0, 0, 0, 0))
-
-        self.one = grid.add(QPushButton("Ant 1", checkable=True))
-        self.two = grid.add(QPushButton("Ant 2", checkable=True))
-        self.three = grid.add(QPushButton("Ant 3", checkable=True))
-        self.four = grid.add(QPushButton("Ant 4", checkable=True))
+class SwitchControls(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        with CHBoxLayout(self, margins=(0, 0, 0, 0)) as grid:
+            self.one = grid.add(QPushButton("Ant 1", checkable=True))
+            self.two = grid.add(QPushButton("Ant 2", checkable=True))
+            self.three = grid.add(QPushButton("Ant 3", checkable=True))
+            self.four = grid.add(QPushButton("Ant 4", checkable=True))
+            self.five = grid.add(QPushButton("Ant 5", checkable=True))
+            self.six = grid.add(QPushButton("Ant 6", checkable=True))
 
         self.btns = QButtonGroup()
         self.btns.addButton(self.one)
         self.btns.addButton(self.two)
         self.btns.addButton(self.three)
         self.btns.addButton(self.four)
+        self.btns.addButton(self.five)
+        self.btns.addButton(self.six)
         
     def antenna_changed(self, antenna):
         if antenna == 0:
@@ -553,12 +556,18 @@ class SwitchControls(Widget):
             self.three.setChecked(True)
         if antenna == 4:
             self.four.setChecked(True)
+        if antenna == 5:
+            self.five.setChecked(True)
+        if antenna == 6:
+            self.six.setChecked(True)
 
     def connected(self, device):
         self.one.clicked.connect(lambda: device.set_antenna(1))
         self.two.clicked.connect(lambda: device.set_antenna(2))
         self.three.clicked.connect(lambda: device.set_antenna(3))
         self.four.clicked.connect(lambda: device.set_antenna(4))
+        self.five.clicked.connect(lambda: device.set_antenna(5))
+        self.six.clicked.connect(lambda: device.set_antenna(6))
 
         device.signals.antenna.connect(self.antenna_changed)
 
@@ -590,7 +599,7 @@ class ServitorWidget(QWidget):
             hbox.addWidget(VLine())
 
             with CVBoxLayout(hbox, 4, margins=(0, 0, 0, 0)) as vbox:
-                vbox.add(RadioControls(self), 4)
+                vbox.add(RadioControls(self), 7)
                 vbox.add(HLine())
                 vbox.add(SwitchControls(self), 1)
 

@@ -61,6 +61,7 @@ class MainWindow(QMainWindow):
         self.setDockNestingEnabled(True)
 
         self.init_toolbar()
+        self.init_statusbar()
 
         self.load_settings() # do this last
 
@@ -70,20 +71,37 @@ class MainWindow(QMainWindow):
         #         print_all_children(child, '  ' + prefix )
 
         # print_all_children(self)
-
+    
     def init_toolbar(self):
         self.tool = QToolBar()
         self.tool.setObjectName('toolbar')
         self.tool.setMovable(False)
-        self.tool.setIconSize(QSize(30, 30))
-        self.addToolBar(Qt.BottomToolBarArea, self.tool)
+        self.tool.setIconSize(QSize(40, 40))
+
+        self.tool.addAction(QAction(qta.icon('ei.adjust-alt', color='gray'), '', self.tool))
+        self.tool.addAction(QAction(qta.icon('ei.check-empty', color='gray'), '', self.tool))
+        self.tool.addAction(QAction(qta.icon('ei.lines', color='gray'), '', self.tool))
+        self.tool.addAction(QAction(qta.icon('ei.random', color='gray'), '', self.tool))
+
+        empty = QWidget(self.tool)
+        empty.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding);
+        self.tool.addWidget(empty)
+
+        self.addToolBar(Qt.LeftToolBarArea, self.tool)
+
+    def init_statusbar(self):
+        self.status = QToolBar()
+        self.status.setObjectName('statusbar')
+        self.status.setMovable(False)
+        self.status.setIconSize(QSize(30, 30))
+        self.addToolBar(Qt.BottomToolBarArea, self.status)
 
         # settings button
-        settings_btn = QToolButton(self.tool, icon=qta.icon('fa.gear', color='gray'))
+        settings_btn = QToolButton(self.status, icon=qta.icon('fa.gear', color='gray'))
         menu = QMenu(settings_btn)
         settings_btn.setMenu(menu)
         settings_btn.setPopupMode(QToolButton.InstantPopup)
-        self.tool.addWidget(settings_btn)
+        self.status.addWidget(settings_btn)
         
         # settings popup menu
         menu.addAction(self.command_palette.action)
@@ -99,9 +117,9 @@ class MainWindow(QMainWindow):
             triggered=self.close))
         
         # spacer widget
-        self.tool.addWidget(QWidget(sizePolicy=QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)))
+        self.status.addWidget(QWidget(sizePolicy=QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)))
         
-        self.tool.addWidget(self.remote_widget)
+        self.status.addWidget(self.remote_widget)
 
     def closeEvent(self, event):
         self.dm.scan_timer.stop()
