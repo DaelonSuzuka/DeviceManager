@@ -3,6 +3,7 @@ from functools import partial
 from device_manager import DeviceManager
 import qtawesome as qta
 from style import qcolors
+from device_widgets import *
 
 
 @DeviceManager.subscribe_to("TS-480")
@@ -577,24 +578,21 @@ class ServitorWidget(QWidget):
         self.setBackgroundRole(QPalette.Base)
         self.setAutoFillBackground(True)
 
-        self.radio = RadioControls()
-        self.switch = SwitchControls()
-        self.radio_info = RadioInfo()
-        self.meter_info = MeterInfo()
-
         with CHBoxLayout(self) as hbox:
             with CVBoxLayout(hbox, 1, margins=(0, 0, 0, 0)) as vbox:
                 vbox.setAlignment(Qt.AlignTop)
-                vbox.add(self.radio_info)
+                vbox.add(RadioInfo(self))
                 vbox.add(HLine())
-                vbox.add(self.meter_info)
+                vbox.add(MeterInfo(self))
+                vbox.add(HLine())
+                vbox.add(RFSensorWidget(self))
 
             hbox.addWidget(VLine())
 
             with CVBoxLayout(hbox, 4, margins=(0, 0, 0, 0)) as vbox:
-                vbox.add(self.radio, 4)
+                vbox.add(RadioControls(self), 4)
                 vbox.add(HLine())
-                vbox.add(self.switch, 1)
+                vbox.add(SwitchControls(self), 1)
 
 
 class ServitorSubWindow(QMdiSubWindow):
