@@ -248,31 +248,39 @@ class RFSensorWidget(QWidget):
         
         self.forward = QLabel("?")
         self.reverse = QLabel("?")
+        self.match_quality = QLabel("?")
+        self.forward_watts = QLabel("?")
+        self.reverse_watts = QLabel("?")
         self.swr = QLabel("?")
-        self.phase = QLabel("?")
         self.frequency = QLabel("?")
 
         with CVBoxLayout(self) as layout:
-            # layout.add(QLabel('RFSensor:'))
+            layout.add(QLabel('RFSensor:'))
             with CHBoxLayout(layout) as hbox:
                 with CVBoxLayout(hbox) as vbox:
-                    vbox.addWidget(QLabel("Frequency:"))
                     vbox.addWidget(QLabel("Forward:"))
                     vbox.addWidget(QLabel("Reverse:"))
+                    vbox.addWidget(QLabel("Match Quality:"))
+                    vbox.addWidget(QLabel("Forward Watts:"))
+                    vbox.addWidget(QLabel("Reverse Watts:"))
                     vbox.addWidget(QLabel("SWR:"))
-                    vbox.addWidget(QLabel("Phase:"))
+                    vbox.addWidget(QLabel("Frequency:"))
                 with CVBoxLayout(hbox) as vbox:
-                    vbox.addWidget(self.frequency)
                     vbox.addWidget(self.forward)
                     vbox.addWidget(self.reverse)
+                    vbox.addWidget(self.match_quality)
+                    vbox.addWidget(self.forward_watts)
+                    vbox.addWidget(self.reverse_watts)
                     vbox.addWidget(self.swr)
-                    vbox.addWidget(self.phase)
+                    vbox.addWidget(self.frequency)
     
     def connected(self, device):
         device.signals.forward.connect(lambda x: self.forward.setText(f"{x:.2f}"))
         device.signals.reverse.connect(lambda x: self.reverse.setText(f"{x:.2f}"))
-        device.signals.match_quality.connect(lambda x: self.swr.setText(f"{x:.2f}"))
-        device.signals.phase.connect(lambda x: self.phase.setText(f"{x}"))
+        device.signals.match_quality.connect(lambda x: self.match_quality.setText(f"{x:.2f}"))
+        device.signals.forward_watts.connect(lambda x: self.forward_watts.setText(f"{x:.2f}"))
+        device.signals.reverse_watts.connect(lambda x: self.reverse_watts.setText(f"{x:.2f}"))
+        device.signals.swr.connect(lambda x: self.swr.setText(f"{x:.2f}"))
         device.signals.frequency.connect(lambda x: self.frequency.setText(f"{x}"))
 
     def disconnected(self, guid):
