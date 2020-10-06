@@ -4,6 +4,7 @@ from device_widgets import *
 from servitor import RadioInfo, MeterInfo
 from dataclasses import dataclass
 from collections import deque  
+import numpy as np
 
 
 @dataclass
@@ -71,18 +72,18 @@ class CalibrationWorker(QObject):
         self.current_point = 0
         self.results = []
 
-        self.data = DataQueue(['m_fwd', 'm_rev', 'm_swr', 's_fwd', 's_rev', 's_swr'])
+        self.data = DataQueue(['m_fwd', 'm_rev', 'm_swr', 's_fwd', 's_rev', 's_swr'], maxlen=4)
 
     def calculate_result(self) -> Result:
         result = Result()
         result.freq = self.points[self.current_point].freq
         result.power = self.points[self.current_point].power
-        result.meter_fwd = sum(self.data['m_fwd']) / 10
-        result.meter_rev = sum(self.data['m_rev']) / 10
-        result.meter_swr = sum(self.data['m_swr']) / 10
-        result.sensor_fwd = sum(self.data['s_fwd']) / 10
-        result.sensor_rev = sum(self.data['s_rev']) / 10
-        result.sensor_swr = sum(self.data['s_swr']) / 10
+        result.meter_fwd = sum(self.data['m_fwd']) / 4
+        result.meter_rev = sum(self.data['m_rev']) / 4
+        result.meter_swr = sum(self.data['m_swr']) / 4
+        result.sensor_fwd = sum(self.data['s_fwd']) / 4
+        result.sensor_rev = sum(self.data['s_rev']) / 4
+        result.sensor_swr = sum(self.data['s_swr']) / 4
 
         return result
 
@@ -138,6 +139,7 @@ class CalibrationWorker(QObject):
         self.sensor = None
 
         self.stopped.emit()
+        self.finished.emit(self.results)
 
     def update(self):
         self.updated.emit(self.current_point)
@@ -148,7 +150,6 @@ class CalibrationWorker(QObject):
             
             if self.current_point == len(self.points):
                 self.stop()
-                self.finished.emit(self.results)
                 return
 
             self.radio.unkey()
@@ -201,7 +202,9 @@ class CalibrationWidget(QWidget):
         self.target = QComboBox()
         self.master = QComboBox()
 
+        self.polys = QTextEdit('')
         self.results = QTextEdit('')
+        self.header = QTextEdit('')
 
         font = self.results.font()
         font.setFamily('Courier New')
@@ -234,6 +237,8 @@ class CalibrationWidget(QWidget):
                     with CVBoxLayout(hbox, 1) as vbox:
                         vbox.add(self.progress)
                         vbox.add(self.results, 1)
+                        vbox.add(self.polys, 1)
+                        vbox.add(self.header, 1)
 
     def device_added(self, device):
         self.target.addItem(device.title)
@@ -256,7 +261,68 @@ class CalibrationWidget(QWidget):
         self.stop.setEnabled(False)
 
     def worker_finished(self, results):
+
+        freqs = {p.freq for p in results}
+        
+        self.polys.setText('')
+        polys = {"fwd": {}, "rev": {}}
+        
+        for freq in freqs:
+            points = [p for p in results if p.freq == freq]
+            x = [p.sensor_fwd for p in points]
+            y = [p.meter_fwd for p in points]
+            temp = np.poly1d(np.polyfit(x, y, 2))
+            poly = {"a": 0, "b": 0, "c": 0}
+            poly["a"] = round(temp[2], 10)
+            poly["b"] = round(temp[1], 10)
+            poly["c"] = round(temp[0], 10)
+
+            polys['fwd'][freq] = poly
+
+        for freq in freqs:
+            points = [p for p in results if p.freq == freq]
+            x = [p.sensor_rev for p in points]
+            y = [p.meter_rev for p in points]
+            temp = np.poly1d(np.polyfit(x, y, 2))
+            poly = {"a": 0, "b": 0, "c": 0}
+            poly["a"] = round(temp[2], 10)
+            poly["b"] = round(temp[1], 10)
+            poly["c"] = round(temp[0], 10)
+
+            polys['rev'][freq] = poly
+
+
+        self.polys.setText(str(polys))
+        self.header.setText(self.create_poly_header(polys))
+
         s = ''
         for r in results:
             s += repr(r) + '\n'
         self.results.setText(s)
+
+    def create_poly_header(self, polys):
+        header = []
+
+        # make sure the outputs are in order
+        bands = [p for p in polys["fwd"]]
+        bands.sort()
+
+        header.append(
+            "polynomial_t forwardCalibrationTable[NUM_OF_BANDS] = {\r\n")
+        for band in bands:
+            header.append("    {" + str(polys["fwd"][band]["a"]) + ", ")
+            header.append(str(polys["fwd"][band]["b"]) + ", ")
+            header.append(str(polys["fwd"][band]["c"]) + "},")
+            header.append(" // " + band + "\r\n")
+        header.append("};\r\n\r\n")
+
+        header.append(
+            "polynomial_t reverseCalibrationTable[NUM_OF_BANDS] = {\r\n")
+        for band in bands:
+            header.append("    {" + str(polys["rev"][band]["a"]) + ", ")
+            header.append(str(polys["rev"][band]["b"]) + ", ")
+            header.append(str(polys["rev"][band]["c"]) + "},")
+            header.append(" // " + band + "\r\n")
+        header.append("};\r\n\r\n")
+
+        return ''.join(header)
