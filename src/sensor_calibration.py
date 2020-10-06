@@ -72,18 +72,19 @@ class CalibrationWorker(QObject):
         self.current_point = 0
         self.results = []
 
-        self.data = DataQueue(['m_fwd', 'm_rev', 'm_swr', 's_fwd', 's_rev', 's_swr'], maxlen=4)
+        self.num_of_samples = 10
+        self.data = DataQueue(['m_fwd', 'm_rev', 'm_swr', 's_fwd', 's_rev', 's_swr'], maxlen=self.num_of_samples)
 
     def calculate_result(self) -> Result:
         result = Result()
         result.freq = self.points[self.current_point].freq
         result.power = self.points[self.current_point].power
-        result.meter_fwd = sum(self.data['m_fwd']) / 4
-        result.meter_rev = sum(self.data['m_rev']) / 4
-        result.meter_swr = sum(self.data['m_swr']) / 4
-        result.sensor_fwd = sum(self.data['s_fwd']) / 4
-        result.sensor_rev = sum(self.data['s_rev']) / 4
-        result.sensor_swr = sum(self.data['s_swr']) / 4
+        result.meter_fwd = sum(self.data['m_fwd']) / self.num_of_samples
+        result.meter_rev = sum(self.data['m_rev']) / self.num_of_samples
+        result.meter_swr = sum(self.data['m_swr']) / self.num_of_samples
+        result.sensor_fwd = sum(self.data['s_fwd']) / self.num_of_samples
+        result.sensor_rev = sum(self.data['s_rev']) / self.num_of_samples
+        result.sensor_swr = sum(self.data['s_swr']) / self.num_of_samples
 
         return result
 
