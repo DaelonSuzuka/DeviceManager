@@ -97,6 +97,8 @@ class CalibrationWorker(QObject):
             for power in script['powers']:
                 self.points.append(Point(freq, power))
 
+        print(len(self.points))
+
         self.current_point = 0
 
         for _, device in self.devices.items():
@@ -143,6 +145,11 @@ class CalibrationWorker(QObject):
         if self.data.is_ready():
             self.results.append(self.calculate_result())
             self.current_point += 1
+            
+            if self.current_point == len(self.points):
+                self.stop()
+                self.finished.emit(self.results)
+                return
 
             self.radio.unkey()
             self.radio.set_vfoA_frequency(int(self.points[self.current_point].freq))
@@ -151,10 +158,9 @@ class CalibrationWorker(QObject):
 
             self.data.clear()
 
-        if self.current_point == len(self.points) - 1:
-            self.stop()
-            self.finished.emit(self.results)
 
+freqs = ["01800000", "03500000", "07000000", "10100000", "14000000", "18068000", "21000000", "24890000", "28000000", "50000000", ]
+powers = ["005", "010", "015", "020", "025", "030", "035", "040", "050", "060", "070", "080", "090", "100", ]
 
 @DeviceManager.subscribe
 class CalibrationWidget(QWidget):
@@ -167,36 +173,18 @@ class CalibrationWidget(QWidget):
                 max-height: 2000px; 
             } 
         """)
-        self.script = {
-            'freqs': [
-                "01800000",
-                "03500000",
-                "07000000",
-                # "10100000",
-                # "14000000",
-                # "18068000",
-                # "21000000",
-                # "24890000",
-                # "28000000",
-                # "50000000",
-            ],
-            'powers': [
-                "005",
-                "010",
-                "015",
-                "020",
-                # "025",
-                # "030",
-                # "035",
-                # "040",
-                # "050",
-                # "060",
-                # "070",
-                # "080",
-                # "090",
-                # "100",
-            ]
-        }
+
+        self.script = {'freqs': [], 'powers': []}
+
+        self.freqs = QListWidget()
+        self.freqs.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.freqs.addItems(freqs)
+        self.freqs.selectAll()
+
+        self.powers = QListWidget()
+        self.powers.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.powers.addItems(powers)
+        self.powers.selectAll()
         
         self.thread = QThread()
         self.worker = CalibrationWorker()
@@ -205,7 +193,7 @@ class CalibrationWidget(QWidget):
         self.worker.started.connect(self.worker_started)
         self.worker.stopped.connect(self.worker_stopped)
 
-        self.start = QPushButton('Start', clicked=lambda: self.worker.start(self.script))
+        self.start = QPushButton('Start', clicked=self.start_worker)
         self.stop = QPushButton('Stop', clicked=self.worker.stop, enabled=False)
         self.progress = QProgressBar()
         self.worker.updated.connect(self.progress.setValue)
@@ -239,12 +227,22 @@ class CalibrationWidget(QWidget):
                     hbox.add(QLabel(), 1)
                     hbox.add(self.start)
                     hbox.add(self.stop)
-                vbox.add(self.progress)
-                vbox.add(self.results, 1)
+                with CHBoxLayout(vbox) as hbox:
+                    with CVBoxLayout(hbox) as vbox:
+                        vbox.add(self.freqs)
+                        vbox.add(self.powers)
+                    with CVBoxLayout(hbox, 1) as vbox:
+                        vbox.add(self.progress)
+                        vbox.add(self.results, 1)
 
     def device_added(self, device):
         self.target.addItem(device.title)
         self.master.addItem(device.title)
+
+    def start_worker(self):
+        self.script['freqs'] = [f.text() for f in self.freqs.selectedItems()]
+        self.script['powers'] = [p.text() for p in self.powers.selectedItems()]
+        self.worker.start(self.script)
 
     def worker_started(self):
         self.progress.setMaximum(len(self.script['freqs']) * len(self.script['powers']))
