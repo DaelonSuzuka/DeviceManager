@@ -697,8 +697,6 @@ class LogMonitorWidget(QWidget):
         super().__init__(parent=parent)
 
         self.commands = [
-            Command("Log Monitor: Show log monitor", shortcut='Ctrl+l', triggered=self.show),
-            Command("Log Monitor: Hide log monitor", triggered=self.hide),
             Command("Log Monitor: Switch profile", triggered=self.open_profile_prompt),
         ]
 
@@ -732,7 +730,6 @@ class LogMonitorWidget(QWidget):
             completer=self.completer
         ))
 
-
     def add_record(self, record):
         self.log_table.add_record(record)
         self.filter_controls.logger_filter.register_logger(record.name)
@@ -743,22 +740,46 @@ class LogMonitorDockWidget(QDockWidget):
         super().__init__('Log Monitor', parent=parent)
         self.setObjectName('LogMonitor')
 
+        self.commands = [
+            Command("Log Monitor: Show log monitor", triggered=self._show, shortcut='Ctrl+L'),
+            Command("Log Monitor: Hide log monitor", triggered=self._hide),
+        ]
+
         self.setAllowedAreas(Qt.AllDockWidgetAreas)
         self.starting_area = Qt.BottomDockWidgetArea
-        self.closeEvent = lambda x: self.hide()
         self.dockLocationChanged.connect(lambda: QTimer.singleShot(0, self.adjust_size))
 
         self.parent().addDockWidget(self.starting_area, self)
-        self.hide()
+        
+        self.closeEvent = lambda x: self._hide()
+        if QSettings().value('log_monitor_visible', 1) == 0:
+            self.hide()
 
         self.setWidget(LogMonitorWidget(self))
 
     def adjust_size(self):
         if self.isFloating():
             self.adjustSize()
+    
+    def _show(self):
+        self.show()
+        QSettings().setValue('log_monitor_visible', int(self.isVisible()))
 
+    def _hide(self):
+        self.hide()
+        QSettings().setValue('log_monitor_visible', int(self.isVisible()))
+
+    def toggle_visibility(self):
+        if self.isVisible():
+            self._hide()
+        else:
+            self._show()
+            
     def toggleViewAction(self):
-        action = super().toggleViewAction()
-        action.setShortcut("Ctrl+L")
-        action.setMenuRole(QAction.TextHeuristicRole)
-        return action
+        return QAction(
+            'Log Monitor', 
+            self, 
+            shortcut='Ctrl+L',
+            checkable=True, 
+            triggered=self.toggle_visibility
+        )
