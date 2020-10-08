@@ -42,6 +42,11 @@ class MainWindow(QMainWindow):
         self.calibration = CalibrationWidget(self)
         self.quad_switch = QuadSw4uWidget(self)
 
+        self.tab_shortcuts = []
+        for i in range(self.tabs.count()):
+            shortcut = QShortcut(f'Ctrl+{i + 1}', self, activated=lambda i=i: self.tabs.setCurrentIndex(i))
+            self.tab_shortcuts.append(shortcut)
+
         self.addActions([
             Command("Preferences: Open Settings (JSON)", self),
             Command("Preferences: Open Settings (UI)", self, shortcut='Ctrl+,'),
@@ -62,7 +67,7 @@ class MainWindow(QMainWindow):
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
         self.setDockNestingEnabled(True)
 
-        self.init_toolbar()
+        # self.init_toolbar()
         self.init_statusbar()
 
         self.load_settings() # do this last
