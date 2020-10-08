@@ -19,6 +19,7 @@ class DeviceTreeWidgetItem(QTreeWidgetItem):
         self.setText(1, port)
 
 
+@DeviceManager.subscribe
 class DeviceTree(QTreeWidget):
     widget_requested = Signal(object)
     settings_requested = Signal(object)
@@ -41,7 +42,7 @@ class DeviceTree(QTreeWidget):
         self.remote_device_root = QTreeWidgetItem(self)
         self.remote_device_root.setText(0, "Remote Devices")
 
-    def add_node(self, device):
+    def device_added(self, device):
         if device.port[:5] == 'ws://':
             parent = self.remote_device_root
         else:
@@ -50,7 +51,7 @@ class DeviceTree(QTreeWidget):
         self.nodes[device.guid] = DeviceTreeWidgetItem(parent, device)
         self.expandAll()
 
-    def remove_node(self, guid):
+    def device_removed(self, guid):
         if guid in self.nodes:
             item = self.nodes[guid]
             parent = item.parent()
@@ -61,12 +62,27 @@ class DeviceTree(QTreeWidget):
         pos = event.globalPos()
         item = self.itemAt(self.viewport().mapFromGlobal(pos))
 
+        if item is self.local_device_root:
+            menu = QMenu()
+            menu.addAction(QAction('Add device', self))
+            menu.addAction(QAction('Rescan ports', self))
+            menu.addAction(QAction('Configure', self))
+            menu.exec_(pos)
+
+        if item is self.remote_device_root:
+            menu = QMenu()
+            menu.addAction(QAction('Add device', self))
+            menu.addAction(QAction('Configure', self))
+            menu.exec_(pos)
+
         if hasattr(item, 'device'):
             menu = QMenu()
-            menu.addAction(QAction("Settings", self, triggered=lambda: self.open_settings(item)))
+            
+            if hasattr(item.device, 'settings'):
+                menu.addAction(QAction("Settings", self, triggered=lambda: self.open_settings(item)))
 
             if hasattr(item.device, 'widget'):
-                menu.addAction(QAction("Show Control Widget", self, triggered=lambda: self.open_widget(item)))
+                menu.addAction(QAction("Open Device Controls", self, triggered=lambda: self.open_widget(item)))
 
             if hasattr(item.device, 'locate'):
                 menu.addAction(QAction("Locate Device", self, triggered=item.device.locate))
@@ -77,12 +93,13 @@ class DeviceTree(QTreeWidget):
 
     def open_settings(self, item):
         if hasattr(item, 'device'):
-            print('settings:', item.device.profile_name)
+            if hasattr(item.device, 'widget'):
+                print('settings:', item.device.profile_name)
 
     def open_widget(self, item):
         if hasattr(item, 'device'):
             if hasattr(item.device, 'widget'):
-                self.parent().show_device_widget(item)
+                print('widget:', item.device.profile_name)
 
     def open_monitor(self, item):
         monitor = SerialMonitorWidget()
@@ -95,37 +112,12 @@ class DeviceTree(QTreeWidget):
             print('remove:', item.device.profile_name)
 
 
-@DeviceManager.subscribe
 class DeviceControlsWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        self.setObjectName('DeviceControls')
 
-        self.widgets = {}
-
-        self.device_tree = DeviceTree(self)
-
-        grid = QGridLayout(self)
-        grid.addWidget(self.device_tree, 0, 0)
-
-    def show_device_widget(self, item):
-        if hasattr(self.devices[item.guid], 'widget'):
-            if item.guid not in self.widgets:
-                widget = self.devices[item.guid].widget
-                if isinstance(widget, QDockWidget):
-                    widget.setParent(self.parent().parent())
-                    self.widgets[item.guid] = widget
-                    self.parent().parent().addDockWidget(widget.starting_area, widget)
-
-    def device_added(self, device):
-        self.device_tree.add_node(device)
-
-    def device_removed(self, guid):
-        self.device_tree.remove_node(guid)
-
-        if guid in self.widgets:
-            self.widgets[guid].deleteLater()
-            self.widgets.pop(guid)
+        with CGridLayout(self) as grid:
+            grid.addWidget(DeviceTree(self), 0, 0)
 
 
 class DeviceControlsDockWidget(QDockWidget):
