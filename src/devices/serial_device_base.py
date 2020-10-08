@@ -50,7 +50,7 @@ class SerialDeviceBase:
 
     def connect_monitor(self, monitor):
         monitor.tx.connect(self.send)
-        self.base_signals.send.connect(lambda s: monitor.rx(s))
+        self.base_signals.send.connect(monitor.rx)
 
     def open(self):
         """ open the serial port and set the device to active """
