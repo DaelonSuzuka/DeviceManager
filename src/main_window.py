@@ -54,7 +54,12 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.diagnostics, 'Diagnostics')
         self.tabs.addTab(self.manual_tuner, 'Manual Tuner')
         self.tabs.addTab(self.calibration, 'Calibration')
-        self.tabs.setCurrentWidget(self.calibration)
+
+        i = self.qsettings.value('selected_tab', 0)
+        if i > self.tabs.count():
+            i = self.tabs.count()
+        self.tabs.setCurrentIndex(i)
+        self.tabs.currentChanged.connect(lambda i: self.qsettings.setValue('selected_tab', i))
 
         # init dockwidget settings
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
