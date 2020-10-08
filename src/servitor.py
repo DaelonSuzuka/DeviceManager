@@ -587,6 +587,8 @@ class ServitorWidget(QWidget):
         self.setBackgroundRole(QPalette.Base)
         self.setAutoFillBackground(True)
 
+        self.radio = RadioControls(self)
+
         with CHBoxLayout(self) as hbox:
             with CVBoxLayout(hbox, 1, margins=(0, 0, 0, 0)) as vbox:
                 vbox.setAlignment(Qt.AlignTop)
@@ -599,7 +601,7 @@ class ServitorWidget(QWidget):
             hbox.addWidget(VLine())
 
             with CVBoxLayout(hbox, 4, margins=(0, 0, 0, 0)) as vbox:
-                vbox.add(RadioControls(self), 7)
+                vbox.add(self.radio, 7)
                 vbox.add(HLine())
                 vbox.add(SwitchControls(self), 1)
 
