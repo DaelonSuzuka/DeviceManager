@@ -1,6 +1,7 @@
 from qt import *
 from device_manager import DeviceManager
 from serial_monitor import SerialMonitorWidget
+from command_palette import CommandPalette, Command
 
 
 class DeviceTreeWidgetItem(QTreeWidgetItem):
@@ -131,23 +132,50 @@ class DeviceControlsDockWidget(QDockWidget):
     def __init__(self, parent=None):
         super().__init__('Available Devices:', parent=parent)
         self.setObjectName('DeviceControls')
+        self.qsettings = QSettings()
+
+        self.commands = [
+            Command("Device List: Show device list", triggered=self._show),
+            Command("Device List: Hide device list", triggered=self._hide),
+        ]
 
         self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
-        self.starting_area = Qt.RightDockWidgetArea
         self.setFeatures(QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable)
-        self.closeEvent = lambda x: self.hide()
-        self.dockLocationChanged.connect(lambda: QTimer.singleShot(0, self.adjust_size))
+
+        previous_location = self.qsettings.value('device_controls_location', Qt.RightDockWidgetArea)
+        if previous_location == Qt.RightDockWidgetArea:
+            self.starting_area = Qt.RightDockWidgetArea
+        else:    
+            self.starting_area = Qt.LeftDockWidgetArea
+        self.dockLocationChanged.connect(lambda x: self.qsettings.setValue('device_controls_location', x))
 
         self.parent().addDockWidget(self.starting_area, self)
-        # self.hide()
+
+        self.closeEvent = lambda x: self._hide()
+        if self.qsettings.value('device_controls_visible', 1) == 0:
+            self.hide()
 
         self.setWidget(DeviceControlsWidget(self))
 
-    def adjust_size(self):
-        if self.isFloating():
-            self.adjustSize()
+    def _show(self):
+        self.show()
+        self.qsettings.setValue('device_controls_visible', int(self.isVisible()))
+
+    def _hide(self):
+        self.hide()
+        self.qsettings.setValue('device_controls_visible', int(self.isVisible()))
+
+    def toggle_visibility(self):
+        if self.isVisible():
+            self._hide()
+        else:
+            self._show()
 
     def toggleViewAction(self):
-        action = super().toggleViewAction()
-        action.setShortcut("Ctrl+D")
-        return action
+        return QAction(
+            'Available Devices:', 
+            self, 
+            shortcut='Ctrl+D',
+            checkable=True, 
+            triggered=self.toggle_visibility
+        )
