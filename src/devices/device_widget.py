@@ -11,7 +11,6 @@ class DeviceWidget(QDockWidget):
         
         self.setAllowedAreas(Qt.AllDockWidgetAreas)
         self.starting_area = Qt.BottomDockWidgetArea
-        self.closeEvent = lambda x: self.hide()
         self.dockLocationChanged.connect(self.adjustSize)
 
         self.create_widgets()
