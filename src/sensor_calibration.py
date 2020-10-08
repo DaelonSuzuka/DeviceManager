@@ -176,6 +176,8 @@ class CalibrationWidget(QWidget):
             } 
         """)
 
+        self.parent().tabs.addTab(self, 'Calibration')
+
         self.script = {'freqs': [], 'powers': []}
 
         self.freqs = QListWidget()

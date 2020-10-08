@@ -63,6 +63,8 @@ class ManualTuner(QWidget):
         # self.setBackgroundRole(QPalette.Base)
         # self.setAutoFillBackground(True)
 
+        self.parent().tabs.addTab(self, 'Manual Tuner')
+
         self.key = KeyButton()
 
         self.sensor = RFSensorWidget()

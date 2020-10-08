@@ -130,40 +130,39 @@ class DeviceControlsWidget(QWidget):
 
 class DeviceControlsDockWidget(QDockWidget):
     def __init__(self, parent=None):
-        super().__init__('Available Devices:', parent=parent)
+        super().__init__('Available Devices', parent=parent)
         self.setObjectName('DeviceControls')
-        self.qsettings = QSettings()
 
         self.commands = [
-            Command("Device List: Show device list", triggered=self._show),
+            Command("Device List: Show device list", triggered=self._show, shortcut='Ctrl+D'),
             Command("Device List: Hide device list", triggered=self._hide),
         ]
 
         self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
         self.setFeatures(QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable)
 
-        previous_location = self.qsettings.value('device_controls_location', Qt.RightDockWidgetArea)
+        previous_location = QSettings().value('device_controls_location', Qt.RightDockWidgetArea)
         if previous_location == Qt.RightDockWidgetArea:
             self.starting_area = Qt.RightDockWidgetArea
         else:    
             self.starting_area = Qt.LeftDockWidgetArea
-        self.dockLocationChanged.connect(lambda x: self.qsettings.setValue('device_controls_location', x))
+        self.dockLocationChanged.connect(lambda x: QSettings().setValue('device_controls_location', x))
 
         self.parent().addDockWidget(self.starting_area, self)
 
         self.closeEvent = lambda x: self._hide()
-        if self.qsettings.value('device_controls_visible', 1) == 0:
+        if QSettings().value('device_controls_visible', 1) == 0:
             self.hide()
 
         self.setWidget(DeviceControlsWidget(self))
 
     def _show(self):
         self.show()
-        self.qsettings.setValue('device_controls_visible', int(self.isVisible()))
+        QSettings().setValue('device_controls_visible', int(self.isVisible()))
 
     def _hide(self):
         self.hide()
-        self.qsettings.setValue('device_controls_visible', int(self.isVisible()))
+        QSettings().setValue('device_controls_visible', int(self.isVisible()))
 
     def toggle_visibility(self):
         if self.isVisible():
@@ -173,7 +172,7 @@ class DeviceControlsDockWidget(QDockWidget):
 
     def toggleViewAction(self):
         return QAction(
-            'Available Devices:', 
+            'Available Devices', 
             self, 
             shortcut='Ctrl+D',
             checkable=True, 

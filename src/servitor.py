@@ -584,6 +584,9 @@ class ServitorWidget(QWidget):
                 max-height: 2000px; 
             } 
         """)
+        
+        self.parent().tabs.addTab(self, 'Servitor')
+
         self.setBackgroundRole(QPalette.Base)
         self.setAutoFillBackground(True)
 

@@ -14,6 +14,7 @@ from diagnostics import DiagnosticWidget
 from device_controls import DeviceControlsDockWidget
 from log_monitor import LogMonitorDockWidget
 from sensor_calibration import CalibrationWidget
+from antenna_switches import QuadSw4uWidget
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -29,12 +30,17 @@ class MainWindow(QMainWindow):
         self.server = DeviceServer(self)
         self.client = DeviceClient(self)
         self.remote_widget = RemoteStatusWidget(self, client=self.client, server=self.server)
-
-        self.manual_tuner = ManualTuner()
         self.device_controls = DeviceControlsDockWidget(self)
-        self.servitor = ServitorWidget()
-        self.diagnostics = DiagnosticWidget()
-        self.calibration = CalibrationWidget()
+
+        self.tabs = QTabWidget(self)
+        self.setCentralWidget(self.tabs)
+        self.setContentsMargins(QMargins(3, 3, 3, 0))
+
+        self.servitor = ServitorWidget(self)
+        self.manual_tuner = ManualTuner(self)
+        self.diagnostics = DiagnosticWidget(self)
+        self.calibration = CalibrationWidget(self)
+        self.quad_switch = QuadSw4uWidget(self)
 
         self.addActions([
             Command("Preferences: Open Settings (JSON)", self),
@@ -45,15 +51,6 @@ class MainWindow(QMainWindow):
 
         # must be after Command objects are created by various modules
         self.command_palette = CommandPalette(self)
-
-        self.tabs = QTabWidget(self)
-        self.setCentralWidget(self.tabs)
-        self.setContentsMargins(QMargins(3, 3, 3, 0))
-
-        self.tabs.addTab(self.servitor, 'Servitor')
-        self.tabs.addTab(self.diagnostics, 'Diagnostics')
-        self.tabs.addTab(self.manual_tuner, 'Manual Tuner')
-        self.tabs.addTab(self.calibration, 'Calibration')
 
         i = self.qsettings.value('selected_tab', 0)
         if i > self.tabs.count():

@@ -14,6 +14,9 @@ class DiagnosticWidget(QWidget):
                 max-height: 2000px; 
             } 
         """)
+
+        self.parent().tabs.addTab(self, 'Diagnostics')
+
         self.device_box = QComboBox(placeholderText="Select a device:")
         self.connect = QPushButton("Connect", clicked=self.connect_clicked)
         self.tabs = QTabWidget()
