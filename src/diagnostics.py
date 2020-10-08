@@ -20,12 +20,14 @@ class DiagnosticWidget(QWidget):
         self.device_box = QComboBox(placeholderText="Select a device:")
         self.connect = QPushButton("Connect", clicked=self.connect_clicked)
         self.tabs = QTabWidget()
+        self.tabs.setTabsClosable(True)
+        self.tabs.tabCloseRequested.connect(self.cloae_tab)
 
         with CHBoxLayout(self) as layout:
             with CVBoxLayout(layout, 1) as left_side:
                 with CHBoxLayout(left_side) as row_1:
-                    row_1.addWidget(QPushButton())
-                    row_1.addWidget(QPushButton())
+                    # row_1.addWidget(QPushButton())
+                    # row_1.addWidget(QPushButton())
                     row_1.addWidget(QPushButton())
                     row_1.addWidget(KeyButton())
                 # with CHBoxLayout(left_side) as row_2:
@@ -47,9 +49,13 @@ class DiagnosticWidget(QWidget):
         guid = self.device_box.itemData(self.device_box.currentIndex())
         device = self.devices[guid]
         if device is not None:
-            monitor = SerialMonitorWidget()
+            monitor = SerialMonitorWidget(self.tabs)
             device.connect_monitor(monitor)
             self.tabs.addTab(monitor, f'{device.profile_name} <{device.port.split("?")[-1]}>')
+
+    def cloae_tab(self, index):
+        self.tabs.widget(index).deleteLater()
+        self.tabs.removeTab(index)
     
     def device_added(self, device):
         self.device_box.addItem(device.title, userData=device.guid)
