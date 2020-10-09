@@ -1,4 +1,4 @@
-from devices import SerialDevice, DeviceWidget, CommonMessagesMixin
+from devices import SerialDevice, CommonMessagesMixin
 from qt import *
 
 
@@ -15,55 +15,3 @@ class Protoboard(CommonMessagesMixin, SerialDevice):
         self.signals = Signals()
         self.message_tree.merge(self.signals.message_tree)
         self.message_tree.merge(self.common_message_tree)
-
-
-    @property
-    def widget(self):
-        w = ProtoboardWidget(self.title, self.guid)
-
-        # connect signals
-
-
-        return w
-
-
-class ProtoboardWidget(DeviceWidget):
-    def build_layout(self):
-        layout = QVBoxLayout()
-
-        ports = {
-            'port A' : ['A0','A1','A2','A3','A4','A5','A6','A7',],
-            'port B' : ['B0','B1','B2','B3','B4','B5','B6','B7',],
-            'port C' : ['C0','C1','C2','C3','C4','C5','C6','C7',],
-        }
-        
-        state_vbox = QVBoxLayout(layout)
-        for port in ports:
-            label = QLabel(port)
-            hbox = QHBoxLayout(state_vbox)
-            for pin in ports[port]:
-                hbox.addWidget(QLabel(f"{pin}: "))
-                hbox.addWidget(QLabel(f" "))
-        state_gbox = QGroupBox("Pin State:")
-        state_gbox.setLayout(state_vbox)
-
-        output_vbox = QVBoxLayout(layout)
-        for port in ports:
-            label = QLabel(port)
-            hbox = QHBoxLayout(output_vbox)
-            for pin in ports[port]:
-                hbox.addWidget(QCheckBox(pin, tristate=True))
-        output_gbox = QGroupBox("Set Output:")
-        output_gbox.setLayout(output_vbox)
-
-        read_vbox = QVBoxLayout(layout)
-        for port in ports:
-            label = QLabel(port)
-            hbox = QHBoxLayout(read_vbox)
-            for pin in ports[port]:
-                btn = QPushButton(pin)
-                hbox.addWidget(btn)
-        read_gbox = QGroupBox("Read Pin:")
-        read_gbox.setLayout(read_vbox)
-
-        self.setWidget(QWidget(layout=grid))

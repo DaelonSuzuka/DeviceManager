@@ -1,5 +1,4 @@
 from .serial_device import SerialDevice, CommonMessagesMixin
-from .device_widget import DeviceWidget
 from .remote_serial import RemoteSerial
 
 from .console_device import ConsoleDevice

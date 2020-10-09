@@ -1,6 +1,5 @@
-from devices import SerialDevice, DeviceWidget
+from devices import SerialDevice
 from qt import *
-import logging
 
 
 class RadioBuffer:
@@ -136,28 +135,6 @@ class FT991(SerialDevice):
 
     def get_power_level(self):
         self.send("PC")
-
-    @property
-    def widget(self):
-        w = FT991Widget(self.title, self.guid)
-
-        w.key.clicked.connect(self.key)
-        w.band_up.clicked.connect(self.band_up)
-        w.band_down.clicked.connect(self.band_down)
-
-        return w
-
-        
-class FT991Widget(DeviceWidget):
-    def create_widgets(self):
-        self.key = QPushButton("key", checkable=True)
-        self.band_up = QPushButton("band up")
-        self.band_down = QPushButton("band down")
-    
-    def build_layout(self):
-        grid = QGridLayout()
-        grid.addWidget(QLabel("Under construction"))
-        self.setLayout(grid)
 
 
 class FT991Responder:

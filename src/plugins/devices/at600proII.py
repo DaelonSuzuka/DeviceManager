@@ -1,4 +1,4 @@
-from devices import SerialDevice, DeviceWidget, CommonMessagesMixin
+from devices import SerialDevice, CommonMessagesMixin
 from qt import *
 
 
@@ -93,18 +93,3 @@ class AT600ProII(CommonMessagesMixin, SerialDevice):
 
     def relays_ldn(self):
         self.send('{"command":"ldn"}')
-        
-    @property
-    def widget(self):
-        w = AT600ProIIWidget(self.title, self.guid)
-
-        return w
-
-
-class AT600ProIIWidget(DeviceWidget):
-    def build_layout(self):
-        grid = QGridLayout()
-        
-        grid.addWidget(QLabel("Under Construction..."))
-
-        self.setWidget(QWidget(layout=grid))

@@ -1,4 +1,4 @@
-from devices import SerialDevice, DeviceWidget, CommonMessagesMixin
+from devices import SerialDevice, CommonMessagesMixin
 from qt import *
 
 
@@ -72,18 +72,3 @@ class VariableDummyLoad(CommonMessagesMixin, SerialDevice):
 
     def relays_ldn(self):
         self.send('{"command":"ldn"}')
-
-    @property
-    def widget(self):
-        w = VariableDummyLoadWidget(self.title, self.guid)
-
-        return w
-        
-
-class VariableDummyLoadWidget(DeviceWidget):
-    def build_layout(self):
-        grid = QGridLayout()
-        
-        grid.addWidget(QLabel("Under Construction..."))
-        
-        self.setWidget(QWidget(layout=grid))

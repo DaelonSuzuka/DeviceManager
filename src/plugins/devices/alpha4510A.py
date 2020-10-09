@@ -1,4 +1,4 @@
-from devices import SerialDevice, DeviceWidget
+from devices import SerialDevice
 from qt import *
 from bundles import SigBundle
 
@@ -63,42 +63,3 @@ class Alpha4510A(SerialDevice):
             self.signals.swr.emit(results[2])
             self.signals.temperature.emit(results[3])
             self.signals.frequency.emit(results[4])
-
-    @property
-    def widget(self):
-        w = Alpha4510AWidget(self.title, self.guid)
-
-        # connect signals
-        self.signals.forward.connect(lambda s: w.forward.setText(str(s)))
-        self.signals.reverse.connect(lambda s: w.reverse.setText(str(s)))
-        self.signals.swr.connect(lambda s: w.swr.setText(str(s)))
-        self.signals.temperature.connect(lambda s: w.temperature.setText(str(s)))
-        self.signals.frequency.connect(lambda s: w.frequency.setText(str(s)))
-
-        return w
-
-
-class Alpha4510AWidget(DeviceWidget):
-    def create_widgets(self):
-        self.forward = QLabel("?")
-        self.reverse = QLabel("?")
-        self.swr = QLabel("?")
-        self.temperature = QLabel("?")
-        self.frequency = QLabel("?")
-
-    def build_layout(self):
-        grid = QGridLayout()
-        grid.setContentsMargins(10, 20, 10, 10)
-
-        grid.addWidget(QLabel("Forward:"), 0, 1)
-        grid.addWidget(self.forward, 0, 2)
-        grid.addWidget(QLabel("Reverse:"), 1, 1)
-        grid.addWidget(self.reverse, 1, 2)
-        grid.addWidget(QLabel("SWR:"), 2, 1)
-        grid.addWidget(self.swr, 2, 2)
-        grid.addWidget(QLabel("Frequency:"), 3, 1)
-        grid.addWidget(self.frequency, 3, 2)
-
-        grid.setColumnStretch(5, 1)
-        
-        self.setWidget(QWidget(layout=grid))
