@@ -7,14 +7,10 @@ from device_manager import DeviceManager
 from remote_devices import DeviceClient, DeviceServer, RemoteStatusWidget
 
 from command_palette import CommandPalette, Command
-from tuner import Tuner
-from manual_tuner import ManualTuner
-from servitor import ServitorWidget
-from diagnostics import DiagnosticWidget
 from device_controls import DeviceControlsDockWidget
 from log_monitor import LogMonitorDockWidget
-from sensor_calibration import CalibrationWidget
-from antenna_switches import QuadSw4uWidget
+
+from plugins.apps import *
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -33,7 +29,6 @@ class MainWindow(QMainWindow):
         self.device_controls = DeviceControlsDockWidget(self)
 
         self.tabs = QTabWidget(self)
-        self.setCentralWidget(self.tabs)
         self.setContentsMargins(QMargins(3, 3, 3, 0))
 
         self.servitor = ServitorWidget(self)
@@ -41,6 +36,12 @@ class MainWindow(QMainWindow):
         self.diagnostics = DiagnosticWidget(self)
         self.calibration = CalibrationWidget(self)
         self.quad_switch = QuadSw4uWidget(self)
+
+        self.splitter = QSplitter(self)
+        
+        self.setCentralWidget(self.tabs)
+
+
 
         self.tab_shortcuts = []
         for i in range(self.tabs.count()):

@@ -1,7 +1,6 @@
 from qt import *
 from device_manager import DeviceManager
 from plugins.widgets import *
-from servitor import RadioInfo, MeterInfo
 from dataclasses import dataclass
 from collections import deque  
 import numpy as np

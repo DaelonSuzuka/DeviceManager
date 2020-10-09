@@ -88,12 +88,3 @@ class ServitorWidget(QWidget):
                 vbox.add(self.radio, 7)
                 vbox.add(HLine())
                 vbox.add(DTS6Controls(self), 1)
-
-
-class ServitorSubWindow(QMdiSubWindow):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setWindowIcon(QIcon(QPixmap(0, 0)))
-        self.setWindowTitle('Servitor Controls')
-
-        self.setWidget(ServitorWidget(self))

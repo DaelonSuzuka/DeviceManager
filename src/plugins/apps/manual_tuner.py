@@ -1,7 +1,6 @@
 from ctypes import alignment
 from qt import *
 from plugins.widgets import *
-from servitor import RadioKeyButton, RadioInfo, MeterInfo
 
 
 class TunerButtons(QWidget):
