@@ -1,6 +1,6 @@
 from qt import *
 from device_manager import DeviceManager
-from device_widgets import *
+from plugins.widgets import *
 from servitor import RadioInfo, MeterInfo
 from dataclasses import dataclass
 from collections import deque  

@@ -1,7 +1,7 @@
 from ctypes import alignment
 from qt import *
-from device_widgets import *
-from servitor import KeyButton, RadioInfo, MeterInfo
+from plugins.widgets import *
+from servitor import RadioKeyButton, RadioInfo, MeterInfo
 
 
 class TunerButtons(QWidget):
@@ -65,7 +65,7 @@ class ManualTuner(QWidget):
 
         self.parent().tabs.addTab(self, 'Manual Tuner')
 
-        self.key = KeyButton()
+        self.key = RadioKeyButton()
 
         self.sensor = RFSensorWidget()
         self.chart = RFSensorChartWidget()

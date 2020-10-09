@@ -1,7 +1,6 @@
 from qt import *
 from device_manager import DeviceManager
 from serial_monitor import SerialMonitorWidget
-from servitor import KeyButton, RadioInfo, MeterInfo
 
 
 @DeviceManager.subscribe
@@ -24,21 +23,6 @@ class DiagnosticWidget(QWidget):
         self.tabs.tabCloseRequested.connect(self.cloae_tab)
 
         with CHBoxLayout(self) as layout:
-            with CVBoxLayout(layout, 1) as left_side:
-                with CHBoxLayout(left_side) as row_1:
-                    # row_1.addWidget(QPushButton())
-                    # row_1.addWidget(QPushButton())
-                    row_1.addWidget(QPushButton())
-                    row_1.addWidget(KeyButton())
-                # with CHBoxLayout(left_side) as row_2:
-                #     row_2.addWidget(QPushButton())
-                #     row_2.addWidget(QPushButton())
-                #     row_2.addWidget(QPushButton())
-                #     row_2.addWidget(QPushButton())
-                left_side.addWidget(RadioInfo())
-                left_side.addWidget(MeterInfo())
-                left_side.addStretch(1)
-
             with CVBoxLayout(layout, 1) as right_side:
                 with CHBoxLayout(right_side) as row_1:
                     row_1.addWidget(self.device_box, 1)
