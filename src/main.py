@@ -2,7 +2,7 @@
 
 from qt import *
 from main_window import MainWindow
-from style import darkPalette, PaletteEditor
+from style import darkPalette
 import sys
 import signal
 import logging
@@ -40,31 +40,6 @@ class MyApplication(QApplication):
 
         self.window = MainWindow()
         self.window.show()
-
-        # self.palette_editor = PaletteEditor()
-        # self.palette_editor.setPalette(darkPalette)
-        # self.palette_editor.show()
-        # self.palette_editor.palette_updated.connect(self.update_palette)
-        # self.palette_editor.palette_reset.connect(self.reset_palette)
-
-    # def update_palette(self, palette):
-    #     self.setPalette(palette)
-        
-    #     QPixmapCache().clear()
-    #     self.relaunch_window()
-
-    # def reset_palette(self):
-    #     QPixmapCache().clear()
-    #     self.setPalette(self.default_palette)
-    #     self.window.setPalette(self.default_palette)
-    #     self.relaunch_window()
-
-    # def relaunch_window(self):
-    #     self.window.close()
-    #     self.window = MainWindow()
-    #     self.window.show()
-
-        # self.window.setPalette(palette)
 
     # def notify(self, receiver, event):
     #     self.t.start()
