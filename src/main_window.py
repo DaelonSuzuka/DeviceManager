@@ -31,17 +31,17 @@ class MainWindow(QMainWindow):
         self.tabs = QTabWidget(self)
         self.setContentsMargins(QMargins(3, 3, 3, 0))
 
-        self.servitor = ServitorWidget(self)
-        self.manual_tuner = ManualTuner(self)
-        self.diagnostics = DiagnosticWidget(self)
-        self.calibration = CalibrationWidget(self)
-        self.quad_switch = QuadSw4uWidget(self)
+        self.apps = [app(self) for app in apps]
+        # self.apps = []
+        # self.apps.append(ServitorApp(self))
+        # self.apps.append(ManualTunerApp(self))
+        # self.apps.append(DiagnosticApp(self))
+        # self.apps.append(CalibrationApp(self))
+        # self.apps.append(QuadSw4uApp(self))
 
         self.splitter = QSplitter(self)
-        
+
         self.setCentralWidget(self.tabs)
-
-
 
         self.tab_shortcuts = []
         for i in range(self.tabs.count()):
@@ -130,12 +130,10 @@ class MainWindow(QMainWindow):
         self.status.addWidget(self.remote_widget)
 
     def closeEvent(self, event):
-        self.dm.scan_timer.stop()
-        self.dm.update_timer.stop()
         self.dm.close()
-        self.servitor.radio.timeout.timer.stop()
-        self.calibration.worker.stop()
-        self.calibration.thread.terminate()
+
+        for app in self.apps:
+            app.close()
         
         self.save_settings()
 

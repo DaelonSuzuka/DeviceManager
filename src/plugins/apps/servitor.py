@@ -55,7 +55,7 @@ class RadioControls(Widget):
                     box.add(self.full_tune)
 
 
-class ServitorWidget(QWidget):
+class ServitorApp(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setStyleSheet("""
@@ -88,3 +88,6 @@ class ServitorWidget(QWidget):
                 vbox.add(self.radio, 7)
                 vbox.add(HLine())
                 vbox.add(DTS6Controls(self), 1)
+
+    def close(self):
+        self.radio.timeout.timer.stop()

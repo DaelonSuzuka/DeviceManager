@@ -143,6 +143,8 @@ class DeviceManager(QObject):
         self.check_for_new_subscribers()
 
     def close(self):
+        self.scan_timer.stop()
+        self.update_timer.stop()
         for _, device in self.devices.items():
             device.close()
 

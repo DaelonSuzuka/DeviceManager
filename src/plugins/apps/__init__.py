@@ -1,16 +1,3 @@
-#!/usr/bin/env python3
-
-# This is a wierd hack but I don't care.
-
-# I need to look up subclasses of SerialDevice to resolve the correct device
-# profile when a device connects. In order for SerialDevice.__subclasses__() to
-# get populated, all the subclasses need to be imported too.
-
-# Since I don't feel like maintaining a list of all the classes to import, I'm
-# left with this gross blob of shit that I found here:
-# https://julienharbulot.com/python-dynamical-import.html
-
-
 import os, sys
 from pathlib import Path
 
@@ -30,3 +17,9 @@ for f in files:
             setattr(sys.modules[__name__], i.__name__, i)
         except AttributeError:
             pass
+
+apps = [x for x in QWidget.__subclasses__() if x.__name__.endswith('App')]
+
+# until the main ui supports reordering tabs, lets force the servitor
+# app to the front of the list
+apps.insert(0, apps.pop(apps.index(ServitorApp)))

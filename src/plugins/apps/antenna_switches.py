@@ -34,7 +34,7 @@ class SwitchControls(QWidget):
 
 
 @DeviceManager.subscribe
-class QuadSw4uWidget(QWidget):
+class QuadSw4uApp(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
 

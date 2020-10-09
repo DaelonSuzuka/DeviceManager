@@ -163,8 +163,9 @@ class CalibrationWorker(QObject):
 freqs = ["01800000", "03500000", "07000000", "10100000", "14000000", "18068000", "21000000", "24890000", "28000000", "50000000", ]
 powers = ["005", "010", "015", "020", "025", "030", "035", "040", "050", "060", "070", "080", "090", "100", ]
 
+
 @DeviceManager.subscribe
-class CalibrationWidget(QWidget):
+class CalibrationApp(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.setStyleSheet("""
@@ -242,6 +243,10 @@ class CalibrationWidget(QWidget):
                         vbox.add(self.polys, 1)
                         vbox.add(self.header, 1)
 
+    def close(self):
+        self.worker.stop()
+        self.thread.terminate()
+
     def device_added(self, device):
         self.target.addItem(device.title)
         self.master.addItem(device.title)
@@ -263,7 +268,6 @@ class CalibrationWidget(QWidget):
         self.stop.setEnabled(False)
 
     def worker_finished(self, results):
-
         freqs = {p.freq for p in results}
         
         self.polys.setText('')
