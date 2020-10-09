@@ -2,7 +2,10 @@ from .serial_device import SerialDevice, CommonMessagesMixin
 from .device_widget import DeviceWidget
 from .remote_serial import RemoteSerial
 
-from .profiles import *
+from .console_device import ConsoleDevice
+from .unknown_device import UnknownDevice
+
+from plugins.devices import *
 
 profiles = {p.profile_name: p for p in SerialDevice.__subclasses__()}
 

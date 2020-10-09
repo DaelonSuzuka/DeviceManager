@@ -1,9 +1,10 @@
-from devices import SerialDevice, DeviceWidget, CommonMessagesMixin
+from devices import SerialDevice
 from qt import *
-import logger
 
 
 class KoradKA3005P(SerialDevice):
+    profile_name = "KoradKA3005P"
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs) 
 
