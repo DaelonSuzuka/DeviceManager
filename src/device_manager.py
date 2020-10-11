@@ -10,7 +10,8 @@ from bundles import SigBundle, SlotBundle
 startup = [
     'TS-480:/dev/ttyS0',
     'Alpha4510A:/dev/ttyUSB0',
-    'VariableDummyLoad:/dev/ttyS3',
+    'KoradKA3005P:/dev/ttyS2',
+    'KoradKA3005P:/dev/ttyS3',
     'ConsoleDevice:/dev/ttyS4',
     'ConsoleDevice:/dev/ttyS5',
 ]
