@@ -42,6 +42,8 @@ class DeviceTree(QTreeWidget):
         self.remote_device_root = QTreeWidgetItem(self)
         self.remote_device_root.setText(0, "Remote Devices")
 
+        self.open_monitors = {}
+
     def device_added(self, device):
         if device.port[:5] == 'ws://':
             parent = self.remote_device_root
@@ -105,6 +107,7 @@ class DeviceTree(QTreeWidget):
         monitor = SerialMonitorWidget()
         monitor.setWindowTitle(item.device.title)
         item.device.connect_monitor(monitor)
+        self.open_monitors[item.device.guid] = monitor
         monitor.show()
 
     def remove_clicked(self, item):
