@@ -1,6 +1,9 @@
 from .serial_device import SerialDevice, CommonMessagesMixin
 from .remote_serial import RemoteSerial
 
+from .json_buffer import JSONBuffer
+from .delimiter_buffer import DelimiterBuffer
+
 from .console_device import ConsoleDevice
 from .unknown_device import UnknownDevice
 

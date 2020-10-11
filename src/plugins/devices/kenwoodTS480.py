@@ -1,24 +1,5 @@
-from devices import SerialDevice
+from devices import SerialDevice, DelimiterBuffer
 from qt import *
-
-
-class RadioBuffer:
-    def __init__(self):
-        self.buffer = ""
-        self.depth = 0
-
-    def reset(self):
-        self.buffer = ""
-        self.depth = 0
-
-    def insert_char(self, c):
-        self.buffer += c
-
-    def completed(self):
-        if ';' in self.buffer:
-            return True
-
-        return False
 
 
 class Signals(QObject):
@@ -39,7 +20,7 @@ class TS480(SerialDevice):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.signals = Signals()
-        self.msg = RadioBuffer()
+        self.msg = DelimiterBuffer(start=';')
 
         try:
             self.ser.responder = TS480Responder()

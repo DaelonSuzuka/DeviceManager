@@ -1,30 +1,5 @@
-from devices import SerialDevice
+from devices import SerialDevice, DelimiterBuffer
 from qt import *
-
-start_string = '$APW'
-end_string = '*FF'
-
-
-class MeterBuffer:
-    def __init__(self):
-        self.buffer = ""
-        self.depth = 0
-
-    def reset(self):
-        self.buffer = ""
-        self.depth = 0
-
-    def insert_char(self, c):
-        self.buffer += c
-
-    def completed(self):
-        if end_string in self.buffer and start_string not in self.buffer:
-            self.buffer = ""
-
-        if end_string in self.buffer:
-            return True
-
-        return False
 
 
 class Signals(QObject):
@@ -42,7 +17,7 @@ class Alpha4510A(SerialDevice):
 
     def __init__(self, port=None, baud=38400, device=None):
         super().__init__(port=port, baud=baud, device=device)
-        self.msg = MeterBuffer()
+        self.msg = DelimiterBuffer(start='$APW', end='*FF')
         self.signals = Signals()
 
         self.last_results = {}
