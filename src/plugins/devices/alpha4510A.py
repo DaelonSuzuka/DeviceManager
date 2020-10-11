@@ -1,6 +1,5 @@
 from devices import SerialDevice
 from qt import *
-from bundles import SigBundle
 
 start_string = '$APW'
 end_string = '*FF'
@@ -28,22 +27,23 @@ class MeterBuffer:
         return False
 
 
+class Signals(QObject):
+    forward = Signal(str)
+    reverse = Signal(str)
+    swr = Signal(str)
+    temperature = Signal(str)
+    frequency = Signal(str)
+    mode = Signal(str)
+    update = Signal(str)
+
+
 class Alpha4510A(SerialDevice):
     profile_name = "Alpha4510A"
 
     def __init__(self, port=None, baud=38400, device=None):
         super().__init__(port=port, baud=baud, device=device)
         self.msg = MeterBuffer()
-        signals = {
-            'forward': [str], 
-            'reverse': [str], 
-            'swr': [str], 
-            'temperature': [str], 
-            'frequency': [str], 
-            'mode': [str],
-            'update': [dict]
-        }
-        self.signals = SigBundle(signals)
+        self.signals = Signals()
 
         self.last_results = {}
 

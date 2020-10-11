@@ -1,6 +1,5 @@
 from devices import SerialDevice
 from qt import *
-from bundles import SigBundle
 
 
 class RadioBuffer:
@@ -22,6 +21,15 @@ class RadioBuffer:
         return False
 
 
+class Signals(QObject):
+    swr = Signal(str)
+    frequency = Signal(str)
+    power = Signal(str)
+    mode = Signal(str)
+    keyed = Signal()
+    unkeyed = Signal()
+
+
 class TS480(SerialDevice):
     profile_name = "TS-480"
     modes = ["", "LSB", "USB", "CW", "FM", "AM", "CWR", "", "FSR"]
@@ -30,15 +38,7 @@ class TS480(SerialDevice):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        signals = {
-            'swr': [str],
-            'frequency': [str],
-            'power': [str],
-            'mode': [str],
-            'keyed': [],
-            'unkeyed': [],
-        }
-        self.signals = SigBundle(signals)
+        self.signals = Signals()
         self.msg = RadioBuffer()
 
         try:
