@@ -32,14 +32,6 @@ class MainWindow(QMainWindow):
         self.setContentsMargins(QMargins(3, 3, 3, 0))
 
         self.apps = [app(self) for app in apps]
-        # self.apps = []
-        # self.apps.append(ServitorApp(self))
-        # self.apps.append(ManualTunerApp(self))
-        # self.apps.append(DiagnosticApp(self))
-        # self.apps.append(CalibrationApp(self))
-        # self.apps.append(QuadSw4uApp(self))
-
-        self.splitter = QSplitter(self)
 
         self.setCentralWidget(self.tabs)
 
