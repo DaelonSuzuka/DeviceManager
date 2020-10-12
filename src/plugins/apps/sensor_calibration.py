@@ -213,6 +213,11 @@ class CalibrationApp(QWidget):
         self.results = QTextEdit('')
         self.header = QTextEdit('')
 
+        self.tabs = QTabWidget()
+        self.tabs.addTab(self.results, 'results')
+        self.tabs.addTab(self.polys, 'polys')
+        self.tabs.addTab(self.header, 'header')
+
         font = self.results.font()
         font.setFamily('Courier New')
         self.results.setFont(font)
@@ -243,17 +248,23 @@ class CalibrationApp(QWidget):
                         vbox.add(self.powers)
                     with CVBoxLayout(hbox, 1) as vbox:
                         vbox.add(self.progress)
-                        vbox.add(self.results, 1)
-                        vbox.add(self.polys, 1)
-                        vbox.add(self.header, 1)
+                        vbox.add(self.tabs, 1)
 
     def close(self):
         self.worker.stop()
         self.thread.terminate()
 
     def device_added(self, device):
-        self.target.addItem(device.title)
-        self.master.addItem(device.title)
+        self.target.clear()
+        self.target.addItems(device.title for _, device in self.devices.items())
+        self.master.clear()
+        self.master.addItems(device.title for _, device in self.devices.items())
+
+    def device_removed(self, guid):
+        self.target.clear()
+        self.target.addItems(device.title for _, device in self.devices.items())
+        self.master.clear()
+        self.master.addItems(device.title for _, device in self.devices.items())
 
     def start_worker(self):
         self.script['freqs'] = [f.text() for f in self.freqs.selectedItems()]
