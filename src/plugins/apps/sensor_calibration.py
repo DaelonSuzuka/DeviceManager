@@ -20,12 +20,12 @@ class Result:
     meter_fwd: float = 0
     meter_rev: float = 0
     meter_swr: float = 0
-    sensor_fwd: float = 0
-    sensor_rev: float = 0
-    sensor_swr: float = 0
+    target_fwd: float = 0
+    target_rev: float = 0
+    target_swr: float = 0
 
     def __repr__(self):
-        return f'({self.freq:8}, {self.power:3})meter: [F: {self.meter_fwd:6.2f}, R: {self.meter_rev:6.2f}, S: {self.meter_swr:6.2f}] sensor: [F: {self.sensor_fwd:8.2f}, R: {self.sensor_rev:8.2f}, S: {self.sensor_swr:8.2f}]'
+        return f'({self.freq:8}, {self.power:3})meter: [F: {self.meter_fwd:6.2f}, R: {self.meter_rev:6.2f}, S: {self.meter_swr:6.2f}] target: [F: {self.target_fwd:8.2f}, R: {self.target_rev:8.2f}, S: {self.target_swr:8.2f}]'
 
 
 class DataQueue:
@@ -62,7 +62,7 @@ class CalibrationWorker(QObject):
         self.switch = None
         self.meter = None
         self.radio = None
-        self.sensor = None
+        self.target = None
 
         self.timer = QTimer()
         self.timer.timeout.connect(lambda: self.update())
@@ -72,7 +72,7 @@ class CalibrationWorker(QObject):
         self.results = []
 
         self.num_of_samples = 10
-        self.data = DataQueue(['m_fwd', 'm_rev', 'm_swr', 's_fwd', 's_rev', 's_swr'], maxlen=self.num_of_samples)
+        self.data = DataQueue(['m_fwd', 'm_rev', 'm_swr', 't_fwd', 't_rev', 't_swr'], maxlen=self.num_of_samples)
 
     def calculate_result(self) -> Result:
         result = Result()
@@ -81,9 +81,9 @@ class CalibrationWorker(QObject):
         result.meter_fwd = sum(self.data['m_fwd']) / self.num_of_samples
         result.meter_rev = sum(self.data['m_rev']) / self.num_of_samples
         result.meter_swr = sum(self.data['m_swr']) / self.num_of_samples
-        result.sensor_fwd = sum(self.data['s_fwd']) / self.num_of_samples
-        result.sensor_rev = sum(self.data['s_rev']) / self.num_of_samples
-        result.sensor_swr = sum(self.data['s_swr']) / self.num_of_samples
+        result.target_fwd = sum(self.data['t_fwd']) / self.num_of_samples
+        result.target_rev = sum(self.data['t_rev']) / self.num_of_samples
+        result.target_swr = sum(self.data['t_swr']) / self.num_of_samples
 
         return result
 
@@ -109,17 +109,18 @@ class CalibrationWorker(QObject):
                 self.radio = device
             if device.profile_name == 'Alpha4510A':
                 self.meter = device
-                self.meter.signals.forward_volts.connect(lambda x: self.data['m_fwd'].append(float(x)))
-                self.meter.signals.reverse_volts.connect(lambda x: self.data['m_rev'].append(float(x)))
+                self.meter.signals.forward.connect(lambda x: self.data['m_fwd'].append(float(x)))
+                self.meter.signals.reverse.connect(lambda x: self.data['m_rev'].append(float(x)))
                 self.meter.signals.swr.connect(lambda x: self.data['m_swr'].append(float(x)))
             if device.profile_name == 'CalibrationTarget':
-                self.sensor = device
-                self.sensor.signals.forward.connect(lambda x: self.data['s_fwd'].append(float(x)))
-                self.sensor.signals.reverse.connect(lambda x: self.data['s_rev'].append(float(x)))
-                self.sensor.signals.match_quality.connect(lambda x: self.data['s_swr'].append(float(x)))
+                self.target = device
+                self.target.signals.forward_volts.connect(lambda x: self.data['t_fwd'].append(float(x)))
+                self.target.signals.reverse_volts.connect(lambda x: self.data['t_rev'].append(float(x)))
+                self.target.signals.match_quality.connect(lambda x: self.data['t_swr'].append(float(x)))
 
         self.started.emit()
         
+        self.target.send('calibrate\n')
         self.switch.set_antenna(1)
         self.radio.set_vfoA_frequency(int(self.points[self.current_point].freq))
         self.radio.set_power_level(int(self.points[self.current_point].power))
@@ -133,10 +134,12 @@ class CalibrationWorker(QObject):
         if self.radio:
             self.radio.unkey()
 
+        self.target.send('\03')
+
         self.switch = None
         self.meter = None
         self.radio = None
-        self.sensor = None
+        self.target = None
 
         self.stopped.emit()
         self.finished.emit(self.results)
@@ -275,7 +278,7 @@ class CalibrationApp(QWidget):
         
         for freq in freqs:
             points = [p for p in results if p.freq == freq]
-            x = [p.sensor_fwd for p in points]
+            x = [p.target_fwd for p in points]
             y = [p.meter_fwd for p in points]
             temp = np.poly1d(np.polyfit(x, y, 2))
             poly = {"a": 0, "b": 0, "c": 0}
@@ -287,7 +290,7 @@ class CalibrationApp(QWidget):
 
         for freq in freqs:
             points = [p for p in results if p.freq == freq]
-            x = [p.sensor_rev for p in points]
+            x = [p.target_rev for p in points]
             y = [p.meter_rev for p in points]
             temp = np.poly1d(np.polyfit(x, y, 2))
             poly = {"a": 0, "b": 0, "c": 0}
