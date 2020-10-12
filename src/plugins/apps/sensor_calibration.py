@@ -109,10 +109,10 @@ class CalibrationWorker(QObject):
                 self.radio = device
             if device.profile_name == 'Alpha4510A':
                 self.meter = device
-                self.meter.signals.forward.connect(lambda x: self.data['m_fwd'].append(float(x)))
-                self.meter.signals.reverse.connect(lambda x: self.data['m_rev'].append(float(x)))
+                self.meter.signals.forward_volts.connect(lambda x: self.data['m_fwd'].append(float(x)))
+                self.meter.signals.reverse_volts.connect(lambda x: self.data['m_rev'].append(float(x)))
                 self.meter.signals.swr.connect(lambda x: self.data['m_swr'].append(float(x)))
-            if device.profile_name == 'RFSensor':
+            if device.profile_name == 'CalibrationTarget':
                 self.sensor = device
                 self.sensor.signals.forward.connect(lambda x: self.data['s_fwd'].append(float(x)))
                 self.sensor.signals.reverse.connect(lambda x: self.data['s_rev'].append(float(x)))
@@ -221,7 +221,7 @@ class CalibrationApp(QWidget):
                 vbox.add(HLine())
                 vbox.add(MeterInfo())
                 vbox.add(HLine())
-                vbox.add(RFSensorWidget())
+                vbox.add(CalibrationTargetInfo())
                 vbox.add(QLabel(), 1)
 
             with CVBoxLayout(layout, 1) as vbox:
