@@ -134,7 +134,8 @@ class CalibrationWorker(QObject):
         if self.radio:
             self.radio.unkey()
 
-        self.target.send('\03')
+        if self.target:
+            self.target.send('\03')
 
         self.switch = None
         self.meter = None
