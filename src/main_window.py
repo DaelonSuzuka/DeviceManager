@@ -19,6 +19,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("LDG Device Manager")
         self.qsettings = QSettings()
 
+        self.load_settings()
+
         # init first so it can install on the root logger
         self.log_monitor = LogMonitorDockWidget(self)
 
@@ -63,7 +65,6 @@ class MainWindow(QMainWindow):
         # self.init_toolbar()
         self.init_statusbar()
 
-        self.load_settings() # do this last
 
         # def print_all_children(obj, prefix=''):
         #     for child in obj.children():
@@ -138,5 +139,5 @@ class MainWindow(QMainWindow):
     def load_settings(self):
         if self.qsettings.value("window_geometry") is not None:
             self.restoreGeometry(self.qsettings.value("window_geometry"))
-        if self.qsettings.value("windowState") is not None:
-            self.restoreState(self.qsettings.value("windowState"))
+        if self.qsettings.value("window_state") is not None:
+            self.restoreState(self.qsettings.value("window_state"))

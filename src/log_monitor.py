@@ -740,46 +740,28 @@ class LogMonitorDockWidget(QDockWidget):
         super().__init__('Log Monitor', parent=parent)
         self.setObjectName('LogMonitor')
 
+        self.setWidget(LogMonitorWidget(self))
+
         self.commands = [
-            Command("Log Monitor: Show log monitor", triggered=self._show, shortcut='Ctrl+L'),
-            Command("Log Monitor: Hide log monitor", triggered=self._hide),
+            Command("Log Monitor: Show log monitor", triggered=self.show, shortcut='Ctrl+L'),
+            Command("Log Monitor: Hide log monitor", triggered=self.hide),
         ]
 
         self.setAllowedAreas(Qt.AllDockWidgetAreas)
-        self.starting_area = Qt.BottomDockWidgetArea
         self.dockLocationChanged.connect(lambda: QTimer.singleShot(0, self.adjust_size))
 
-        self.parent().addDockWidget(self.starting_area, self)
-        
-        self.closeEvent = lambda x: self._hide()
-        if QSettings().value('log_monitor_visible', 1) == 0:
-            self.hide()
+        self.starting_area = Qt.BottomDockWidgetArea
 
-        self.setWidget(LogMonitorWidget(self))
+        if not self.parent().restoreDockWidget(self):
+            self.parent().addDockWidget(self.starting_area, self)
+        
+        self.closeEvent = lambda x: self.hide()
 
     def adjust_size(self):
         if self.isFloating():
             self.adjustSize()
-    
-    def _show(self):
-        self.show()
-        QSettings().setValue('log_monitor_visible', int(self.isVisible()))
-
-    def _hide(self):
-        self.hide()
-        QSettings().setValue('log_monitor_visible', int(self.isVisible()))
-
-    def toggle_visibility(self):
-        if self.isVisible():
-            self._hide()
-        else:
-            self._show()
             
     def toggleViewAction(self):
-        return QAction(
-            'Log Monitor', 
-            self, 
-            shortcut='Ctrl+L',
-            checkable=True, 
-            triggered=self.toggle_visibility
-        )
+        action = super().toggleViewAction()
+        action.setShortcut('Ctrl+L')
+        return action
