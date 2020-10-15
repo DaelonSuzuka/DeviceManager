@@ -30,6 +30,7 @@ class RadioControls(Widget):
         self.time.toggled.connect(self.timeout.set_suppressed)
         self.key.toggled.connect(self.timeout.set_running)
         self.timeout.timeout.connect(lambda: self.key.click())
+        self.time.setChecked(True)
 
     def build_layout(self):
         with CHBoxLayout(self, margins=(0, 0, 0, 0)) as hbox:

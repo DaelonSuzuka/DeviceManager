@@ -4,6 +4,9 @@ from plugins.widgets import *
 from dataclasses import dataclass
 from collections import deque  
 import numpy as np
+import json
+import pyqtgraph as pg
+from .test_data import test_data
 
 
 @dataclass
@@ -12,25 +15,11 @@ class Point:
     power: str
 
 
-@dataclass
-class Result:
-    freq: str = ''
-    power: str = ''
-
-    meter_fwd: float = 0
-    meter_rev: float = 0
-    meter_swr: float = 0
-    target_fwd: float = 0
-    target_rev: float = 0
-    target_swr: float = 0
-
-    def __repr__(self):
-        return f'({self.freq:8}, {self.power:3})meter: [F: {self.meter_fwd:6.2f}, R: {self.meter_rev:6.2f}, S: {self.meter_swr:6.2f}] target: [F: {self.target_fwd:8.2f}, R: {self.target_rev:8.2f}, S: {self.target_swr:8.2f}]'
-
-
 class DataQueue:
-    def __init__(self, keys, maxlen=10):
+    def __init__(self, keys, stabilize=[], maxlen=10):
         self._data = {}
+        self.stabilize=stabilize
+        self.reject_count = 0
 
         for key in keys:
             self._data[key] = deque(maxlen=maxlen)
@@ -41,12 +30,35 @@ class DataQueue:
     def clear(self):
         for _, queue in self._data.items():
             queue.clear()
+        self.reject_count = 0
 
     def is_ready(self):
         for _, queue in self._data.items():
             if len(queue) != queue.maxlen:
                 return False
         return True
+
+    def is_ready(self):
+        for name, queue in self._data.items():
+            if len(queue) == queue.maxlen:
+                if name in self.stabilize:
+                    if ((max(queue) - min(queue)) / np.median(queue)) > self.stabilize[name]:
+                        queue.popleft()
+                        self.reject_count += 1
+                        return False
+            else:
+                return False
+            
+        return True
+
+    def get_data(self):
+        result = {}
+        for name, queue in self._data.items():
+            result['_reject_count'] = self.reject_count
+            result[name] = np.mean(queue)
+            result[f'{name}_raw'] = list(queue)
+
+        return result
 
 
 @DeviceManager.subscribe
@@ -71,21 +83,12 @@ class CalibrationWorker(QObject):
         self.current_point = 0
         self.results = []
 
-        self.num_of_samples = 10
-        self.data = DataQueue(['m_fwd', 'm_rev', 'm_swr', 't_fwd', 't_rev', 't_swr'], maxlen=self.num_of_samples)
-
-    def calculate_result(self) -> Result:
-        result = Result()
-        result.freq = self.points[self.current_point].freq
-        result.power = self.points[self.current_point].power
-        result.meter_fwd = sum(self.data['m_fwd']) / self.num_of_samples
-        result.meter_rev = sum(self.data['m_rev']) / self.num_of_samples
-        result.meter_swr = sum(self.data['m_swr']) / self.num_of_samples
-        result.target_fwd = sum(self.data['t_fwd']) / self.num_of_samples
-        result.target_rev = sum(self.data['t_rev']) / self.num_of_samples
-        result.target_swr = sum(self.data['t_swr']) / self.num_of_samples
-
-        return result
+        fields = [
+            'm_fwd', 'm_rev', 'm_swr', 'm_freq', 'm_temp',
+            't_fwd_volts', 't_rev_volts', 't_mq', 
+            't_fwd_watts', 't_rev_watts', 't_swr', 't_freq',
+        ]
+        self.data = DataQueue(fields, stabilize={'m_freq':0.01})
 
     @Slot()
     def start(self, script):
@@ -97,8 +100,6 @@ class CalibrationWorker(QObject):
         for freq in script['freqs']:
             for power in script['powers']:
                 self.points.append(Point(freq, power))
-
-        print(len(self.points))
 
         self.current_point = 0
 
@@ -112,11 +113,17 @@ class CalibrationWorker(QObject):
                 self.meter.signals.forward.connect(lambda x: self.data['m_fwd'].append(float(x)))
                 self.meter.signals.reverse.connect(lambda x: self.data['m_rev'].append(float(x)))
                 self.meter.signals.swr.connect(lambda x: self.data['m_swr'].append(float(x)))
+                self.meter.signals.frequency.connect(lambda x: self.data['m_freq'].append(float(x)))
+                self.meter.signals.temperature.connect(lambda x: self.data['m_temp'].append(float(x)))
             if device.profile_name == 'CalibrationTarget':
                 self.target = device
-                self.target.signals.forward_volts.connect(lambda x: self.data['t_fwd'].append(float(x)))
-                self.target.signals.reverse_volts.connect(lambda x: self.data['t_rev'].append(float(x)))
-                self.target.signals.match_quality.connect(lambda x: self.data['t_swr'].append(float(x)))
+                self.target.signals.forward_volts.connect(lambda x: self.data['t_fwd_volts'].append(float(x)))
+                self.target.signals.reverse_volts.connect(lambda x: self.data['t_rev_volts'].append(float(x)))
+                self.target.signals.match_quality.connect(lambda x: self.data['t_mq'].append(float(x)))
+                self.target.signals.forward.connect(lambda x: self.data['t_fwd_watts'].append(float(x)))
+                self.target.signals.reverse.connect(lambda x: self.data['t_rev_watts'].append(float(x)))
+                self.target.signals.swr.connect(lambda x: self.data['t_swr'].append(float(x)))
+                self.target.signals.frequency.connect(lambda x: self.data['t_freq'].append(float(x)))
 
         self.started.emit()
         
@@ -149,7 +156,11 @@ class CalibrationWorker(QObject):
         self.updated.emit(self.current_point)
 
         if self.data.is_ready():
-            self.results.append(self.calculate_result())
+            result = self.data.get_data()
+            result['freq'] = self.points[self.current_point].freq
+            result['power'] = self.points[self.current_point].power
+            
+            self.results.append(result)
             self.current_point += 1
             
             if self.current_point == len(self.points):
@@ -165,7 +176,35 @@ class CalibrationWorker(QObject):
 
 
 freqs = ["01800000", "03500000", "07000000", "10100000", "14000000", "18068000", "21000000", "24890000", "28000000", "50000000", ]
-powers = ["005", "010", "015", "020", "025", "030", "035", "040", "050", "060", "070", "080", "090", "100", ]
+powers = ["005", "010", "015", "020", "025", "030", "035", "040", "050", "060", "070", "080", "090", "100", "110", "120", ]
+
+
+class GraphTab(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+        
+        self.graph = pg.PlotWidget()
+        self.freqs = QListWidget()
+        self.freqs.itemSelectionChanged.connect(self.freq_changed)
+
+        with CHBoxLayout(self) as hbox:
+            hbox.add(self.freqs)
+            hbox.add(self.graph, 1)
+
+        self.data = {}
+        self.set_data(test_data)
+
+    def freq_changed(self):
+        print(self.freqs.currentItem().text())
+
+    # def plot_data(self, x, y):
+
+    def set_data(self, data):
+        self.data = data
+        self.freqs.clear()
+        
+        freqs = sorted({p['freq'] for p in data})
+        self.freqs.addItems(freqs)
 
 
 @DeviceManager.subscribe
@@ -209,14 +248,24 @@ class CalibrationApp(QWidget):
         self.target = QComboBox()
         self.master = QComboBox()
 
-        self.polys = QTextEdit('')
         self.results = QTextEdit('')
         self.header = QTextEdit('')
+        self.recalculate = QPushButton('Recalculate', clicked=lambda: self.rebuild_header())
+
+        self.graphs = GraphTab()
+
+        self.setup = QWidget(self)
+        with CHBoxLayout(self.setup) as hbox:
+            with CVBoxLayout(hbox) as vbox:
+                vbox.add(self.freqs)
+                vbox.add(self.powers)
+            hbox.add(QLabel(), 1)
 
         self.tabs = QTabWidget()
+        self.tabs.addTab(self.setup, 'setup')
         self.tabs.addTab(self.results, 'results')
-        self.tabs.addTab(self.polys, 'polys')
         self.tabs.addTab(self.header, 'header')
+        self.tabs.addTab(self.graphs, 'graph')
 
         font = self.results.font()
         font.setFamily('Courier New')
@@ -235,20 +284,11 @@ class CalibrationApp(QWidget):
 
             with CVBoxLayout(layout, 1) as vbox:
                 with CHBoxLayout(vbox) as hbox:
-                    hbox.add(QLabel('Master:'))
-                    hbox.add(self.master, 1)
-                    hbox.add(QLabel('Target:'))
-                    hbox.add(self.target, 1)
-                    hbox.add(QLabel(), 1)
+                    hbox.add(self.progress)
+                    hbox.add(self.recalculate)
                     hbox.add(self.start)
                     hbox.add(self.stop)
-                with CHBoxLayout(vbox) as hbox:
-                    with CVBoxLayout(hbox) as vbox:
-                        vbox.add(self.freqs)
-                        vbox.add(self.powers)
-                    with CVBoxLayout(hbox, 1) as vbox:
-                        vbox.add(self.progress)
-                        vbox.add(self.tabs, 1)
+                vbox.add(self.tabs, 1)
 
     def close(self):
         self.worker.stop()
@@ -283,15 +323,30 @@ class CalibrationApp(QWidget):
         self.stop.setEnabled(False)
 
     def worker_finished(self, results):
-        freqs = {p.freq for p in results}
-        
-        self.polys.setText('')
+        if len(results) == 0:
+            return
+
+        s = json.dumps(results, indent=4, sort_keys=True)
+        self.results.setText(s)
+        self.graphs.set_data(results)
+
+        polys = self.calculate_polys(results)
+        self.header.setText(self.create_poly_header(polys))
+
+    def rebuild_header(self):
+        results = json.loads(self.results.document().toPlainText())
+
+        polys = self.calculate_polys(results)
+        self.header.setText(self.create_poly_header(polys))
+
+    def calculate_polys(self, results):
+        freqs = {p['freq'] for p in results}
         polys = {"fwd": {}, "rev": {}}
         
         for freq in freqs:
-            points = [p for p in results if p.freq == freq]
-            x = [p.target_fwd for p in points]
-            y = [p.meter_fwd for p in points]
+            points = [p for p in results if p['freq'] == freq]
+            x = [p['t_fwd_volts'] for p in points]
+            y = [p['m_fwd'] for p in points]
             temp = np.poly1d(np.polyfit(x, y, 2))
             poly = {"a": 0, "b": 0, "c": 0}
             poly["a"] = round(temp[2], 10)
@@ -301,9 +356,9 @@ class CalibrationApp(QWidget):
             polys['fwd'][freq] = poly
 
         for freq in freqs:
-            points = [p for p in results if p.freq == freq]
-            x = [p.target_rev for p in points]
-            y = [p.meter_rev for p in points]
+            points = [p for p in results if p['freq'] == freq]
+            x = [p['t_rev_volts'] for p in points]
+            y = [p['m_rev'] for p in points]
             temp = np.poly1d(np.polyfit(x, y, 2))
             poly = {"a": 0, "b": 0, "c": 0}
             poly["a"] = round(temp[2], 10)
@@ -311,15 +366,8 @@ class CalibrationApp(QWidget):
             poly["c"] = round(temp[0], 10)
 
             polys['rev'][freq] = poly
-
-
-        self.polys.setText(str(polys))
-        self.header.setText(self.create_poly_header(polys))
-
-        s = ''
-        for r in results:
-            s += repr(r) + '\n'
-        self.results.setText(s)
+        
+        return polys
 
     def create_poly_header(self, polys):
         header = []
