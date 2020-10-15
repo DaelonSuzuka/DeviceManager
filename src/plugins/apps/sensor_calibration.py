@@ -187,8 +187,14 @@ class GraphTab(QWidget):
         self.freqs = QListWidget()
         self.freqs.itemSelectionChanged.connect(self.freq_changed)
 
+        self.x_axis = QListWidget()
+        self.y_axis = QListWidget()
+
         with CHBoxLayout(self) as hbox:
-            hbox.add(self.freqs)
+            with CVBoxLayout(hbox) as vbox:
+                vbox.add(self.freqs)
+                vbox.add(self.x_axis)
+                vbox.add(self.y_axis)
             hbox.add(self.graph, 1)
 
         self.data = {}
@@ -201,10 +207,17 @@ class GraphTab(QWidget):
 
     def set_data(self, data):
         self.data = data
-        self.freqs.clear()
         
+        self.freqs.clear()
         freqs = sorted({p['freq'] for p in data})
         self.freqs.addItems(freqs)
+
+        fields = sorted({f for f in data[0].keys()})
+
+        self.x_axis.clear()
+        self.y_axis.clear()
+        self.x_axis.addItems(fields)
+        self.y_axis.addItems(fields)
 
 
 @DeviceManager.subscribe
