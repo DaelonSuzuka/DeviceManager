@@ -18,6 +18,22 @@ class Widget(QWidget):
         pass
 
 
+class PersistentTabWidget(QTabWidget):
+    def __init__(self, name, tabs=[], *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.name = name
+        if tabs:
+            for tab in tabs:
+                if hasattr(tab, 'tab_name'):
+                    self.addTab(tab, tab.tab_name)
+            self.restore_state()
+        self.currentChanged.connect(lambda i: QSettings().setValue(self.name, i))
+
+    def restore_state(self):
+        i = min(QSettings().value(self.name, 0), self.count())
+        self.setCurrentIndex(i)
+
+
 class StateButton(QPushButton):
     state_changed = Signal(int)
 

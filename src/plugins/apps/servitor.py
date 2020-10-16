@@ -67,7 +67,7 @@ class ServitorApp(QWidget):
             } 
         """)
         
-        self.parent().tabs.addTab(self, 'Servitor')
+        self.tab_name = 'Servitor'
 
         self.setBackgroundRole(QPalette.Base)
         self.setAutoFillBackground(True)
