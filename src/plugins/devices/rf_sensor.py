@@ -3,11 +3,11 @@ from qt import *
 
 
 class Signals(QObject):
+    forward_volts = Signal(float)
+    reverse_volts = Signal(float)
+    match_quality = Signal(float)
     forward = Signal(float)
     reverse = Signal(float)
-    forward_watts = Signal(float)
-    reverse_watts = Signal(float)
-    match_quality = Signal(float)
     swr = Signal(float)
     frequency = Signal(int)
     phase = Signal(int)
@@ -16,11 +16,11 @@ class Signals(QObject):
     def message_tree(self):
         return {
             "update": {
+                "forward_volts": self.forward_volts.emit,
+                "reverse_volts": self.reverse_volts.emit,
+                "match_quality": self.match_quality.emit,
                 "forward": self.forward.emit,
                 "reverse": self.reverse.emit,
-                "match_quality": self.match_quality.emit,
-                "forward_watts": self.forward_watts.emit,
-                "reverse_watts": self.reverse_watts.emit,
                 "swr": self.swr.emit,
                 "frequency": self.frequency.emit,
                 "phase": self.phase.emit,

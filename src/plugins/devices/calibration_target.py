@@ -10,7 +10,6 @@ class Signals(QObject):
     reverse = Signal(float)
     swr = Signal(float)
     frequency = Signal(int)
-    phase = Signal(int)
 
     @property
     def message_tree(self):
@@ -23,7 +22,6 @@ class Signals(QObject):
                 "reverse": self.reverse.emit,
                 "swr": self.swr.emit,
                 "frequency": self.frequency.emit,
-                "phase": self.phase.emit,
             }
         }
 
