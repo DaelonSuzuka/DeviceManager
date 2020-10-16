@@ -9,6 +9,16 @@ import pyqtgraph as pg
 from .test_data import test_data
 
 
+freqs = ["01800000", "03500000", "07000000", "10100000", "14000000", "18068000", "21000000", "24890000", "28000000", "50000000", ]
+powers = ["005", "010", "015", "020", "025", "030", "035", "040", "050", "060", "070", "080", "090", "100", "110", "120", ]
+data_fields = [
+    'power', 'freq',
+    'm_fwd', 'm_rev', 'm_swr', 'm_freq', 'm_temp',
+    't_fwd_volts', 't_rev_volts', 't_mq', 
+    't_fwd_watts', 't_rev_watts', 't_swr', 't_freq',
+]
+
+
 @dataclass
 class Point:
     freq: str
@@ -175,49 +185,106 @@ class CalibrationWorker(QObject):
             self.data.clear()
 
 
-freqs = ["01800000", "03500000", "07000000", "10100000", "14000000", "18068000", "21000000", "24890000", "28000000", "50000000", ]
-powers = ["005", "010", "015", "020", "025", "030", "035", "040", "050", "060", "070", "080", "090", "100", "110", "120", ]
+class DataSelector(QWidget):
+    selectionChanged = Signal()
+
+    def __init__(self, name='', parent=None):
+        super().__init__(parent=parent)
+        self.name = name
+
+        changed = self.selectionChanged
+        
+        self.on = PersistentCheckBox(f'{name}_on', changed=changed)
+        self.freqs = PersistentListWidget(f'{name}_freqs', items=['none']+freqs, selectionMode=QAbstractItemView.ExtendedSelection, changed=changed)
+        self.x = PersistentComboBox(f'{name}_x', items=data_fields, changed=changed)
+        self.y = PersistentComboBox(f'{name}_y', items=data_fields, changed=changed)
+
+        with CVBoxLayout(self) as vbox:
+            with CHBoxLayout(vbox) as hbox:
+                hbox.add(QLabel(name))
+                hbox.add(QLabel(), 1)
+                hbox.add(QLabel('On:'))
+                hbox.add(self.on)
+            with CHBoxLayout(vbox) as hbox:
+                hbox.add(QLabel('X:'))
+                hbox.add(self.x, 1)
+            with CHBoxLayout(vbox) as hbox:
+                hbox.add(QLabel('Y:'))
+                hbox.add(self.y, 1)
+
+    def get_params(self):
+        if self.on.checkState():
+            if self.x.currentText() != self.y.currentText():
+                return (self.x.currentText(), self.y.currentText())
+        return
 
 
 class GraphTab(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         
-        self.graph = pg.PlotWidget()
-        self.freqs = QListWidget()
-        self.freqs.itemSelectionChanged.connect(self.freq_changed)
+        self.plot_layout = pg.GraphicsLayoutWidget()
+        self.plots = [DataSelector(f'Plot {i}', self) for i in range(1, 5)]
 
-        self.x_axis = QListWidget()
-        self.y_axis = QListWidget()
+        self.freqs = PersistentListWidget('graph_freqs', items=freqs, selectionMode=QAbstractItemView.ExtendedSelection, changed=self.selection_changed)
+        self.freq_tabs = PersistentTabWidget('graph_tabs')
+        self.freq_tabs.addTab(self.freqs, 'all')
+        for plot in self.plots:
+            self.freq_tabs.addTab(plot.freqs, plot.name[5:])
+        self.freq_tabs.restore_state()
 
         with CHBoxLayout(self) as hbox:
             with CVBoxLayout(hbox) as vbox:
-                vbox.add(self.freqs)
-                vbox.add(self.x_axis)
-                vbox.add(self.y_axis)
-            hbox.add(self.graph, 1)
+                vbox.add(QLabel('Freqs'))
+                vbox.add(self.freq_tabs, 1)
+                vbox.add(self.plots)
+            hbox.add(self.plot_layout, 1)
 
         self.data = {}
         self.set_data(test_data)
 
-    def freq_changed(self):
-        print(self.freqs.currentItem().text())
+        for plot in self.plots:
+            plot.selectionChanged.connect(self.selection_changed)
+        
+        self.selection_changed()
 
-    # def plot_data(self, x, y):
+    def selection_changed(self):
+        freqs = self.freqs.selected_items()
+        QSettings().setValue('graph_freqs', freqs)
+
+        plot_params = [plot.get_params() for plot in self.plots]
+        
+        if freqs and plot_params:
+            self.draw_plots(freqs, plot_params)
+
+    def draw_plots(self, freqs, plot_params):
+        self.plot_layout.clear()
+
+        ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+
+        c = 0
+        for params in plot_params:
+            if params is None:
+                continue
+
+            title = f'{params[0]}: {params[1]}'
+            labels = {'left':params[0], 'bottom':params[1]}
+            plot = self.plot_layout.addPlot(title=title, labels=labels)
+            plot.showGrid(x=True, y=True)
+            plot.showButtons()
+
+            c += 1
+            if c == 2:
+                self.plot_layout.nextRow()
+
+            for freq in freqs:
+                points = [p for p in self.data if p['freq'] == freq]
+                x = [p[params[0]] for p in points]
+                y = [p[params[1]] for p in points]
+                plot.plot(x, y)
 
     def set_data(self, data):
         self.data = data
-        
-        self.freqs.clear()
-        freqs = sorted({p['freq'] for p in data})
-        self.freqs.addItems(freqs)
-
-        fields = sorted({f for f in data[0].keys()})
-
-        self.x_axis.clear()
-        self.y_axis.clear()
-        self.x_axis.addItems(fields)
-        self.y_axis.addItems(fields)
 
 
 @DeviceManager.subscribe
@@ -232,20 +299,13 @@ class CalibrationApp(QWidget):
             } 
         """)
 
-        self.parent().tabs.addTab(self, 'Calibration')
+        self.tab_name = 'Calibration'
 
         self.script = {'freqs': [], 'powers': []}
 
-        self.freqs = QListWidget()
-        self.freqs.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.freqs.addItems(freqs)
-        self.freqs.selectAll()
-
-        self.powers = QListWidget()
-        self.powers.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.powers.addItems(powers)
-        self.powers.selectAll()
-        
+        self.freqs = PersistentListWidget('cal_freqs', items=freqs, selectionMode=QAbstractItemView.ExtendedSelection)
+        self.powers = PersistentListWidget('cal_powers', items=powers, selectionMode=QAbstractItemView.ExtendedSelection)
+   
         self.thread = QThread()
         self.worker = CalibrationWorker()
         self.worker.moveToThread(self.thread)
@@ -263,6 +323,8 @@ class CalibrationApp(QWidget):
 
         self.results = QTextEdit('')
         self.header = QTextEdit('')
+        set_font_options(self.results, {'setFamily': 'Courier New'})
+        set_font_options(self.header, {'setFamily': 'Courier New'})
         self.recalculate = QPushButton('Recalculate', clicked=lambda: self.rebuild_header())
 
         self.graphs = GraphTab()
@@ -274,14 +336,8 @@ class CalibrationApp(QWidget):
                 vbox.add(self.powers)
             hbox.add(QLabel(), 1)
 
-        self.tabs = QTabWidget()
-        self.tabs.addTab(self.setup, 'setup')
-        self.tabs.addTab(self.results, 'results')
-        self.tabs.addTab(self.header, 'header')
-        self.tabs.addTab(self.graphs, 'graph')
-
-        
-        set_font_options(self.results, {'setFamily': 'Courier New'})
+        tabs = {'setup': self.setup, 'results': self.results, 'header': self.header, 'graphs': self.graphs}
+        self.tabs = PersistentTabWidget('calibration_tabs', tabs=tabs)
 
         self.worker.finished.connect(self.worker_finished)
 
