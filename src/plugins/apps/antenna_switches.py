@@ -37,8 +37,7 @@ class SwitchControls(QWidget):
 class QuadSw4uApp(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-
-        self.parent().tabs.addTab(self, 'Quad Switch')
+        self.tab_name = 'Quad Switch'
 
         self.one = SwitchControls(self)
         self.two = SwitchControls(self)

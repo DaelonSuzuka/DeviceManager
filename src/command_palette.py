@@ -201,9 +201,7 @@ class _CommandPalette(QDialog):
         self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setFocusPolicy(Qt.StrongFocus)
         
-        font = self.font()
-        font.setPointSize(16)
-        self.setFont(font)
+        set_font_options(self, {'setPointSize': 16})
         
         self.setMinimumWidth(700)
 

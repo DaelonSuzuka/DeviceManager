@@ -30,15 +30,15 @@ class MainWindow(QMainWindow):
         self.remote_widget = RemoteStatusWidget(self, client=self.client, server=self.server)
         self.device_controls = DeviceControlsDockWidget(self)
 
-        self.tabs = QTabWidget(self)
         self.setContentsMargins(QMargins(3, 3, 3, 0))
 
         self.apps = [app(self) for app in apps]
 
+        self.tabs = PersistentTabWidget('main_window_tabs', tabs=self.apps)
         self.setCentralWidget(self.tabs)
 
         self.tab_shortcuts = []
-        for i in range(self.tabs.count()):
+        for i in range(10):
             shortcut = QShortcut(f'Ctrl+{i + 1}', self, activated=lambda i=i: self.tabs.setCurrentIndex(i))
             self.tab_shortcuts.append(shortcut)
 
@@ -52,26 +52,12 @@ class MainWindow(QMainWindow):
         # must be after Command objects are created by various modules
         self.command_palette = CommandPalette(self)
 
-        i = self.qsettings.value('selected_tab', 0)
-        if i > self.tabs.count():
-            i = self.tabs.count()
-        self.tabs.setCurrentIndex(i)
-        self.tabs.currentChanged.connect(lambda i: self.qsettings.setValue('selected_tab', i))
-
         # init dockwidget settings
         self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
         self.setDockNestingEnabled(True)
 
         # self.init_toolbar()
         self.init_statusbar()
-
-
-        # def print_all_children(obj, prefix=''):
-        #     for child in obj.children():
-        #         print(prefix, child)
-        #         print_all_children(child, '  ' + prefix )
-
-        # print_all_children(self)
     
     def init_toolbar(self):
         self.tool = QToolBar()

@@ -29,9 +29,7 @@ class MyApplication(QApplication):
         self.setPalette(darkPalette)
         self.setWindowIcon(qta.icon('mdi.card-text-outline'))
         
-        font = self.font()
-        font.setPointSize(10)
-        self.setFont(font)
+        set_font_options(self, {'setPointSize': 10})
 
         # configure logging
         logging.basicConfig(filename='log.txt', level=logging.DEBUG)

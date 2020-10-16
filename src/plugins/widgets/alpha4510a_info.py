@@ -10,6 +10,7 @@ class MeterInfo(QWidget):
         self.reverse = QLabel("  ?  ")
         self.swr = QLabel("  ?  ")
         self.frequency = QLabel("  ?  ")
+        self.temperature = QLabel("  ?  ")
 
         with CVBoxLayout(self) as layout:
             layout.add(QLabel('Alpha4510A:'))
@@ -19,20 +20,24 @@ class MeterInfo(QWidget):
                     vbox.addWidget(QLabel("Reverse:"))
                     vbox.addWidget(QLabel("SWR:"))
                     vbox.addWidget(QLabel("Frequency:"))
+                    vbox.addWidget(QLabel("Temperature:"))
                 with CVBoxLayout(hbox) as vbox:
                     vbox.addWidget(self.forward)
                     vbox.addWidget(self.reverse)
                     vbox.addWidget(self.swr)
                     vbox.addWidget(self.frequency)
+                    vbox.addWidget(self.temperature)
 
     def connected(self, device):
-        device.signals.forward.connect(lambda s: self.forward.setText(s))
-        device.signals.reverse.connect(lambda s: self.reverse.setText(s))
-        device.signals.swr.connect(lambda s: self.swr.setText(s))
-        device.signals.frequency.connect(lambda s: self.frequency.setText(s))
+        device.signals.forward.connect(lambda x: self.forward.setText(f'{x:6.2f}'))
+        device.signals.reverse.connect(lambda x: self.reverse.setText(f'{x:6.2f}'))
+        device.signals.swr.connect(lambda x: self.swr.setText(f'{x:6.2f}'))
+        device.signals.frequency.connect(lambda x: self.frequency.setText(f'{x:6.2f}'))
+        device.signals.temperature.connect(lambda x: self.temperature.setText(f'{x:6.2f}'))
 
     def disconnected(self, guid):
         self.forward.setText("  ?  ")
         self.reverse.setText("  ?  ")
         self.swr.setText("  ?  ")
         self.frequency.setText("  ?  ")
+        self.temperature.setText("  ?  ")

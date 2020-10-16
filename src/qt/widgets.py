@@ -1,21 +1,84 @@
 from .qt import *
 
 
-class Widget(QWidget):
-    def __init__(self, *args, **kwargs):
+class PersistentTabWidget(QTabWidget):
+    def __init__(self, name, tabs=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.create_widgets()
-        self.connect_signals()
-        self.build_layout()
+        self.name = name
+        if tabs:
+            if isinstance(tabs, list):
+                for tab in tabs:
+                    if hasattr(tab, 'tab_name'):
+                        self.addTab(tab, tab.tab_name)
+            if isinstance(tabs, dict):
+                for name, tab in tabs.items():
+                    self.addTab(tab, name)
+            self.restore_state()
 
-    def create_widgets(self):
-        pass
+    def restore_state(self):
+        self.setCurrentIndex(min(QSettings().value(self.name, 0), self.count()))
+        self.currentChanged.connect(lambda i: QSettings().setValue(self.name, i))
 
-    def connect_signals(self):
-        pass
 
-    def build_layout(self):
-        pass
+class PersistentCheckBox(QCheckBox):
+    def __init__(self, name, changed=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.name = name
+        self.restore_state()
+
+        if changed:
+            self.stateChanged.connect(changed)
+
+        self.stateChanged.connect(lambda: QSettings().setValue(self.name, self.checkState()))
+    
+    def restore_state(self):
+        prev_state = QSettings().value(self.name, 0)
+        if prev_state == int(Qt.Checked):
+            self.setCheckState(Qt.Checked)
+        elif prev_state == int(Qt.PartiallyChecked):
+            self.setCheckState(Qt.PartiallyChecked)
+
+
+class PersistentListWidget(QListWidget):
+    def __init__(self, name, items=[], changed=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.name = name
+
+        if items:
+            self.addItems(items)
+            self.restore_state()
+                
+        if changed:
+            self.itemSelectionChanged.connect(changed)
+
+        self.itemSelectionChanged.connect(lambda: QSettings().setValue(self.name, self.selected_items()))
+
+    def selected_items(self):
+        return [item.text() for item in self.selectedItems()]
+
+    def restore_state(self):
+        prev_items = QSettings().value(self.name, [])
+        for i in range(self.count()):
+            if self.item(i).text() in prev_items:
+                self.item(i).setSelected(True)
+
+
+class PersistentComboBox(QComboBox):
+    def __init__(self, name, items=[], changed=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.name = name
+
+        if items:
+            self.addItems(items)
+            self.restore_state()
+
+        if changed:
+            self.currentTextChanged.connect(changed)
+
+        self.currentTextChanged.connect(lambda: QSettings().setValue(self.name, self.currentIndex()))
+
+    def restore_state(self):
+        self.setCurrentIndex(QSettings().value(self.name, 0))
 
 
 class StateButton(QPushButton):

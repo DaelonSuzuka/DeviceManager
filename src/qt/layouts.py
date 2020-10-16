@@ -20,6 +20,9 @@ class ContextLayout:
             self.addWidget(item, *args)
         elif isinstance(item, QLayout):
             self.addLayout(item, *args)
+        elif isinstance(item, list):
+            for i in item:
+                self.add(i, *args)
 
         return item
 

@@ -62,7 +62,7 @@ class ManualTunerApp(QWidget):
         # self.setBackgroundRole(QPalette.Base)
         # self.setAutoFillBackground(True)
 
-        self.parent().tabs.addTab(self, 'Manual Tuner')
+        self.tab_name = 'Manual Tuner'
 
         self.key = RadioKeyButton()
 

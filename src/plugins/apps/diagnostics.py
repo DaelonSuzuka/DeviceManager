@@ -14,7 +14,7 @@ class DiagnosticApp(QWidget):
             } 
         """)
 
-        self.parent().tabs.addTab(self, 'Diagnostics')
+        self.tab_name = 'Diagnostics'
 
         self.device_box = QComboBox(placeholderText="Select a device:")
         self.connect = QPushButton("Connect", clicked=self.connect_clicked)
