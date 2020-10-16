@@ -3,8 +3,9 @@ from device_manager import DeviceManager
 from plugins.widgets import *
 
 
-class RadioControls(Widget):
-    def create_widgets(self):
+class RadioControls(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.setStyleSheet('QProgressBar { border: 1px solid grey; }')
 
         self.power_btns = RadioPowerButtons()
@@ -32,7 +33,6 @@ class RadioControls(Widget):
         self.timeout.timeout.connect(lambda: self.key.click())
         self.time.setChecked(True)
 
-    def build_layout(self):
         with CHBoxLayout(self, margins=(0, 0, 0, 0)) as hbox:
             hbox.add(self.power_btns, 2)
             hbox.add(VLine(), 1)
