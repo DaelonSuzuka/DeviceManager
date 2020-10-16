@@ -34,6 +34,23 @@ class PersistentTabWidget(QTabWidget):
         self.setCurrentIndex(i)
 
 
+class PersistentCheckBox(QCheckBox):
+    def __init__(self, name, changed=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.name = name
+
+        prev_state = QSettings().value(self.name, 0)
+        if prev_state == int(Qt.Checked):
+            self.setCheckState(Qt.Checked)
+        elif prev_state == int(Qt.PartiallyChecked):
+            self.setCheckState(Qt.PartiallyChecked)
+
+        if changed:
+            self.stateChanged.connect(changed)
+
+        self.stateChanged.connect(lambda: QSettings().setValue(self.name, self.checkState()))
+
+
 class StateButton(QPushButton):
     state_changed = Signal(int)
 
