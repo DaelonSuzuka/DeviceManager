@@ -69,10 +69,8 @@ class SerialMonitorWidget(QWidget):
         with CVBoxLayout(self) as layout:
             layout.addWidget(self.text)
 
-        font = self.text.font()
-        font.setFamily('Courier New')
-        self.text.setFont(font)
-        
+        set_font_options(self.text, {'setFamily': 'Courier New'})
+
         self.screen = Screen(columns, rows)
         self.stream = Stream(self.screen)
 
@@ -185,9 +183,7 @@ class HistorySerialMonitorWidget(QWidget):
         with CVBoxLayout(self) as layout:
             layout.addWidget(self.text)
 
-        font = self.text.font()
-        font.setFamily('Courier New')
-        self.text.setFont(font)
+        set_font_options(self.text, {'setFamily': 'Courier New'})
 
         self.columns = columns
 

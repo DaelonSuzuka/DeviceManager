@@ -280,9 +280,8 @@ class CalibrationApp(QWidget):
         self.tabs.addTab(self.header, 'header')
         self.tabs.addTab(self.graphs, 'graph')
 
-        font = self.results.font()
-        font.setFamily('Courier New')
-        self.results.setFont(font)
+        
+        set_font_options(self.results, {'setFamily': 'Courier New'})
 
         self.worker.finished.connect(self.worker_finished)
 
