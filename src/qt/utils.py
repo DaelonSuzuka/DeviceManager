@@ -14,3 +14,9 @@ def disable_children(thing):
             thing.itemAt(i).widget().setEnabled(False)
         else:
             disable_children(thing.itemAt(i))
+
+
+def print_all_children(obj, prefix=''):
+    for child in obj.children():
+        print(prefix, child)
+        print_all_children(child, '  ' + prefix )

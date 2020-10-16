@@ -64,14 +64,6 @@ class MainWindow(QMainWindow):
 
         # self.init_toolbar()
         self.init_statusbar()
-
-
-        # def print_all_children(obj, prefix=''):
-        #     for child in obj.children():
-        #         print(prefix, child)
-        #         print_all_children(child, '  ' + prefix )
-
-        # print_all_children(self)
     
     def init_toolbar(self):
         self.tool = QToolBar()
