@@ -12,7 +12,6 @@ from .test_data import test_data
 freqs = ["01800000", "03500000", "07000000", "10100000", "14000000", "18068000", "21000000", "24890000", "28000000", "50000000", ]
 powers = ["005", "010", "015", "020", "025", "030", "035", "040", "050", "060", "070", "080", "090", "100", "110", "120", ]
 data_fields = [
-    'power', 'freq',
     'm_fwd', 'm_rev', 'm_swr', 'm_freq', 'm_temp',
     't_fwd_volts', 't_rev_volts', 't_mq', 
     't_fwd_watts', 't_rev_watts', 't_swr', 't_freq',
@@ -213,9 +212,8 @@ class DataSelector(QWidget):
                 hbox.add(self.y, 1)
 
     def get_params(self):
-        if self.on.checkState():
-            if self.x.currentText() != self.y.currentText():
-                return (self.x.currentText(), self.y.currentText())
+        if self.on.checkState() and self.x.currentText() != self.y.currentText():
+            return (self.x.currentText(), self.y.currentText(), self.freqs.selected_items())
         return
 
 
@@ -224,9 +222,16 @@ class GraphTab(QWidget):
         super().__init__(parent=parent)
         
         self.plot_layout = pg.GraphicsLayoutWidget()
-        self.plots = [DataSelector(f'Plot {i}', self) for i in range(1, 5)]
+        self.plots = [DataSelector(f'Plot {i}', self) for i in range(1, 7)]
 
-        self.freqs = PersistentListWidget('graph_freqs', items=freqs, selectionMode=QAbstractItemView.ExtendedSelection, changed=self.selection_changed)
+        def normalize(x):
+            x = np.asarray(x)
+            return (x - x.min()) / (np.ptp(x))
+
+        self.freq_colors = dict(zip(freqs, normalize([float(f) for f in freqs])))
+
+        self.freqs = PersistentListWidget(
+            'graph_freqs', items=freqs, selectionMode=QAbstractItemView.ExtendedSelection, changed=self.draw_plots)
         self.freq_tabs = PersistentTabWidget('graph_tabs')
         self.freq_tabs.addTab(self.freqs, 'all')
         for plot in self.plots:
@@ -244,47 +249,43 @@ class GraphTab(QWidget):
         self.set_data(test_data)
 
         for plot in self.plots:
-            plot.selectionChanged.connect(self.selection_changed)
-        
-        self.selection_changed()
+            plot.selectionChanged.connect(self.draw_plots)
 
-    def selection_changed(self):
+    def draw_plots(self):
         freqs = self.freqs.selected_items()
-        QSettings().setValue('graph_freqs', freqs)
-
         plot_params = [plot.get_params() for plot in self.plots]
-        
-        if freqs and plot_params:
-            self.draw_plots(freqs, plot_params)
-
-    def draw_plots(self, freqs, plot_params):
         self.plot_layout.clear()
-
-        ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
 
         c = 0
         for params in plot_params:
             if params is None:
                 continue
 
-            title = f'{params[0]}: {params[1]}'
+            plot_freqs = params[2]
+            if 'none' in params[2]:
+                plot_freqs = freqs
+
+            title = plot_freqs
             labels = {'left':params[0], 'bottom':params[1]}
             plot = self.plot_layout.addPlot(title=title, labels=labels)
             plot.showGrid(x=True, y=True)
             plot.showButtons()
+            plot.addLegend()
+            plot.setMenuEnabled(enableMenu=True, enableViewBoxMenu='same')
 
             c += 1
             if c == 2:
                 self.plot_layout.nextRow()
 
-            for freq in freqs:
+            for freq in plot_freqs:
                 points = [p for p in self.data if p['freq'] == freq]
                 x = [p[params[0]] for p in points]
                 y = [p[params[1]] for p in points]
-                plot.plot(x, y)
+                plot.plot(x, y, pen=pg.hsvColor(self.freq_colors[freq]), name=freq)
 
     def set_data(self, data):
         self.data = data
+        self.draw_plots()
 
 
 @DeviceManager.subscribe
@@ -325,14 +326,16 @@ class CalibrationApp(QWidget):
         self.header = QTextEdit('')
         set_font_options(self.results, {'setFamily': 'Courier New'})
         set_font_options(self.header, {'setFamily': 'Courier New'})
-        self.recalculate = QPushButton('Recalculate', clicked=lambda: self.rebuild_header())
+        self.recalculate = QPushButton('Recalculate', clicked=lambda: self.rebuild_outputs())
 
         self.graphs = GraphTab()
 
         self.setup = QWidget(self)
         with CHBoxLayout(self.setup) as hbox:
             with CVBoxLayout(hbox) as vbox:
+                vbox.add(QLabel('Freqs'))
                 vbox.add(self.freqs)
+                vbox.add(QLabel('Powers'))
                 vbox.add(self.powers)
             hbox.add(QLabel(), 1)
 
@@ -401,11 +404,18 @@ class CalibrationApp(QWidget):
         polys = self.calculate_polys(results)
         self.header.setText(self.create_poly_header(polys))
 
-    def rebuild_header(self):
-        results = json.loads(self.results.document().toPlainText())
+    def rebuild_outputs(self):
+        try:
+            results = json.loads(self.results.document().toPlainText())
+            if results == {}:
+                print('empty')
+                return
+            self.graphs.set_data(results)
 
-        polys = self.calculate_polys(results)
-        self.header.setText(self.create_poly_header(polys))
+            polys = self.calculate_polys(results)
+            self.header.setText(self.create_poly_header(polys))
+        except:
+            pass
 
     def calculate_polys(self, results):
         freqs = {p['freq'] for p in results}
