@@ -59,9 +59,10 @@ class PersistentListWidget(QListWidget):
 
     def restore_state(self):
         prev_items = QSettings().value(self.name, self.default_selection)
-        for i in range(self.count()):
-            if self.item(i).text() in prev_items:
-                self.item(i).setSelected(True)
+        if prev_items:
+            for i in range(self.count()):
+                if self.item(i).text() in prev_items:
+                    self.item(i).setSelected(True)
 
 
 class PersistentComboBox(QComboBox):
