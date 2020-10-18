@@ -82,7 +82,9 @@ class PersistentComboBox(QComboBox):
         self.currentTextChanged.connect(lambda: QSettings().setValue(self.name, self.currentIndex()))
 
     def restore_state(self):
-        self.setCurrentIndex(QSettings().value(self.name, 0))
+        prev_index = QSettings().value(self.name, 0)
+        if isinstance(prev_index, int):
+            self.setCurrentIndex(prev_index)
 
 
 class StateButton(QPushButton):
