@@ -266,7 +266,7 @@ class GraphTab(QWidget):
                 plot_freqs = freqs
 
             title = plot_freqs
-            labels = {'left':params[0], 'bottom':params[1]}
+            labels = {'bottom':params[0], 'left':params[1]}
             plot = self.plot_layout.addPlot(title=title, labels=labels)
             plot.showGrid(x=True, y=True)
             plot.showButtons()
