@@ -194,7 +194,7 @@ class DataSelector(QWidget):
         changed = self.selectionChanged
         
         self.on = PersistentCheckBox(f'{name}_on', changed=changed)
-        self.freqs = PersistentListWidget(f'{name}_freqs', items=['none']+freqs, selectionMode=QAbstractItemView.ExtendedSelection, changed=changed)
+        self.freqs = PersistentListWidget(f'{name}_freqs', items=['none']+freqs, default=['none'], selectionMode=QAbstractItemView.ExtendedSelection, changed=changed)
         self.x = PersistentComboBox(f'{name}_x', items=data_fields, changed=changed)
         self.y = PersistentComboBox(f'{name}_y', items=data_fields, changed=changed)
 

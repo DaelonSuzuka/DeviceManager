@@ -40,9 +40,10 @@ class PersistentCheckBox(QCheckBox):
 
 
 class PersistentListWidget(QListWidget):
-    def __init__(self, name, items=[], changed=None, *args, **kwargs):
+    def __init__(self, name, items=[], default=[], changed=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = name
+        self.default_selection=default
 
         if items:
             self.addItems(items)
@@ -57,7 +58,7 @@ class PersistentListWidget(QListWidget):
         return [item.text() for item in self.selectedItems()]
 
     def restore_state(self):
-        prev_items = QSettings().value(self.name, [])
+        prev_items = QSettings().value(self.name, self.default_selection)
         for i in range(self.count()):
             if self.item(i).text() in prev_items:
                 self.item(i).setSelected(True)
