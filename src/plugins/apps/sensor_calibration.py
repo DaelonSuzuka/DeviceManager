@@ -17,6 +17,21 @@ data_fields = [
     't_fwd_watts', 't_rev_watts', 't_swr', 't_freq',
 ]
 
+data_field_names = {
+    'm_fwd': 'Meter: Forward Watts',
+    'm_rev': 'Meter: Reverse Watts',
+    'm_swr': 'Meter: SWR',
+    'm_freq': 'Meter: Frequency',
+    'm_temp': 'Meter: Temperature',
+    't_fwd_volts': 'Target: Forward Volts',
+    't_rev_volts': 'Target: Reverse Volts',
+    't_mq': 'Target: Match Quality',
+    't_fwd_watts': 'Target: Forward Watts',
+    't_rev_watts': 'Target: Reverse Watts',
+    't_swr': 'Target: SWR',
+    't_freq': 'Target: Frequency',
+}
+
 
 @dataclass
 class Point:
@@ -266,7 +281,7 @@ class GraphTab(QWidget):
                 plot_freqs = freqs
 
             title = plot_freqs
-            labels = {'bottom':params[0], 'left':params[1]}
+            labels = {'bottom':data_field_names[params[0]], 'left':data_field_names[params[1]]}
             plot = self.plot_layout.addPlot(title=title, labels=labels)
             plot.showGrid(x=True, y=True)
             plot.showButtons()
