@@ -16,7 +16,9 @@ class PersistentTabWidget(QTabWidget):
             self.restore_state()
 
     def restore_state(self):
-        self.setCurrentIndex(min(QSettings().value(self.name, 0), self.count()))
+        prev_index = QSettings().value(self.name, 0)
+        if isinstance(prev_index, int):
+            self.setCurrentIndex(min(int(prev_index), self.count()))
         self.currentChanged.connect(lambda i: QSettings().setValue(self.name, i))
 
 
