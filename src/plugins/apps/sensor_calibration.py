@@ -6,7 +6,7 @@ from collections import deque
 import numpy as np
 import json
 import pyqtgraph as pg
-from .test_data import test_data
+from .test_data2 import test_data
 
 
 freqs = ["01800000", "03500000", "07000000", "10100000", "14000000", "18068000", "21000000", "24890000", "28000000", "50000000", ]
@@ -348,6 +348,13 @@ class CalibrationApp(QWidget):
         self.setup = QWidget(self)
         with CHBoxLayout(self.setup) as hbox:
             with CVBoxLayout(hbox) as vbox:
+                vbox.add(RadioInfo())
+                vbox.add(HLine())
+                vbox.add(MeterInfo())
+                vbox.add(HLine())
+                vbox.add(CalibrationTargetInfo())
+                vbox.add(QLabel(), 1)
+            with CVBoxLayout(hbox) as vbox:
                 vbox.add(QLabel('Freqs'))
                 vbox.add(self.freqs)
                 vbox.add(QLabel('Powers'))
@@ -360,13 +367,7 @@ class CalibrationApp(QWidget):
         self.worker.finished.connect(self.worker_finished)
 
         with CHBoxLayout(self) as layout:
-            with CVBoxLayout(layout) as vbox:
-                vbox.add(RadioInfo())
-                vbox.add(HLine())
-                vbox.add(MeterInfo())
-                vbox.add(HLine())
-                vbox.add(CalibrationTargetInfo())
-                vbox.add(QLabel(), 1)
+            
 
             with CVBoxLayout(layout, 1) as vbox:
                 with CHBoxLayout(vbox) as hbox:
