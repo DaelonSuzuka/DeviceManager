@@ -27,3 +27,4 @@ def set_font_options(obj, options={}):
     for setting, value in options.items():
         getattr(font, setting)(value)
     obj.setFont(font)
+    return obj
