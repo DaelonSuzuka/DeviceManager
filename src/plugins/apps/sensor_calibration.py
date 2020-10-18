@@ -304,49 +304,18 @@ class GraphTab(QWidget):
 
 
 @DeviceManager.subscribe
-class CalibrationApp(QWidget):
+class SetupTab(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        self.setStyleSheet("""
-            QWidget { font-size: 16pt; }
-            QPushButton { 
-                max-width: 2000px; 
-                max-height: 2000px; 
-            } 
-        """)
-
-        self.tab_name = 'Calibration'
-
-        self.script = {'freqs': [], 'powers': []}
-
-        self.freqs = PersistentListWidget('cal_freqs', items=freqs, selectionMode=QAbstractItemView.ExtendedSelection)
-        self.powers = PersistentListWidget('cal_powers', items=powers, selectionMode=QAbstractItemView.ExtendedSelection)
-   
-        self.thread = QThread()
-        self.worker = CalibrationWorker()
-        self.worker.moveToThread(self.thread)
-        self.thread.start()
-        self.worker.started.connect(self.worker_started)
-        self.worker.stopped.connect(self.worker_stopped)
-
-        self.start = QPushButton('Start', clicked=self.start_worker)
-        self.stop = QPushButton('Stop', clicked=self.worker.stop, enabled=False)
-        self.progress = QProgressBar()
-        self.worker.updated.connect(self.progress.setValue)
-
+        
         self.target = QComboBox()
         self.master = QComboBox()
 
-        self.results = QTextEdit('')
-        self.header = QTextEdit('')
-        set_font_options(self.results, {'setFamily': 'Courier New'})
-        set_font_options(self.header, {'setFamily': 'Courier New'})
-        self.recalculate = QPushButton('Recalculate', clicked=lambda: self.rebuild_outputs())
+        self.script = {'freqs': [], 'powers': []}
+        self.freqs = PersistentListWidget('cal_freqs', items=freqs, selectionMode=QAbstractItemView.ExtendedSelection)
+        self.powers = PersistentListWidget('cal_powers', items=powers, selectionMode=QAbstractItemView.ExtendedSelection)
 
-        self.graphs = GraphTab()
-
-        self.setup = QWidget(self)
-        with CHBoxLayout(self.setup) as hbox:
+        with CHBoxLayout(self) as hbox:
             with CVBoxLayout(hbox) as vbox:
                 vbox.add(RadioInfo())
                 vbox.add(HLine())
@@ -361,25 +330,10 @@ class CalibrationApp(QWidget):
                 vbox.add(self.powers)
             hbox.add(QLabel(), 1)
 
-        tabs = {'setup': self.setup, 'results': self.results, 'header': self.header, 'graphs': self.graphs}
-        self.tabs = PersistentTabWidget('calibration_tabs', tabs=tabs)
-
-        self.worker.finished.connect(self.worker_finished)
-
-        with CHBoxLayout(self) as layout:
-            
-
-            with CVBoxLayout(layout, 1) as vbox:
-                with CHBoxLayout(vbox) as hbox:
-                    hbox.add(self.progress)
-                    hbox.add(self.recalculate)
-                    hbox.add(self.start)
-                    hbox.add(self.stop)
-                vbox.add(self.tabs, 1)
-
-    def close(self):
-        self.worker.stop()
-        self.thread.terminate()
+    def get_script(self):
+        self.script['freqs'] = [f.text() for f in self.freqs.selectedItems()]
+        self.script['powers'] = [p.text() for p in self.powers.selectedItems()]
+        return self.script
 
     def device_added(self, device):
         self.target.clear()
@@ -393,10 +347,64 @@ class CalibrationApp(QWidget):
         self.master.clear()
         self.master.addItems(device.title for _, device in self.devices.items())
 
+
+class ResultsTab(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+
+
+@DeviceManager.subscribe
+class CalibrationApp(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+        self.tab_name = 'Calibration'
+        self.setStyleSheet("""
+            QWidget { font-size: 16pt; }
+            QPushButton { 
+                max-width: 2000px; 
+                max-height: 2000px; 
+            } 
+        """)
+
+        self.thread = QThread()
+        self.worker = CalibrationWorker()
+        self.worker.moveToThread(self.thread)
+        self.thread.start()
+        self.worker.started.connect(self.worker_started)
+        self.worker.stopped.connect(self.worker_stopped)
+        self.worker.finished.connect(self.worker_finished)
+
+        self.start = QPushButton('Start', clicked=self.start_worker)
+        self.stop = QPushButton('Stop', clicked=self.worker.stop, enabled=False)
+        self.progress = QProgressBar()
+        self.worker.updated.connect(self.progress.setValue)
+
+        self.results = set_font_options(QTextEdit(''), {'setFamily': 'Courier New'})
+        self.header = set_font_options(QTextEdit(''), {'setFamily': 'Courier New'})
+
+        self.recalculate = QPushButton('Recalculate', clicked=lambda: self.rebuild_outputs())
+
+        self.graphs = GraphTab()
+        self.setup = SetupTab()
+
+        tabs = {'setup': self.setup, 'results': self.results, 'header': self.header, 'graphs': self.graphs}
+        self.tabs = PersistentTabWidget('calibration_tabs', tabs=tabs)
+
+        with CHBoxLayout(self) as layout:
+            with CVBoxLayout(layout, 1) as vbox:
+                with CHBoxLayout(vbox) as hbox:
+                    hbox.add(self.progress)
+                    hbox.add(self.recalculate)
+                    hbox.add(self.start)
+                    hbox.add(self.stop)
+                vbox.add(self.tabs, 1)
+
+    def close(self):
+        self.worker.stop()
+        self.thread.terminate()
+
     def start_worker(self):
-        self.script['freqs'] = [f.text() for f in self.freqs.selectedItems()]
-        self.script['powers'] = [p.text() for p in self.powers.selectedItems()]
-        self.worker.start(self.script)
+        self.worker.start(self.setup.get_script())
 
     def worker_started(self):
         self.progress.setMaximum(len(self.script['freqs']) * len(self.script['powers']))
