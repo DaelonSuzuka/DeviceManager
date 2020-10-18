@@ -1,4 +1,4 @@
-[
+test_data = [
     {
         "_reject_count": 12,
         "freq": "01800000",
