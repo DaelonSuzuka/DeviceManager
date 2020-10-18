@@ -289,7 +289,7 @@ class GraphTab(QWidget):
             plot.setMenuEnabled(enableMenu=True, enableViewBoxMenu='same')
 
             c += 1
-            if c == 2:
+            if c % 2 == 0:
                 self.plot_layout.nextRow()
 
             for freq in plot_freqs:
