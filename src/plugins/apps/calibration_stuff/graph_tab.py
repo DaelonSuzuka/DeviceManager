@@ -21,22 +21,23 @@ class DataSelector(QWidget):
         self.x = PersistentComboBox(f'{name}_x', items=field_names, changed=changed)
         self.y = PersistentComboBox(f'{name}_y', items=field_names, changed=changed)
 
-        with CVBoxLayout(self) as vbox:
-            with CHBoxLayout(vbox) as hbox:
-                hbox.add(QLabel(name))
-                hbox.add(QLabel(), 1)
-                hbox.add(QLabel('Pts:'))
-                hbox.add(self.points)
-                hbox.add(QLabel('Line:'))
-                hbox.add(self.line)
-                hbox.add(QLabel('On:'))
-                hbox.add(self.on)
-            with CHBoxLayout(vbox) as hbox:
-                hbox.add(QLabel('X:'))
-                hbox.add(self.x, 1)
-            with CHBoxLayout(vbox) as hbox:
-                hbox.add(QLabel('Y:'))
-                hbox.add(self.y, 1)
+        with CVBoxLayout(self) as layout:
+            with layout.hbox() as layout:
+                layout.add(QLabel(name))
+                layout.add(QLabel(), 1)
+                layout.add(QLabel('Pts:'))
+                layout.add(self.points)
+                layout.add(QLabel('Line:'))
+                layout.add(self.line)
+                layout.add(QLabel('On:'))
+                layout.add(self.on)
+            with layout.hbox() as layout:
+                layout.add(QLabel('X:'))
+                layout.add(self.x, 1)
+
+            with layout.hbox() as layout:
+                layout.add(QLabel('Y:'))
+                layout.add(self.y, 1)
 
     def get_params(self):
         if self.on.checkState() and self.x.currentText() != self.y.currentText():
