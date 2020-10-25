@@ -18,12 +18,7 @@ class CommonMessagesMixin:
     def common_message_tree(self):
         return {
             'update': {
-                'device_info': {
-                    'product_name': lambda s: self.__setattr__('name', s),
-                    'serial_number': lambda s: self.__setattr__('guid', s),
-                    'firmware_version': lambda s: self.__setattr__('firmware_version', s),
-                    'protocol_version': lambda s: self.__setattr__('protocol_version', s),
-                }
+                'device_info': self.handshake_recieved
             },
             'response': {
                 'ok': None, 
@@ -35,11 +30,19 @@ class CommonMessagesMixin:
         self.send('{"request":{"ping":"%s"}}' % (self.msg_count))
 
     def handshake(self):
-        """Request for the device to report its name and guid(serial number)."""
         self.send('{"request":"device_info"}')
 
+    def handshake_recieved(self, response):
+        if 'product_name' in response:
+            self.name = response['product_name']
+        if 'serial_number' in response:
+            self.guid = response['serial_number']
+        if 'firmware_version' in response:
+            self.firmware_version = response['firmware_version']
+        if 'protocol_version' in response:
+            self.protocol_version = response['protocol_version']
+
     def locate(self):
-        """Instruct the device to blink all LEDs for 5 seconds."""
         self.send('{"command":"locate"}')
 
 
