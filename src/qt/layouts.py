@@ -15,22 +15,44 @@ class ContextLayout:
         if margins:
             self.setContentsMargins(*margins)
 
+        self._stack = []
+        self.next_layout = None
+
+    @property
+    def _layout(self):
+        layout = self
+        if len(self._stack) > 0:
+            layout = self._stack[len(self._stack) - 1]
+        return layout
+
     def add(self, item, *args):
         if isinstance(item, QWidget):
-            self.addWidget(item, *args)
+            self._layout.addWidget(item, *args)
         elif isinstance(item, QLayout):
-            self.addLayout(item, *args)
+            self._layout.addLayout(item, *args)
         elif isinstance(item, list):
             for i in item:
-                self.add(i, *args)
+                self._layout.add(i, *args)
 
         return item
 
+    def vbox(self, *args):
+        self.next_layout = CVBoxLayout(self._layout, *args)
+        return self
+
+    def hbox(self, *args):
+        self.next_layout = CHBoxLayout(self._layout, *args)
+        return self
+
     def __enter__(self):
+        if self.next_layout is not None:
+            self._stack.append(self.next_layout)
+            self.next_layout = None
         return self
 
     def __exit__(self, type, value, traceback):
-        pass
+        if len(self._stack) > 0:
+            self._stack.pop()
 
 
 class CVBoxLayout(ContextLayout, QVBoxLayout):
