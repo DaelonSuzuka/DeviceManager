@@ -106,6 +106,7 @@ class CalibrationWorker(QObject):
                 self.radio = device
             if device.profile_name == 'Alpha4510A':
                 self.meter = device
+                signals = device.signals
                 self.meter.signals.forward.connect(lambda x: self.data['m_fwd'].append(float(x)))
                 self.meter.signals.reverse.connect(lambda x: self.data['m_rev'].append(float(x)))
                 self.meter.signals.swr.connect(lambda x: self.data['m_swr'].append(float(x)))
@@ -113,22 +114,28 @@ class CalibrationWorker(QObject):
                 self.meter.signals.temperature.connect(lambda x: self.data['m_temp'].append(float(x)))
             if device.profile_name == 'CalibrationTarget':
                 self.target = device
-                self.target.signals.forward_volts.connect(lambda x: self.data['t_fwd_volts'].append(float(x)))
-                self.target.signals.reverse_volts.connect(lambda x: self.data['t_rev_volts'].append(float(x)))
-                self.target.signals.match_quality.connect(lambda x: self.data['t_mq'].append(float(x)))
-                self.target.signals.forward.connect(lambda x: self.data['t_fwd_watts'].append(float(x)))
-                self.target.signals.reverse.connect(lambda x: self.data['t_rev_watts'].append(float(x)))
-                self.target.signals.swr.connect(lambda x: self.data['t_swr'].append(float(x)))
-                self.target.signals.frequency.connect(lambda x: self.data['t_freq'].append(float(x)))
+                signals = device.signals
+                signals.forward_volts.connect(lambda x: self.data['t_fwd_volts'].append(float(x)))
+                signals.reverse_volts.connect(lambda x: self.data['t_rev_volts'].append(float(x)))
+                signals.match_quality.connect(lambda x: self.data['t_mq'].append(float(x)))
+                signals.forward.connect(lambda x: self.data['t_fwd_watts'].append(float(x)))
+                signals.reverse.connect(lambda x: self.data['t_rev_watts'].append(float(x)))
+                signals.swr.connect(lambda x: self.data['t_swr'].append(float(x)))
+                signals.frequency.connect(lambda x: self.data['t_freq'].append(float(x)))
+                signals.handshake_recieved.connect(lambda s: self.target_description_ready())
 
         self.started.emit(len(self.points))
         
+        self.target.send('version -j\n')
         self.target.send('calibrate\n')
         self.switch.set_antenna(1)
         self.radio.set_vfoA_frequency(int(self.points[self.current_point].freq))
         self.radio.set_power_level(int(self.points[self.current_point].power))
         self.radio.key()
         self.data.clear()
+
+    def target_description_ready(self):
+        self.target_description = self.target.description
 
     @Slot()
     def stop(self):
@@ -146,7 +153,13 @@ class CalibrationWorker(QObject):
         self.target = None
 
         self.stopped.emit()
-        self.finished.emit(self.results)
+
+        results = {}
+        results['data'] = self.results
+        results['device'] = self.target_description
+        self.target_description = {}
+
+        self.finished.emit(results)
 
     def update(self):
         self.updated.emit(self.current_point)

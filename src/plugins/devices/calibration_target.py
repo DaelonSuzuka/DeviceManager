@@ -10,6 +10,7 @@ class Signals(QObject):
     reverse = Signal(float)
     swr = Signal(float)
     frequency = Signal(int)
+    handshake_recieved = Signal(dict)
 
     @property
     def message_tree(self):
@@ -34,3 +35,13 @@ class CalibrationTarget(CommonMessagesMixin, SerialDevice):
         self.signals = Signals()
         self.message_tree.merge(self.signals.message_tree)
         self.message_tree.merge(self.common_message_tree)
+
+    @property
+    def description(self):
+        return {
+            "product_name":self.name,
+            "serial_number":self.guid,
+            "firmware_version":self.firmware_version,
+            "protocol_version":self.protocol_version,
+            "port":self.port,
+        }

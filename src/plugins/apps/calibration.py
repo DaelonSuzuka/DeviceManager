@@ -67,15 +67,17 @@ class CalibrationApp(QWidget):
         self.setup.stop.setEnabled(False)
 
     def worker_finished(self, results):
-        if len(results) == 0:
+        if len(results['data']) == 0:
             return
 
-        s = json.dumps(results, indent=4, sort_keys=True)
-        self.results.setText(s)
-        self.graphs.set_data(results)
+        print(len(results['data']), results['device'])
 
-        polys = self.calculate_polys(results)
-        self.header.setText(self.create_poly_header(polys))
+        # s = json.dumps(results, indent=4, sort_keys=True)
+        # self.results.setText(s)
+        # self.graphs.set_data(results)
+
+        # polys = self.calculate_polys(results)
+        # self.header.setText(self.create_poly_header(polys))
 
     def rebuild_outputs(self):
         try:

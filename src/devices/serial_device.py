@@ -42,6 +42,9 @@ class CommonMessagesMixin:
         if 'protocol_version' in response:
             self.protocol_version = response['protocol_version']
 
+        if hasattr(self, 'signals') and hasattr(self.signals, 'handshake_recieved'):
+            self.signals.handshake_recieved.emit(response)
+
     def locate(self):
         self.send('{"command":"locate"}')
 
