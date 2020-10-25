@@ -27,8 +27,6 @@ class CalibrationApp(QWidget):
         self.worker.stopped.connect(self.worker_stopped)
         self.worker.finished.connect(self.worker_finished)
 
-        self.start = QPushButton('Start', clicked=self.start_worker)
-        self.stop = QPushButton('Stop', clicked=self.worker.stop, enabled=False)
         self.progress = QProgressBar()
         self.worker.updated.connect(self.progress.setValue)
 
@@ -37,18 +35,18 @@ class CalibrationApp(QWidget):
 
         self.graphs = GraphTab()
         self.setup = RunTab()
+        self.setup.start.clicked.connect(self.start_worker)
+        self.setup.stop.clicked.connect(self.worker.stop)
+
         self.results_tab = ResultsTab()
 
         tabs = {'Run': self.setup, 'results': self.results, 'results2': self.results_tab, 'header': self.header, 'graphs': self.graphs}
         self.tabs = PersistentTabWidget('calibration_tabs', tabs=tabs)
 
-        with CHBoxLayout(self) as layout:
-            with layout.vbox(1) as layout:
-                with layout.hbox() as layout:
-                    layout.add(self.progress)
-                    layout.add(self.start)
-                    layout.add(self.stop)
-                layout.add(self.tabs, 1)
+        with CVBoxLayout(self) as layout:
+            with layout.hbox() as layout:
+                layout.add(self.progress)
+            layout.add(self.tabs, 1)
 
     def close(self):
         self.worker.stop()
@@ -60,13 +58,13 @@ class CalibrationApp(QWidget):
     def worker_started(self, steps):
         self.progress.setMaximum(steps)
         self.progress.setValue(0)
-        self.start.setEnabled(False)
-        self.stop.setEnabled(True)
+        self.setup.start.setEnabled(False)
+        self.setup.stop.setEnabled(True)
 
     def worker_stopped(self):
         self.progress.setValue(0)
-        self.start.setEnabled(True)
-        self.stop.setEnabled(False)
+        self.setup.start.setEnabled(True)
+        self.setup.stop.setEnabled(False)
 
     def worker_finished(self, results):
         if len(results) == 0:

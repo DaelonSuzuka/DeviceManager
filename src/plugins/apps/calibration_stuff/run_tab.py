@@ -12,6 +12,9 @@ class RunTab(QWidget):
         self.target = QComboBox()
         self.master = QComboBox()
 
+        self.start = QPushButton('Start')
+        self.stop = QPushButton('Stop', enabled=False)
+
         self.script = {'freqs': [], 'powers': []}
         self.freqs = PersistentListWidget('cal_freqs', items=freqs, selectionMode=QAbstractItemView.ExtendedSelection)
         self.powers = PersistentListWidget('cal_powers', items=powers, selectionMode=QAbstractItemView.ExtendedSelection)
@@ -25,6 +28,9 @@ class RunTab(QWidget):
                 layout.add(CalibrationTargetInfo())
                 layout.add(QLabel(), 1)
             with layout.vbox() as layout:
+                with layout.hbox() as layout:
+                    layout.add(self.start)
+                    layout.add(self.stop)
                 layout.add(QLabel('Freqs'))
                 layout.add(self.freqs)
                 layout.add(QLabel('Powers'))
