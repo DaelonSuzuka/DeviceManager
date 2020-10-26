@@ -71,13 +71,15 @@ class CalibrationWorker(QObject):
         self.meter = None
         self.radio = None
         self.target = None
-
+        self.target_description = {}
+        
         self.timer = QTimer()
         self.timer.timeout.connect(lambda: self.update())
 
         self.points = []
         self.current_point = 0
         self.results = []
+        self.script = []
 
         fields = [
             'm_fwd', 'm_rev', 'm_swr', 'm_freq', 'm_temp',
@@ -92,6 +94,7 @@ class CalibrationWorker(QObject):
 
         self.points = []
         self.results = []
+        self.script = script
 
         for freq in script['freqs']:
             for power in script['powers']:
@@ -156,6 +159,7 @@ class CalibrationWorker(QObject):
 
         results = {}
         results['data'] = self.results
+        results['script'] = self.script
         results['device'] = self.target_description
         self.target_description = {}
 
