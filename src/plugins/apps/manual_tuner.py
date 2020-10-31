@@ -41,7 +41,8 @@ class TunerButtons(QWidget):
             layout.add(self.bottom_right, 1, 1)
 
 
-class ManualTunerApp(QWidget):
+# class ManualTunerApp(QWidget):
+class ManualTuner(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         stylesheet = """

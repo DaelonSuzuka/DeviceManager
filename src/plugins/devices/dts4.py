@@ -1,28 +1,5 @@
-from devices import SerialDevice
+from devices import SerialDevice, NewlineFilter
 from qt import *
-import logging
-
-
-
-class NewlineBuffer:
-    def __init__(self):
-        self.buffer = ""
-        self.depth = 0
-
-    def reset(self):
-        self.buffer = ""
-        self.depth = 0
-
-    def insert_char(self, c):
-        print(c)
-        self.buffer += c
-
-    def completed(self):
-        if '\n' in self.buffer:
-            print('got newline')
-            return True
-
-        return False
 
 
 class Signals(QObject):
@@ -34,7 +11,7 @@ class DTS4(SerialDevice):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.msg = NewlineBuffer()
+        self.filter = NewlineFilter()
         self.signals = Signals()
 
     def __init__(self, port=None, baud=115200, device=None):

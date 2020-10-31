@@ -37,7 +37,7 @@ class FT991(SerialDevice):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.signals = Signals()
-        self.msg = RadioBuffer()
+        self.filter = RadioBuffer()
 
         try:
             self.ser.responder = FT991Responder()

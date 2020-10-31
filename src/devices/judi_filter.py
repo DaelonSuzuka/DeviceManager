@@ -1,4 +1,4 @@
-class JSONBuffer:
+class JudiFilter:
     def __init__(self):
         self.buffer = ""
         self.depth = 0
@@ -14,6 +14,8 @@ class JSONBuffer:
             self.buffer += c
         if c == "}" and self.depth > 0:
             self.depth -= 1
+
+        return self.completed()
 
     def completed(self):
         if (self.depth == 0) and (len(self.buffer) > 0):

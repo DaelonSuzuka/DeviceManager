@@ -1,4 +1,4 @@
-from devices import SerialDevice, DelimiterBuffer
+from devices import SerialDevice, DelimiterFilter
 from qt import *
 
 
@@ -15,9 +15,19 @@ class Signals(QObject):
 class Alpha4510A(SerialDevice):
     profile_name = "Alpha4510A"
 
+    def _checker(buffer):
+        if '$APW' in buffer and '*FF' in buffer:
+            return 'Alpha4510A'
+        return ''
+
+    autodetect = {
+        'bauds': [38400],
+        'checker': _checker,
+    }
+
     def __init__(self, port=None, baud=38400, device=None):
         super().__init__(port=port, baud=baud, device=device)
-        self.msg = DelimiterBuffer(start='$APW', end='*FF')
+        self.filter = DelimiterFilter(start='$APW', end='*FF')
         self.signals = Signals()
 
         self.last_results = {}

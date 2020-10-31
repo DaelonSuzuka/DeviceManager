@@ -4,7 +4,9 @@ from time import time
 import logging
 from qt import *
 
+
 fake_guid = 0
+
 
 def get_fake_guid():
     global fake_guid
