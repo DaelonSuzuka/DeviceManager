@@ -39,7 +39,7 @@ class RemoteStatusWidget(QWidget):
 
             
         self.commands = [
-            Command('Device Client: Connect to', self, triggered=self.open_address_prompt),
+            Command('Device Client: Connect to', triggered=self.open_address_prompt),
         ]
 
         self.setAttribute(Qt.WA_AcceptTouchEvents, True)
@@ -127,8 +127,8 @@ class DeviceClient(QObject):
         ]
         
         self.commands = [
-            Command('Device Client: Connect', self, triggered=self.connect_to_remote),
-            Command('Device Client: Disconnect', self, triggered=self.disconnect_from_remote),
+            Command('Device Client: Connect', triggered=self.connect_to_remote),
+            Command('Device Client: Disconnect', triggered=self.disconnect_from_remote),
         ]
 
         self.socket = QWebSocket()

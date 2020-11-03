@@ -40,12 +40,12 @@ class MainWindow(QMainWindow):
             shortcut = QShortcut(f'Ctrl+{i + 1}', self, activated=lambda i=i: self.tabs.setCurrentIndex(i))
             self.tab_shortcuts.append(shortcut)
 
-        self.addActions([
-            Command("Preferences: Open Settings (JSON)", self),
-            Command("Preferences: Open Settings (UI)", self, shortcut='Ctrl+,'),
-            Command("Device Manager: Check for port changes", self),
-            Command("Quit Application", self, triggered=self.close),
-        ])
+        self.commands = [
+            Command("Preferences: Open Settings (JSON)"),
+            Command("Preferences: Open Settings (UI)", shortcut='Ctrl+,'),
+            Command("Device Manager: Check for port changes"),
+            Command("Quit Application", triggered=self.close),
+        ]
 
         # must be after Command objects are created by various modules
         self.command_palette = CommandPalette(self)
