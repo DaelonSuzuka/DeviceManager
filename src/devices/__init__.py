@@ -6,7 +6,7 @@ from .null_filter import NullFilter
 from .newline_filter import NewlineFilter
 from .delimiter_filter import DelimiterFilter
 
-from .judi_mixin import CommonMessagesMixin
+from .judi_mixin import JudiStandardMixin
 
 from .console_device import ConsoleDevice
 from .unknown_device import UnknownDevice, DeviceStates

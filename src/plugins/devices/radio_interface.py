@@ -1,5 +1,5 @@
 from qt import *
-from devices import SerialDevice, CommonMessagesMixin
+from devices import SerialDevice, JudiStandardMixin
 
 
 class Signals(QObject):
@@ -24,7 +24,7 @@ class Signals(QObject):
         }
 
 
-class RadioInterface(SerialDevice, CommonMessagesMixin):
+class RadioInterface(SerialDevice, JudiStandardMixin):
     profile_name = "RadioInterface"
 
     def __init__(self, port=None, baud=9600, device=None):

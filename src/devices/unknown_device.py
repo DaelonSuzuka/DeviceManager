@@ -1,4 +1,4 @@
-from devices import SerialDevice, CommonMessagesMixin
+from devices import SerialDevice, JudiStandardMixin
 from qt import *
 from .judi_filter import JudiFilter
 from .null_filter import NullFilter
@@ -12,7 +12,7 @@ class DeviceStates(Enum):
     enumeration_failed = 3
 
 
-class UnknownDevice(CommonMessagesMixin, SerialDevice):
+class UnknownDevice(JudiStandardMixin, SerialDevice):
     profile_name = "no profile"
 
     _bauds = [9600, 19200, 38400, 115200, 230400, 460800]

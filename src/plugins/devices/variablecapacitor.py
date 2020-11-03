@@ -1,4 +1,4 @@
-from devices import SerialDevice, CommonMessagesMixin
+from devices import SerialDevice, JudiStandardMixin
 from qt import *
 
 
@@ -22,7 +22,7 @@ class Signals(QObject):
         }
 
 
-class VariableCapacitor(CommonMessagesMixin, SerialDevice):
+class VariableCapacitor(JudiStandardMixin, SerialDevice):
     profile_name = "VariableCapacitor"
     max_caps = 255
 

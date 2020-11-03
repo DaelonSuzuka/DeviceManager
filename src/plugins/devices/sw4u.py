@@ -1,4 +1,4 @@
-from devices import SerialDevice, CommonMessagesMixin
+from devices import SerialDevice, JudiStandardMixin
 from qt import *
 from functools import partial
 import logging
@@ -24,7 +24,7 @@ class Signals(QObject):
         }
 
 
-class SW4U(CommonMessagesMixin, SerialDevice):
+class SW4U(JudiStandardMixin, SerialDevice):
     profile_name = "SW-4U"
 
     def __init__(self, *args, **kwargs):

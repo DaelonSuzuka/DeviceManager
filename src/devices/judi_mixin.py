@@ -1,5 +1,5 @@
 
-class CommonMessagesMixin:
+class JudiStandardMixin:
     @property
     def common_message_tree(self):
         return {

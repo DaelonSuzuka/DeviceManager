@@ -1,4 +1,4 @@
-from devices import SerialDevice, CommonMessagesMixin
+from devices import SerialDevice, JudiStandardMixin
 from qt import *
 
 
@@ -27,7 +27,7 @@ class Signals(QObject):
         }
 
 
-class CalibrationTarget(CommonMessagesMixin, SerialDevice):
+class CalibrationTarget(JudiStandardMixin, SerialDevice):
     profile_name = "CalibrationTarget"
 
     def __init__(self, *args, **kwargs):

@@ -1,8 +1,8 @@
-from devices import SerialDevice, CommonMessagesMixin
+from devices import SerialDevice, JudiStandardMixin
 from qt import *
 
 
-class DTS6(CommonMessagesMixin, SerialDevice):
+class DTS6(JudiStandardMixin, SerialDevice):
     profile_name = "JUDI-nRF-Bridge"
 
     def __init__(self, *args, **kwargs):
