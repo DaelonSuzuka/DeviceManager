@@ -47,6 +47,13 @@ class UnknownDevice(CommonMessagesMixin, SerialDevice):
         self.handshake()
         self.last_handshake_time = time.time()
 
+    def do_checks(self):
+        self.judi_checker(self.filter.buffer)
+        for fn in self.checker_table[self.baud]:
+            if result := fn(self.filter.buffer):
+                self.name = result
+                break
+
     def judi_checker(self, buffer):
         jf = JudiFilter()
         for c in buffer:
@@ -63,11 +70,8 @@ class UnknownDevice(CommonMessagesMixin, SerialDevice):
         super().communicate()
 
         if (time.time() - self.last_handshake_time) > 0.5:
-            self.judi_checker(self.filter.buffer)
-            for fn in self.checker_table[self.baud]:
-                if result := fn(self.filter.buffer):
-                    self.name = result
-                    break
+            self.do_checks()
+            
             if self.name == '':
                 self.filter.reset()
 
