@@ -1,7 +1,5 @@
 from qt import *
 import qtawesome as qta
-import logging
-from style import qcolors
 
 from device_manager import DeviceManager
 from remote_devices import DeviceClient, DeviceServer, RemoteStatusWidget
