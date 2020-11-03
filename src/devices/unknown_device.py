@@ -53,6 +53,7 @@ class UnknownDevice(CommonMessagesMixin, SerialDevice):
             if result := fn(self.filter.buffer):
                 self.name = result
                 break
+        return bool(self.name)
 
     def judi_checker(self, buffer):
         jf = JudiFilter()
@@ -70,17 +71,13 @@ class UnknownDevice(CommonMessagesMixin, SerialDevice):
         super().communicate()
 
         if (time.time() - self.last_handshake_time) > 0.5:
-            self.do_checks()
-            
-            if self.name == '':
+            if self.do_checks():
+                self.state = DeviceStates.enumeration_succeeded
+            else:
                 self.filter.reset()
-
                 try:
                     self.set_baud_rate(next(self.bauds))
                 except StopIteration:
                     self.state = DeviceStates.enumeration_failed
 
                 self.do_handshakes()
-            
-        if self.name != '':
-            self.state = DeviceStates.enumeration_succeeded
