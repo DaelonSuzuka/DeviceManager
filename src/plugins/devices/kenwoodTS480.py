@@ -17,18 +17,10 @@ class TS480(SerialDevice):
     max_power_level = 200
     min_power_level = 5
 
-    def _checker(buffer):
-        if '020' in buffer:
-            return 'TS-480'
-        return ''
-
-    def _handshake():
-        return ';ID;'
-
     autodetect = {
         'bauds': [9600],
-        'checker': _checker,
-        'handshake': _handshake,
+        'checker': lambda b: 'TS-480' if 'ID020;' in b else '',
+        'handshake': lambda: ';ID;',
     }
 
     def __init__(self, *args, **kwargs):

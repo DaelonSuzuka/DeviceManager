@@ -15,14 +15,9 @@ class Signals(QObject):
 class Alpha4510A(SerialDevice):
     profile_name = "Alpha4510A"
 
-    def _checker(buffer):
-        if '$APW' in buffer and '*FF' in buffer:
-            return 'Alpha4510A'
-        return ''
-
     autodetect = {
         'bauds': [38400],
-        'checker': _checker,
+        'checker': lambda b: 'Alpha4510A' if '$APW' in b and '*FF' in b else '',
     }
 
     def __init__(self, port=None, baud=38400, device=None):
