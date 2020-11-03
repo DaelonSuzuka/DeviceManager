@@ -35,7 +35,7 @@ class UnknownDevice(CommonMessagesMixin, SerialDevice):
         self.message_tree.merge(self.common_message_tree)
         self.filter = NullFilter()
 
-        self.bauds = iter(self._bauds[1:])
+        self.bauds = iter(self._bauds)
 
         self.state = DeviceStates.enumeration_pending
         self.do_handshakes()
@@ -68,15 +68,15 @@ class UnknownDevice(CommonMessagesMixin, SerialDevice):
                 if result := fn(self.filter.buffer):
                     self.name = result
                     break
-            self.filter.reset()
+            if self.name == '':
+                self.filter.reset()
 
-            try:
-                self.set_baud_rate(next(self.bauds))
-            except StopIteration:
-                self.state = DeviceStates.enumeration_failed
+                try:
+                    self.set_baud_rate(next(self.bauds))
+                except StopIteration:
+                    self.state = DeviceStates.enumeration_failed
 
-            self.do_handshakes()
+                self.do_handshakes()
             
         if self.name != '':
             self.state = DeviceStates.enumeration_succeeded
-            
