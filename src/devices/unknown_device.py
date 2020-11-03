@@ -37,6 +37,9 @@ class UnknownDevice(CommonMessagesMixin, SerialDevice):
 
         self.bauds = iter(self._bauds)
 
+        self.cache_name = f'autodetect_cache:{self.port}'
+        self.set_baud_rate(int(QSettings().value(self.cache_name, 9600)))
+        
         self.state = DeviceStates.enumeration_pending
         self.do_handshakes()
 
@@ -72,6 +75,7 @@ class UnknownDevice(CommonMessagesMixin, SerialDevice):
 
         if (time.time() - self.last_handshake_time) > 0.5:
             if self.do_checks():
+                QSettings().setValue(self.cache_name, self.baud)
                 self.state = DeviceStates.enumeration_succeeded
             else:
                 self.filter.reset()
