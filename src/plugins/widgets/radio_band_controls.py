@@ -16,20 +16,20 @@ class RadioBandButtons(QWidget):
         band_names = ["50", "28", "24", "21", "18", "14", "10", "7", "3.4", "1.8"]
         self.btns = QButtonGroup()
 
-        with CGridLayout(self, margins=(0, 0, 0, 0)) as grid:
+        with CGridLayout(self, margins=(0, 0, 0, 0)) as layout:
             for i, band in enumerate(band_names):
                 btn = QPushButton(band + ' Mhz', checkable=True)
                 self.btns.addButton(btn)
-                grid.add(btn, i + 1, 0)
+                layout.add(btn, i + 1, 0)
                 btn.clicked.connect(lambda: self.btns.setExclusive(True))
                 btn.clicked.connect(partial(self.set_frequency.emit, self.freqs[i]))
             
-            grid.add(QPushButton(disabled=True), 0, 0)
-            grid.add(QPushButton(disabled=True), 0, 1)
-            grid.add(QPushButton(disabled=True), 0, 2)
+            layout.add(QPushButton(disabled=True), 0, 0)
+            layout.add(QPushButton(disabled=True), 0, 1)
+            layout.add(QPushButton(disabled=True), 0, 2)
 
-            self.up = grid.add(QPushButton('^', clicked=lambda: self.uncheck_all()), 1, 1, 5, 2)
-            self.down = grid.add(QPushButton('v', clicked=lambda: self.uncheck_all()), 6, 1, 5, 2)
+            self.up = layout.add(QPushButton('^', clicked=lambda: self.uncheck_all()), 1, 1, 5, 2)
+            self.down = layout.add(QPushButton('v', clicked=lambda: self.uncheck_all()), 6, 1, 5, 2)
 
     def connected(self, device):
         device.signals.frequency.connect(lambda s: self.select(s))

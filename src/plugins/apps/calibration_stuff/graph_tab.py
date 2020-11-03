@@ -22,7 +22,7 @@ class DataSelector(QWidget):
         self.y = PersistentComboBox(f'{name}_y', items=field_names, changed=changed)
 
         with CVBoxLayout(self) as layout:
-            with layout.hbox() as layout:
+            with layout.hbox():
                 layout.add(QLabel(name))
                 layout.add(QLabel(), 1)
                 layout.add(QLabel('Pts:'))
@@ -31,11 +31,12 @@ class DataSelector(QWidget):
                 layout.add(self.line)
                 layout.add(QLabel('On:'))
                 layout.add(self.on)
-            with layout.hbox() as layout:
+
+            with layout.hbox():
                 layout.add(QLabel('X:'))
                 layout.add(self.x, 1)
 
-            with layout.hbox() as layout:
+            with layout.hbox():
                 layout.add(QLabel('Y:'))
                 layout.add(self.y, 1)
 
@@ -77,18 +78,18 @@ class GraphTab(QWidget):
         self.fwd_w = PersistentCheckBox('graph_fwd_w', changed=self.draw_plots)
 
         with CHBoxLayout(self) as layout:
-            with CVBoxLayout(layout) as vbox:
-                vbox.add(QLabel('Reference Plots:'))
-                with CHBoxLayout(vbox) as hbox:
-                    hbox.add(QLabel('Forward Volts:'))
-                    hbox.add(self.fwd_v)
-                with CHBoxLayout(vbox) as hbox:
-                    hbox.add(QLabel('Forward Watts:'))
-                    hbox.add(self.fwd_w)
-                vbox.add(HLine())
-                vbox.add(QLabel('Custom Plot Freqs:'))
-                vbox.add(self.freq_tabs, 1)
-                vbox.add(self.custom_plots)
+            with layout.vbox():
+                layout.add(QLabel('Reference Plots:'))
+                with layout.hbox():
+                    layout.add(QLabel('Forward Volts:'))
+                    layout.add(self.fwd_v)
+                with layout.hbox():
+                    layout.add(QLabel('Forward Watts:'))
+                    layout.add(self.fwd_w)
+                layout.add(HLine())
+                layout.add(QLabel('Custom Plot Freqs:'))
+                layout.add(self.freq_tabs, 1)
+                layout.add(self.custom_plots)
             layout.add(self.plot_layout, 1)
 
         self.data = {}

@@ -23,11 +23,11 @@ class DiagnosticApp(QWidget):
         self.tabs.tabCloseRequested.connect(self.cloae_tab)
 
         with CHBoxLayout(self) as layout:
-            with CVBoxLayout(layout, 1) as right_side:
-                with CHBoxLayout(right_side) as row_1:
-                    row_1.addWidget(self.device_box, 1)
-                    row_1.addWidget(self.connect)
-                right_side.addWidget(self.tabs)
+            with layout.vbox(1):
+                with layout.hbox():
+                    layout.add(self.device_box, 1)
+                    layout.add(self.connect)
+                layout.add(self.tabs)
 
     def connect_clicked(self):
         guid = self.device_box.itemData(self.device_box.currentIndex())

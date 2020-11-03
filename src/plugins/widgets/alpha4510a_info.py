@@ -14,19 +14,19 @@ class MeterInfo(QWidget):
 
         with CVBoxLayout(self) as layout:
             layout.add(QLabel('Alpha4510A:'))
-            with CHBoxLayout(layout) as hbox:
-                with CVBoxLayout(hbox) as vbox:
-                    vbox.addWidget(QLabel("Forward:"))
-                    vbox.addWidget(QLabel("Reverse:"))
-                    vbox.addWidget(QLabel("SWR:"))
-                    vbox.addWidget(QLabel("Frequency:"))
-                    vbox.addWidget(QLabel("Temperature:"))
-                with CVBoxLayout(hbox) as vbox:
-                    vbox.addWidget(self.forward)
-                    vbox.addWidget(self.reverse)
-                    vbox.addWidget(self.swr)
-                    vbox.addWidget(self.frequency)
-                    vbox.addWidget(self.temperature)
+            with layout.hbox():
+                with layout.vbox():
+                    layout.add(QLabel("Forward:"))
+                    layout.add(QLabel("Reverse:"))
+                    layout.add(QLabel("SWR:"))
+                    layout.add(QLabel("Frequency:"))
+                    layout.add(QLabel("Temperature:"))
+                with layout.vbox():
+                    layout.add(self.forward)
+                    layout.add(self.reverse)
+                    layout.add(self.swr)
+                    layout.add(self.frequency)
+                    layout.add(self.temperature)
 
     def connected(self, device):
         device.signals.forward.connect(lambda x: self.forward.setText(f'{x:6.2f}'))

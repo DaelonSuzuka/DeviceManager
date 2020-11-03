@@ -20,15 +20,15 @@ class RunTab(QWidget):
         self.powers = PersistentListWidget('cal_powers', items=powers, selectionMode=QAbstractItemView.ExtendedSelection)
 
         with CHBoxLayout(self) as layout:
-            with layout.vbox() as layout:
+            with layout.vbox():
                 layout.add(RadioInfo())
                 layout.add(HLine())
                 layout.add(MeterInfo())
                 layout.add(HLine())
                 layout.add(CalibrationTargetInfo())
                 layout.add(QLabel(), 1)
-            with layout.vbox() as layout:
-                with layout.hbox() as layout:
+            with layout.vbox():
+                with layout.hbox():
                     layout.add(self.start)
                     layout.add(self.stop)
                 layout.add(QLabel('Freqs'))

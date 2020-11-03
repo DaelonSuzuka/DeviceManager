@@ -50,9 +50,9 @@ class RemoteStatusWidget(QWidget):
         self.icon = QLabel('')
         self.icon.setPixmap(self.icon_off)
 
-        with CHBoxLayout(self, margins=(0, 0, 0, 0)) as hbox:
-            hbox.addWidget(self.icon)
-            hbox.addWidget(self.status)
+        with CHBoxLayout(self, margins=(0, 0, 0, 0)) as layout:
+            layout.add(self.icon)
+            layout.add(self.status)
         
     def mousePressEvent(self, event):
         connect = QAction("Connect", self, triggered=self.connect_client)

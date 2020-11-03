@@ -33,27 +33,27 @@ class RadioControls(QWidget):
         self.timeout.timeout.connect(lambda: self.key.click())
         self.time.setChecked(True)
 
-        with CHBoxLayout(self, margins=(0, 0, 0, 0)) as hbox:
-            hbox.add(self.power_btns, 2)
-            hbox.add(VLine(), 1)
-            hbox.add(self.freq_btns, 2)
-            hbox.add(VLine(), 1)
-            # hbox.add(self.dummy_load, 1)
-            # hbox.add(VLine(), 1)
+        with CHBoxLayout(self, margins=(0, 0, 0, 0)) as layout:
+            layout.add(self.power_btns, 2)
+            layout.add(VLine(), 1)
+            layout.add(self.freq_btns, 2)
+            layout.add(VLine(), 1)
+            # layout.add(self.dummy_load, 1)
+            # layout.add(VLine(), 1)
 
-            with CVBoxLayout(hbox, 2, margins=(0, 0, 0, 0)) as vbox:
-                with CHBoxLayout(vbox, 1, margins=(0, 0, 0, 0)) as box:
-                    box.add(self.time)
-                    box.add(QPushButton(disabled=True))
-                    box.add(self.mode)
+            with layout.vbox(2, margins=(0, 0, 0, 0)) as layout:
+                with layout.hbox(1, margins=(0, 0, 0, 0)) as layout:
+                    layout.add(self.time)
+                    layout.add(QPushButton(disabled=True))
+                    layout.add(self.mode)
 
-                vbox.add(self.key, 5)
-                vbox.add(self.timeout)
+                layout.add(self.key, 5)
+                layout.add(self.timeout)
 
-                with CHBoxLayout(vbox, 1, margins=(0, 0, 0, 0)) as box:
-                    box.add(self.bypass)
-                    box.add(self.memory_tune)
-                    box.add(self.full_tune)
+                with layout.hbox(1, margins=(0, 0, 0, 0)) as layout:
+                    layout.add(self.bypass)
+                    layout.add(self.memory_tune)
+                    layout.add(self.full_tune)
 
 
 class ServitorApp(QWidget):
@@ -74,21 +74,21 @@ class ServitorApp(QWidget):
 
         self.radio = RadioControls(self)
 
-        with CHBoxLayout(self) as hbox:
-            with CVBoxLayout(hbox, 1, margins=(0, 0, 0, 0)) as vbox:
-                vbox.setAlignment(Qt.AlignTop)
-                vbox.add(RadioInfo(self))
-                vbox.add(HLine())
-                vbox.add(MeterInfo(self))
-                vbox.add(HLine())
-                vbox.add(RFSensorWidget(self))
+        with CHBoxLayout(self) as layout:
+            with layout.vbox(1, margins=(0, 0, 0, 0)):
+                layout().setAlignment(Qt.AlignTop)
+                layout.add(RadioInfo(self))
+                layout.add(HLine())
+                layout.add(MeterInfo(self))
+                layout.add(HLine())
+                layout.add(RFSensorWidget(self))
 
-            hbox.addWidget(VLine())
+            layout.add(VLine())
 
-            with CVBoxLayout(hbox, 4, margins=(0, 0, 0, 0)) as vbox:
-                vbox.add(self.radio, 7)
-                vbox.add(HLine())
-                vbox.add(DTS6Controls(self), 1)
+            with layout.vbox(4, margins=(0, 0, 0, 0)):
+                layout.add(self.radio, 7)
+                layout.add(HLine())
+                layout.add(DTS6Controls(self), 1)
 
     def close(self):
         self.radio.timeout.timer.stop()

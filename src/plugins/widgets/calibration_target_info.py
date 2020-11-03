@@ -18,8 +18,8 @@ class CalibrationTargetInfo(QWidget):
 
         with CVBoxLayout(self) as layout:
             layout.add(QLabel('CalibrationTarget:'))
-            with layout.hbox() as layout:
-                with layout.vbox() as layout:
+            with layout.hbox():
+                with layout.vbox():
                     layout.add(QLabel("Forward:"))
                     layout.add(QLabel("Reverse:"))
                     layout.add(QLabel("SWR:"))
@@ -28,7 +28,7 @@ class CalibrationTargetInfo(QWidget):
                     layout.add(QLabel("Forward Volts:"))
                     layout.add(QLabel("Reverse Volts:"))
                     layout.add(QLabel("Match Quality:"))
-                with layout.vbox() as layout:
+                with layout.vbox():
                     layout.add(self.forward)
                     layout.add(self.reverse)
                     layout.add(self.swr)
