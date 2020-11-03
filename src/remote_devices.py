@@ -111,16 +111,15 @@ class DeviceClient(QObject):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.log = logging.getLogger(__name__ + '.client')
-        self.qsettings = QSettings()
 
         self.linked_devices = {}
         self.remote_devices = {}
         self.remote_profiles = []
         
-        connect = self.qsettings.value('connect_on_startup', False)
+        connect = QSettings().value('connect_on_startup', False)
         self.connect_on_startup = connect == 'true'
 
-        self.current_connection = self.qsettings.value('current_connection', '10.0.0.207')
+        self.current_connection = QSettings().value('current_connection', '10.0.0.207')
         self.previous_connections = [
             'ldg.hopto.org',
             'daelon.hopto.org',
@@ -152,7 +151,7 @@ class DeviceClient(QObject):
     def connect_to_remote(self, address=None):
         if address is not None:
             self.current_connection = address
-            self.qsettings.setValue('current_connection', self.current_connection)
+            QSettings().setValue('current_connection', self.current_connection)
             if address not in self.previous_connections:
                 self.previous_connections.append(address)
 
@@ -164,7 +163,7 @@ class DeviceClient(QObject):
     def toggle_connect_on_startup(self):
         self.connect_on_startup = not self.connect_on_startup
             
-        self.qsettings.setValue('connect_on_startup', self.connect_on_startup)
+        QSettings().setValue('connect_on_startup', self.connect_on_startup)
 
     def open_socket(self):
         url = f'ws://{self.current_connection}:43000/control'

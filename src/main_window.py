@@ -12,12 +12,12 @@ from log_monitor import LogMonitorDockWidget
 
 from plugins.apps import *
 
+
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.setObjectName("MainWindow")
         self.setWindowTitle("LDG Device Manager")
-        self.qsettings = QSettings()
 
         self.load_settings()
 
@@ -119,11 +119,11 @@ class MainWindow(QMainWindow):
         super().closeEvent(event)
 
     def save_settings(self):
-        self.qsettings.setValue("window_geometry", self.saveGeometry())
-        self.qsettings.setValue("window_state", self.saveState())
+        QSettings().setValue("window_geometry", self.saveGeometry())
+        QSettings().setValue("window_state", self.saveState())
 
     def load_settings(self):
-        if self.qsettings.value("window_geometry") is not None:
-            self.restoreGeometry(self.qsettings.value("window_geometry"))
-        if self.qsettings.value("window_state") is not None:
-            self.restoreState(self.qsettings.value("window_state"))
+        if QSettings().value("window_geometry") is not None:
+            self.restoreGeometry(QSettings().value("window_geometry"))
+        if QSettings().value("window_state") is not None:
+            self.restoreState(QSettings().value("window_state"))
