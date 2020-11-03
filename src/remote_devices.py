@@ -116,15 +116,10 @@ class DeviceClient(QObject):
         self.remote_devices = {}
         self.remote_profiles = []
         
-        connect = QSettings().value('connect_on_startup', False)
-        self.connect_on_startup = connect == 'true'
-
+        self.connect_on_startup = QSettings().value('connect_on_startup', False) == 'true'
         self.current_connection = QSettings().value('current_connection', '10.0.0.207')
-        self.previous_connections = [
-            'ldg.hopto.org',
-            'daelon.hopto.org',
-            '10.0.0.207',
-        ]
+        default_previous_connections = ['ldg.hopto.org', 'daelon.hopto.org', '10.0.0.207']
+        self.previous_connections = QSettings().value('previous_connections', default_previous_connections)
         
         self.commands = [
             Command('Device Client: Connect', triggered=self.connect_to_remote),
