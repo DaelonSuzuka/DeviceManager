@@ -105,17 +105,23 @@ class SerialDeviceBase:
         self.recieve(msg)
         self.filter.reset()
 
+    def transmit_next_message(self):
+        sent = False
+        try:
+            if not self.queue.empty():
+                self.ser.write(self.queue.get().encode())
+                sent = True
+        except SerialException as e:
+            self.log.exception(e)
+
+        return sent
+
     def communicate(self):
         """ Handle comms with the serial port. Call this often, from an event loop or something. """
         if not self.active:
             return
 
-        # serial transmit
-        try:
-            if not self.queue.empty():
-                self.ser.write(self.queue.get().encode())
-        except SerialException as e:
-            self.log.exception(e)
+        self.transmit_next_message()
 
         # serial recieve
         try:
