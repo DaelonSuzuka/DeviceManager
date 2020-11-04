@@ -119,8 +119,8 @@ class DeviceControlsWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
 
-        with CGridLayout(self) as layout:
-            layout.addWidget(DeviceTree(self), 0, 0)
+        with CVBoxLayout(self) as layout:
+            layout.addWidget(DeviceTree(self))
 
 
 class DeviceControlsDockWidget(QDockWidget):
