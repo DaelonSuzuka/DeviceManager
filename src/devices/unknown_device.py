@@ -16,7 +16,7 @@ class UnknownDevice(JudiStandardMixin, SerialDevice):
     profile_name = "no profile"
 
     _bauds = [9600, 19200, 38400, 115200, 230400, 460800]
-    handshake_table = {b:[] for b in _bauds}
+    handshake_table = {b:{} for b in _bauds}
     checker_table = {b:[] for b in _bauds}
 
     @classmethod
@@ -26,7 +26,7 @@ class UnknownDevice(JudiStandardMixin, SerialDevice):
                 info = p.autodetect
                 for baud in info['bauds']:
                     if 'handshake' in info:
-                        cls.handshake_table[baud].append(info['handshake'])
+                        cls.handshake_table[baud][p.profile_name] = info['handshake']
                     if 'checker' in info:
                         cls.checker_table[baud].append(info['checker'])
 
@@ -35,19 +35,26 @@ class UnknownDevice(JudiStandardMixin, SerialDevice):
         self.message_tree.merge(self.common_message_tree)
         self.filter = NullFilter()
 
+        self.state = DeviceStates.enumeration_pending
         self.bauds = iter(self._bauds)
 
         self.cache_name = f'autodetect_cache:{self.port}'
-        self.set_baud_rate(int(QSettings().value(self.cache_name, 9600)))
+        baud, name = QSettings().value(self.cache_name, (9600, ''))
+
+        if name in self.handshake_table[baud]:
+            self.set_baud_rate(int(baud))
+            self.handshake_table[baud][name](self.send)
         
-        self.state = DeviceStates.enumeration_pending
+        self.last_transmit_time = time.time()
+        self.last_handshake_time = time.time()
+
         self.do_handshakes()
 
     def do_handshakes(self):
-        for fn in self.handshake_table[self.baud]:
-            if command := fn():
-                self.send(command)
         self.handshake()
+        handshakes = self.handshake_table[self.baud]
+        for _, fn in handshakes.items():
+            fn(self.send)
         self.last_handshake_time = time.time()
 
     def do_checks(self):
@@ -67,15 +74,22 @@ class UnknownDevice(JudiStandardMixin, SerialDevice):
         return self.name
 
     def message_completed(self):
-        # override the super's method and disable it
+        # override this to disable it
         pass
+
+    def transmit_next_message(self):
+        # override this to rate limit the tx'ing of handshakes
+        if (time.time() - self.last_transmit_time) > 0.1:
+            if super().transmit_next_message():
+                self.last_handshake_time = time.time()
+            self.last_transmit_time = time.time()
 
     def communicate(self):
         super().communicate()
 
         if (time.time() - self.last_handshake_time) > 0.5:
             if self.do_checks():
-                QSettings().setValue(self.cache_name, self.baud)
+                QSettings().setValue(self.cache_name, (self.baud, self.name))
                 self.state = DeviceStates.enumeration_succeeded
             else:
                 self.filter.reset()

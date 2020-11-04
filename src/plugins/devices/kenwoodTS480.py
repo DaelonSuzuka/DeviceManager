@@ -20,7 +20,7 @@ class TS480(SerialDevice):
     autodetect = {
         'bauds': [9600],
         'checker': lambda b: 'TS-480' if 'ID020;' in b else '',
-        'handshake': lambda: ';ID;',
+        'handshake': lambda send: send(';ID;'),
     }
 
     def __init__(self, *args, **kwargs):

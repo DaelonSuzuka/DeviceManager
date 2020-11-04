@@ -1,4 +1,4 @@
-from devices import SerialDevice
+from devices import SerialDevice, NullFilter
 from qt import *
 
 
@@ -9,9 +9,21 @@ class Signals(QObject):
 class KoradKA3005P(SerialDevice):
     profile_name = "KoradKA3005P"
 
+    autodetect = {
+        'bauds': [9600],
+        'checker': lambda b: 'KoradKA3005P' if 'KORAD' in b else '',
+        'handshake': lambda send: send('*IDN?'),
+    }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.signals = Signals()
+        self.filter = NullFilter()
+
+        self.get_idn()
+
+    def message_completed(self):
+        pass
 
     # what does this do?
     def get_status(self):
@@ -54,7 +66,7 @@ class KoradKA3005P(SerialDevice):
         self.send("ISET" + str(channel))
 
     def get_stored_voltage(self, channel):
-        self.send("VSET" + str(channel))
+        self.send("VSET0?" + str(channel))
 
     def get_output_current(self, channel):
         self.send("IOUT" + str(channel))
