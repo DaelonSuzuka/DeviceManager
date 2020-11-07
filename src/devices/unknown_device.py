@@ -41,8 +41,9 @@ class UnknownDevice(JudiStandardMixin, SerialDevice):
         self.cache_name = f'autodetect_cache:{self.port}'
         baud, name = QSettings().value(self.cache_name, (9600, ''))
 
+        self.set_baud_rate(int(baud))
+        
         if name in self.handshake_table[baud]:
-            self.set_baud_rate(int(baud))
             self.handshake_table[baud][name](self.send)
         
         self.last_transmit_time = time.time()
