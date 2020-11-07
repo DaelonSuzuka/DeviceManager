@@ -28,14 +28,12 @@ class KoradKA3005P(SerialDevice):
         self.get_output_voltage(1)
 
     def message_completed(self):
-        print(self.port, self.filter.buffer)
         self.filter.reset()
  
     def transmit_next_message(self):
         # override this to rate limit the tx'ing of handshakes
         if (time.time() - self.last_transmit_time) > 0.1:
             if super().transmit_next_message():
-                print('tx')
                 self.last_handshake_time = time.time()
             self.last_transmit_time = time.time()
 
