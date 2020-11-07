@@ -8,8 +8,6 @@ from bundles import SigBundle, SlotBundle
 
 # servitor-prime
 startup = [
-    'KoradKA3005P:/dev/ttyS2',
-    'KoradKA3005P:/dev/ttyS3',
     'CalibrationTarget:/dev/ttyS4:115200',
     # 'ConsoleDevice:/dev/ttyS4',
     'ConsoleDevice:/dev/ttyS5',
