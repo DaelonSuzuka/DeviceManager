@@ -4,6 +4,7 @@ from .judi_filter import JudiFilter
 from .null_filter import NullFilter
 import time
 from enum import Enum
+from serial import SerialException
 
 
 class DeviceStates(Enum):
@@ -97,6 +98,8 @@ class UnknownDevice(JudiStandardMixin, SerialDevice):
                 try:
                     self.set_baud_rate(next(self.bauds))
                 except StopIteration:
+                    self.state = DeviceStates.enumeration_failed
+                except SerialException:
                     self.state = DeviceStates.enumeration_failed
 
                 self.do_handshakes()

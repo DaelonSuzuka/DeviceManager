@@ -48,8 +48,12 @@ class SerialDeviceBase:
         self.base_signals.send.connect(lambda s: send_text_message(s))
 
     def set_baud_rate(self, baud):
-        self.ser.baudrate = baud
-        self.baud = baud
+        try:
+            self.ser.baudrate = baud
+            self.baud = baud
+        except:
+            return False
+        return True
 
     def connect_monitor(self, monitor):
         monitor.tx.connect(self.send)
