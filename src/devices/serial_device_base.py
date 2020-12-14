@@ -1,5 +1,5 @@
 from queue import Queue
-from .json_buffer import JSONBuffer
+from .judi_filter import JudiFilter
 from serial import Serial, SerialException
 from serial.tools.list_ports_common import ListPortInfo
 from .dummy_serial import DummySerial
@@ -22,7 +22,7 @@ class SerialDeviceBase:
         self.base_signals = Signals()
 
         self.queue = Queue()
-        self.msg = JSONBuffer()
+        self.filter = JudiFilter()
         self.active = False
 
         self.ser = None
@@ -47,6 +47,13 @@ class SerialDeviceBase:
             
         self.base_signals.send.connect(lambda s: send_text_message(s))
 
+    def set_baud_rate(self, baud):
+        try:
+            self.ser.baudrate = baud
+            self.baud = baud
+        except:
+            return False
+        return True
 
     def connect_monitor(self, monitor):
         monitor.tx.connect(self.send)
@@ -76,7 +83,7 @@ class SerialDeviceBase:
         if not self.active:
             return
 
-        self.msg.reset()
+        self.filter.reset()
         self.ser.close()
         self.active = False
 
@@ -96,23 +103,34 @@ class SerialDeviceBase:
         
         self.base_signals.send.emit(string)
 
+    def message_completed(self):
+        msg = self.filter.buffer
+        self.base_signals.send.emit(msg)
+        self.recieve(msg)
+        self.filter.reset()
+
+    def transmit_next_message(self):
+        sent = False
+        try:
+            if not self.queue.empty():
+                self.ser.write(self.queue.get().encode())
+                sent = True
+        except SerialException as e:
+            self.log.exception(e)
+
+        return sent
+
     def communicate(self):
         """ Handle comms with the serial port. Call this often, from an event loop or something. """
         if not self.active:
             return
 
-        # serial transmit
-        try:
-            if not self.queue.empty():
-                self.ser.write(self.queue.get().encode())
-        except SerialException as e:
-            self.log.exception(e)
+        self.transmit_next_message()
 
         # serial recieve
         try:
             while self.ser.in_waiting:
-                self.msg.insert_char(self.ser.read(1).decode())
-                if self.msg.completed():
+                if self.filter.insert_char(self.ser.read(1).decode()):
                     break
         except Exception as e:
             name = ''
@@ -122,8 +140,5 @@ class SerialDeviceBase:
             self.log.exception(f"{name}: {self.port} | {e}")
 
         # handle completed message
-        if self.msg.completed():
-            msg = self.msg.buffer
-            self.base_signals.send.emit(msg)
-            self.recieve(msg)
-            self.msg.reset()
+        if self.filter.completed():
+            self.message_completed()

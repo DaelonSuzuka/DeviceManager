@@ -1,4 +1,4 @@
-class DelimiterBuffer:
+class DelimiterFilter:
     def __init__(self, start=None, end=None):
         self.buffer = ""
         self.depth = 0
@@ -11,6 +11,8 @@ class DelimiterBuffer:
 
     def insert_char(self, c):
         self.buffer += c
+        
+        return self.completed()
 
     def completed(self):
         if self.end is None:

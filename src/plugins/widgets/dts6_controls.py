@@ -6,13 +6,13 @@ from device_manager import DeviceManager
 class DTS6Controls(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        with CHBoxLayout(self, margins=(0, 0, 0, 0)) as grid:
-            self.one = grid.add(QPushButton("Ant 1", checkable=True))
-            self.two = grid.add(QPushButton("Ant 2", checkable=True))
-            self.three = grid.add(QPushButton("Ant 3", checkable=True))
-            self.four = grid.add(QPushButton("Ant 4", checkable=True))
-            self.five = grid.add(QPushButton("Ant 5", checkable=True))
-            self.six = grid.add(QPushButton("Ant 6", checkable=True))
+        with CHBoxLayout(self, margins=(0, 0, 0, 0)) as layout:
+            self.one = layout.add(QPushButton("Ant 1", checkable=True))
+            self.two = layout.add(QPushButton("Ant 2", checkable=True))
+            self.three = layout.add(QPushButton("Ant 3", checkable=True))
+            self.four = layout.add(QPushButton("Ant 4", checkable=True))
+            self.five = layout.add(QPushButton("Ant 5", checkable=True))
+            self.six = layout.add(QPushButton("Ant 6", checkable=True))
 
         self.btns = QButtonGroup()
         self.btns.addButton(self.one)

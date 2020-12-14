@@ -1,4 +1,4 @@
-from devices import SerialDevice, profiles, profile_names, UnknownDevice
+from devices import SerialDevice, profiles, profile_names, UnknownDevice, DeviceStates
 from serial.tools.list_ports import comports
 import time
 import logging
@@ -8,19 +8,10 @@ from bundles import SigBundle, SlotBundle
 
 # servitor-prime
 startup = [
-    'TS-480:/dev/ttyS0',
-    'Alpha4510A:/dev/ttyUSB0',
-    'KoradKA3005P:/dev/ttyS2',
-    'KoradKA3005P:/dev/ttyS3',
-    'ConsoleDevice:/dev/ttyS4',
+    'CalibrationTarget:/dev/ttyS4:115200',
+    # 'ConsoleDevice:/dev/ttyS4',
     'ConsoleDevice:/dev/ttyS5',
 ]
-
-# servitor-production
-# startup = [
-#     "TS-480:/dev/ttyS0",
-#     "Alpha4510A:/dev/ttyS1",
-# ]
 
 
 class DeviceManager(QObject):
@@ -143,6 +134,8 @@ class DeviceManager(QObject):
         
         self.check_for_new_subscribers()
 
+        UnknownDevice.register_autodetect_info(profiles)
+
     def close(self):
         self.scan_timer.stop()
         self.update_timer.stop()
@@ -190,10 +183,16 @@ class DeviceManager(QObject):
         if self.first_scan:
             for p in new_ports:
                 for string in startup:
-                    profile = string.split(':')[0]
-                    port = string.split(':')[1]
+                    parts = string.split(':')
+                    profile = parts[0]
+                    port = parts[1]
+                    baud = parts[2] if len(parts) == 3 else None
+
                     if p == port:
-                        self.on_add_device(profiles[profile](port=port))
+                        if baud:
+                            self.on_add_device(profiles[profile](port=port, baud=baud))
+                        else:
+                            self.on_add_device(profiles[profile](port=port))
                         self.ports.append(p)
             self.first_scan = False
 
@@ -216,13 +215,12 @@ class DeviceManager(QObject):
         for device in self.new_devices:
             device.communicate()
 
-            if (time.time() - device.time_created) > 3:
+            if device.state == DeviceStates.enumeration_failed:
                 self.log.debug(f"Enumeration failed on ({device.port})")
                 device.close()
                 self.new_devices.remove(device)
-                continue
         
-            if device.guid:
+            elif device.state == DeviceStates.enumeration_succeeded:
                 if device.name in profile_names:
                     device.close()
                     new_device = profiles[device.name](device=device)

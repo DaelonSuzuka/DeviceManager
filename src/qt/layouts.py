@@ -25,23 +25,26 @@ class ContextLayout:
             layout = self._stack[len(self._stack) - 1]
         return layout
 
-    def add(self, item, *args):
+    def __call__(self):
+        return self._layout
+
+    def add(self, item, *args, **kwargs):
         if isinstance(item, QWidget):
-            self._layout.addWidget(item, *args)
+            self._layout.addWidget(item, *args, **kwargs)
         elif isinstance(item, QLayout):
-            self._layout.addLayout(item, *args)
+            self._layout.addLayout(item, *args, **kwargs)
         elif isinstance(item, list):
             for i in item:
-                self._layout.add(i, *args)
+                self._layout.add(i, *args, **kwargs)
 
         return item
 
-    def vbox(self, *args):
-        self.next_layout = CVBoxLayout(self._layout, *args)
+    def vbox(self, *args, **kwargs):
+        self.next_layout = CVBoxLayout(self._layout, *args, **kwargs)
         return self
 
-    def hbox(self, *args):
-        self.next_layout = CHBoxLayout(self._layout, *args)
+    def hbox(self, *args, **kwargs):
+        self.next_layout = CHBoxLayout(self._layout, *args, **kwargs)
         return self
 
     def __enter__(self):

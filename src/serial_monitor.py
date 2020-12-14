@@ -67,7 +67,7 @@ class SerialMonitorWidget(QWidget):
         self.installEventFilter(self)
 
         with CVBoxLayout(self) as layout:
-            layout.addWidget(self.text)
+            layout.add(self.text)
 
         set_font_options(self.text, {'setFamily': 'Courier New'})
 
@@ -181,7 +181,7 @@ class HistorySerialMonitorWidget(QWidget):
         self.installEventFilter(self)
 
         with CVBoxLayout(self) as layout:
-            layout.addWidget(self.text)
+            layout.add(self.text)
 
         set_font_options(self.text, {'setFamily': 'Courier New'})
 

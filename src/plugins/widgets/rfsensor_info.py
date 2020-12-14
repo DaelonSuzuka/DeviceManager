@@ -18,25 +18,25 @@ class RFSensorWidget(QWidget):
 
         with CVBoxLayout(self) as layout:
             layout.add(QLabel('RFSensor:'))
-            with CHBoxLayout(layout) as hbox:
-                with CVBoxLayout(hbox) as vbox:
-                    vbox.addWidget(QLabel("Forward:"))
-                    vbox.addWidget(QLabel("Reverse:"))
-                    vbox.addWidget(QLabel("SWR:"))
-                    vbox.addWidget(QLabel("Frequency:"))
-                    vbox.addWidget(QLabel())
-                    vbox.addWidget(QLabel("Forward Volts:"))
-                    vbox.addWidget(QLabel("Reverse Volts:"))
-                    vbox.addWidget(QLabel("Match Quality:"))
-                with CVBoxLayout(hbox) as vbox:
-                    vbox.addWidget(self.forward)
-                    vbox.addWidget(self.reverse)
-                    vbox.addWidget(self.swr)
-                    vbox.addWidget(self.frequency)
-                    vbox.addWidget(QLabel())
-                    vbox.addWidget(self.forward_volts)
-                    vbox.addWidget(self.reverse_volts)
-                    vbox.addWidget(self.match_quality)
+            with layout.hbox():
+                with layout.vbox():
+                    layout.add(QLabel("Forward:"))
+                    layout.add(QLabel("Reverse:"))
+                    layout.add(QLabel("SWR:"))
+                    layout.add(QLabel("Frequency:"))
+                    layout.add(QLabel())
+                    layout.add(QLabel("Forward Volts:"))
+                    layout.add(QLabel("Reverse Volts:"))
+                    layout.add(QLabel("Match Quality:"))
+                with layout.vbox():
+                    layout.add(self.forward)
+                    layout.add(self.reverse)
+                    layout.add(self.swr)
+                    layout.add(self.frequency)
+                    layout.add(QLabel())
+                    layout.add(self.forward_volts)
+                    layout.add(self.reverse_volts)
+                    layout.add(self.match_quality)
     
     def connected(self, device):
         device.signals.forward_volts.connect(lambda x: self.forward_volts.setText(f"{x:.2f}"))

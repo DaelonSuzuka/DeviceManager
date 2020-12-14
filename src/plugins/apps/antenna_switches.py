@@ -16,8 +16,8 @@ class SwitchControls(QWidget):
         self.locate = QPushButton('Locate')
 
         with CGridLayout(self) as layout:
-            layout.addWidget(self.label)
-            layout.addWidget(self.locate)
+            layout.add(self.label)
+            layout.add(self.locate)
 
     def connect_switch(self, switch: SW4U):
         self.switch = switch

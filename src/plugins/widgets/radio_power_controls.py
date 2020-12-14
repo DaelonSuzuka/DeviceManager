@@ -16,19 +16,19 @@ class RadioPowerButtons(QWidget):
 
         powers = ["200", "175", "150", "125", "100", "75", "50", "25", "10", "5"]
 
-        with CGridLayout(self, margins=(0, 0, 0, 0)) as grid:
+        with CGridLayout(self, margins=(0, 0, 0, 0)) as layout:
             for i, power in enumerate(powers):
                 btn = QPushButton(power, checkable=True)
                 self.btns.addButton(btn)
-                grid.add(btn, i + 1, 0)
+                layout.add(btn, i + 1, 0)
                 btn.clicked.connect(lambda: self.btns.setExclusive(True))
                 btn.clicked.connect(partial(self.update_power, btn.text()))
 
-            self.lock = grid.add(LockButton(iconSize=QSize(35, 35)), 0, 0)
-            grid.add(QPushButton(disabled=True), 0, 1)
-            grid.add(QPushButton(disabled=True), 0, 2)
-            grid.add(QPushButton('+', clicked=lambda: self.update_power(int(self.power) + 5)), 1, 1, 5, 2)
-            grid.add(QPushButton('-', clicked=lambda: self.update_power(int(self.power) - 5)), 6, 1, 5, 2)
+            self.lock = layout.add(LockButton(iconSize=QSize(35, 35)), 0, 0)
+            layout.add(QPushButton(disabled=True), 0, 1)
+            layout.add(QPushButton(disabled=True), 0, 2)
+            layout.add(QPushButton('+', clicked=lambda: self.update_power(int(self.power) + 5)), 1, 1, 5, 2)
+            layout.add(QPushButton('-', clicked=lambda: self.update_power(int(self.power) - 5)), 6, 1, 5, 2)
 
         self.lock.toggled.connect(lambda s: self.set_limit(not s))
         self.set_limit(True)

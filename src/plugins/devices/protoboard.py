@@ -1,4 +1,4 @@
-from devices import SerialDevice, CommonMessagesMixin
+from devices import SerialDevice, JudiStandardMixin
 from qt import *
 
 
@@ -7,7 +7,7 @@ class Signals(QObject):
     def message_tree(self):
         return {}
 
-class Protoboard(CommonMessagesMixin, SerialDevice):
+class Protoboard(JudiStandardMixin, SerialDevice):
     profile_name = "Protoboard"
     
     def __init__(self, *args, **kwargs):

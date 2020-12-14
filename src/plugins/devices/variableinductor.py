@@ -1,4 +1,4 @@
-from devices import SerialDevice, CommonMessagesMixin
+from devices import SerialDevice, JudiStandardMixin
 from qt import *
 
 
@@ -20,7 +20,7 @@ class Signals(QObject):
         }
 
 
-class VariableInductor(CommonMessagesMixin, SerialDevice):
+class VariableInductor(JudiStandardMixin, SerialDevice):
     profile_name = "VariableInductor"
     max_inds = 127
 

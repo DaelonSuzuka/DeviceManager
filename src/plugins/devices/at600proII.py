@@ -1,4 +1,4 @@
-from devices import SerialDevice, CommonMessagesMixin
+from devices import SerialDevice, JudiStandardMixin
 from qt import *
 
 
@@ -38,7 +38,7 @@ class Signals(QObject):
         }
 
 
-class AT600ProII(CommonMessagesMixin, SerialDevice):
+class AT600ProII(JudiStandardMixin, SerialDevice):
     profile_name = "AT-600ProII"
 
     def __init__(self, *args, **kwargs):

@@ -39,7 +39,7 @@ class CalibrationApp(QWidget):
         self.tabs = PersistentTabWidget('calibration_tabs', tabs=tabs)
 
         with CVBoxLayout(self) as layout:
-            with layout.hbox() as layout:
+            with layout.hbox():
                 layout.add(self.progress)
             layout.add(self.tabs, 1)
 

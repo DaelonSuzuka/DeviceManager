@@ -1,7 +1,5 @@
 from qt import *
 import qtawesome as qta
-import logging
-from style import qcolors
 
 from device_manager import DeviceManager
 from remote_devices import DeviceClient, DeviceServer, RemoteStatusWidget
@@ -12,12 +10,12 @@ from log_monitor import LogMonitorDockWidget
 
 from plugins.apps import *
 
+
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.setObjectName("MainWindow")
         self.setWindowTitle("LDG Device Manager")
-        self.qsettings = QSettings()
 
         self.load_settings()
 
@@ -42,12 +40,12 @@ class MainWindow(QMainWindow):
             shortcut = QShortcut(f'Ctrl+{i + 1}', self, activated=lambda i=i: self.tabs.setCurrentIndex(i))
             self.tab_shortcuts.append(shortcut)
 
-        self.addActions([
-            Command("Preferences: Open Settings (JSON)", self),
-            Command("Preferences: Open Settings (UI)", self, shortcut='Ctrl+,'),
-            Command("Device Manager: Check for port changes", self),
-            Command("Quit Application", self, triggered=self.close),
-        ])
+        self.commands = [
+            Command("Preferences: Open Settings (JSON)"),
+            Command("Preferences: Open Settings (UI)", shortcut='Ctrl+,'),
+            Command("Device Manager: Check for port changes"),
+            Command("Quit Application", triggered=self.close),
+        ]
 
         # must be after Command objects are created by various modules
         self.command_palette = CommandPalette(self)
@@ -119,11 +117,11 @@ class MainWindow(QMainWindow):
         super().closeEvent(event)
 
     def save_settings(self):
-        self.qsettings.setValue("window_geometry", self.saveGeometry())
-        self.qsettings.setValue("window_state", self.saveState())
+        QSettings().setValue("window_geometry", self.saveGeometry())
+        QSettings().setValue("window_state", self.saveState())
 
     def load_settings(self):
-        if self.qsettings.value("window_geometry") is not None:
-            self.restoreGeometry(self.qsettings.value("window_geometry"))
-        if self.qsettings.value("window_state") is not None:
-            self.restoreState(self.qsettings.value("window_state"))
+        if QSettings().value("window_geometry") is not None:
+            self.restoreGeometry(QSettings().value("window_geometry"))
+        if QSettings().value("window_state") is not None:
+            self.restoreState(QSettings().value("window_state"))

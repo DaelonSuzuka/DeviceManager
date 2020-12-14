@@ -39,7 +39,7 @@ class RemoteStatusWidget(QWidget):
 
             
         self.commands = [
-            Command('Device Client: Connect to', self, triggered=self.open_address_prompt),
+            Command('Device Client: Connect to', triggered=self.open_address_prompt),
         ]
 
         self.setAttribute(Qt.WA_AcceptTouchEvents, True)
@@ -50,9 +50,9 @@ class RemoteStatusWidget(QWidget):
         self.icon = QLabel('')
         self.icon.setPixmap(self.icon_off)
 
-        with CHBoxLayout(self, margins=(0, 0, 0, 0)) as hbox:
-            hbox.addWidget(self.icon)
-            hbox.addWidget(self.status)
+        with CHBoxLayout(self, margins=(0, 0, 0, 0)) as layout:
+            layout.add(self.icon)
+            layout.add(self.status)
         
     def mousePressEvent(self, event):
         connect = QAction("Connect", self, triggered=self.connect_client)
@@ -111,25 +111,19 @@ class DeviceClient(QObject):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.log = logging.getLogger(__name__ + '.client')
-        self.qsettings = QSettings()
 
         self.linked_devices = {}
         self.remote_devices = {}
         self.remote_profiles = []
         
-        connect = self.qsettings.value('connect_on_startup', False)
-        self.connect_on_startup = connect == 'true'
-
-        self.current_connection = self.qsettings.value('current_connection', '10.0.0.207')
-        self.previous_connections = [
-            'ldg.hopto.org',
-            'daelon.hopto.org',
-            '10.0.0.207',
-        ]
+        self.connect_on_startup = QSettings().value('connect_on_startup', False) == 'true'
+        self.current_connection = QSettings().value('current_connection', '10.0.0.207')
+        default_previous_connections = ['ldg.hopto.org', 'daelon.hopto.org', '10.0.0.207']
+        self.previous_connections = QSettings().value('previous_connections', default_previous_connections)
         
         self.commands = [
-            Command('Device Client: Connect', self, triggered=self.connect_to_remote),
-            Command('Device Client: Disconnect', self, triggered=self.disconnect_from_remote),
+            Command('Device Client: Connect', triggered=self.connect_to_remote),
+            Command('Device Client: Disconnect', triggered=self.disconnect_from_remote),
         ]
 
         self.socket = QWebSocket()
@@ -152,7 +146,7 @@ class DeviceClient(QObject):
     def connect_to_remote(self, address=None):
         if address is not None:
             self.current_connection = address
-            self.qsettings.setValue('current_connection', self.current_connection)
+            QSettings().setValue('current_connection', self.current_connection)
             if address not in self.previous_connections:
                 self.previous_connections.append(address)
 
@@ -164,7 +158,7 @@ class DeviceClient(QObject):
     def toggle_connect_on_startup(self):
         self.connect_on_startup = not self.connect_on_startup
             
-        self.qsettings.setValue('connect_on_startup', self.connect_on_startup)
+        QSettings().setValue('connect_on_startup', self.connect_on_startup)
 
     def open_socket(self):
         url = f'ws://{self.current_connection}:43000/control'

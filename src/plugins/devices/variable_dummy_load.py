@@ -1,4 +1,4 @@
-from devices import SerialDevice, CommonMessagesMixin
+from devices import SerialDevice, JudiStandardMixin
 from qt import *
 
 
@@ -38,7 +38,7 @@ class Signals(QObject):
         }
 
 
-class VariableDummyLoad(CommonMessagesMixin, SerialDevice):
+class VariableDummyLoad(JudiStandardMixin, SerialDevice):
     profile_name = "VariableDummyLoad"
 
     def __init__(self, *args, **kwargs):

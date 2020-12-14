@@ -1,5 +1,6 @@
-from devices import SerialDevice
+from devices import SerialDevice, NullFilter
 from qt import *
+import time
 
 
 class Signals(QObject):
@@ -9,9 +10,32 @@ class Signals(QObject):
 class KoradKA3005P(SerialDevice):
     profile_name = "KoradKA3005P"
 
+    autodetect = {
+        'bauds': [9600],
+        'checker': lambda b: 'KoradKA3005P' if 'KORAD' in b else '',
+        'handshake': lambda send: send('*IDN?'),
+    }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.signals = Signals()
+        self.filter = NullFilter()
+
+        self.last_transmit_time = time.time()
+
+        self.get_idn()
+        self.get_output_current(1)
+        self.get_output_voltage(1)
+
+    def message_completed(self):
+        self.filter.reset()
+ 
+    def transmit_next_message(self):
+        # override this to rate limit the tx'ing of handshakes
+        if (time.time() - self.last_transmit_time) > 0.1:
+            if super().transmit_next_message():
+                self.last_handshake_time = time.time()
+            self.last_transmit_time = time.time()
 
     # what does this do?
     def get_status(self):
@@ -31,6 +55,9 @@ class KoradKA3005P(SerialDevice):
 
     def save_memory(self, bank):
         self.send("SAV%s" % bank)
+
+    def set_OCP(self, state):
+        self.send(f'OCP{int(bool(state))}')
 
     def turn_on_OCP(self):
         self.send("OCP1")
@@ -54,10 +81,10 @@ class KoradKA3005P(SerialDevice):
         self.send("ISET" + str(channel))
 
     def get_stored_voltage(self, channel):
-        self.send("VSET" + str(channel))
+        self.send("VSET0?" + str(channel))
 
     def get_output_current(self, channel):
-        self.send("IOUT" + str(channel))
+        self.send(f'IOUT{channel}?')
 
     def get_output_voltage(self, channel):
-        self.send("VOUT" + str(channel))
+        self.send(f'VOUT{channel}?')

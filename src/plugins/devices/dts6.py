@@ -1,4 +1,4 @@
-from devices import SerialDevice, CommonMessagesMixin
+from devices import SerialDevice, JudiStandardMixin
 from qt import *
 
 
@@ -13,7 +13,7 @@ class Signals(QObject):
             }
         }
 
-class DTS6(CommonMessagesMixin, SerialDevice):
+class DTS6(JudiStandardMixin, SerialDevice):
     profile_name = "DTS-6"
 
     def __init__(self, *args, **kwargs):

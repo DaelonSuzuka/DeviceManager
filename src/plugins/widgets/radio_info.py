@@ -12,15 +12,15 @@ class RadioInfo(QWidget):
         
         with CVBoxLayout(self) as layout:
             layout.add(QLabel('Kenwood TS-480:'))
-            with CHBoxLayout(layout) as hbox:
-                with CVBoxLayout(hbox) as vbox:
-                    vbox.addWidget(QLabel("Power:"))
-                    vbox.addWidget(QLabel("Frequency:"))
-                    vbox.addWidget(QLabel("Mode:"))
-                with CVBoxLayout(hbox) as vbox:
-                    vbox.addWidget(self.power)
-                    vbox.addWidget(self.frequency)
-                    vbox.addWidget(self.mode)
+            with layout.hbox():
+                with layout.vbox():
+                    layout.add(QLabel("Power:"))
+                    layout.add(QLabel("Frequency:"))
+                    layout.add(QLabel("Mode:"))
+                with layout.vbox():
+                    layout.add(self.power)
+                    layout.add(self.frequency)
+                    layout.add(self.mode)
 
     def connected(self, device):
         device.signals.power.connect(lambda s: self.power.setText(s))

@@ -1,4 +1,4 @@
-from devices import SerialDevice, DelimiterBuffer
+from devices import SerialDevice, DelimiterFilter
 from qt import *
 
 
@@ -17,10 +17,16 @@ class TS480(SerialDevice):
     max_power_level = 200
     min_power_level = 5
 
+    autodetect = {
+        'bauds': [9600],
+        'checker': lambda b: 'TS-480' if 'ID020;' in b else '',
+        'handshake': lambda send: send(';ID;'),
+    }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.signals = Signals()
-        self.msg = DelimiterBuffer(start=';')
+        self.filter = DelimiterFilter(start=';')
 
         try:
             self.ser.responder = TS480Responder()
@@ -42,7 +48,7 @@ class TS480(SerialDevice):
         self.check_id()
         self.check_id()
         self.check_status()
-    
+
     def send(self, string):
         # append ";" to every command, so we don't have to keep repeating it
         string = string.rstrip(';') + ';'

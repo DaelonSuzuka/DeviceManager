@@ -1,4 +1,4 @@
-from devices import SerialDevice, CommonMessagesMixin
+from devices import SerialDevice, JudiStandardMixin
 from qt import *
 
 
@@ -16,7 +16,7 @@ class Signals(QObject):
         }
 
 
-class JudiPedals(CommonMessagesMixin, SerialDevice):
+class JudiPedals(JudiStandardMixin, SerialDevice):
     profile_name = "judipedals"
 
     def __init__(self, *args, **kwargs):

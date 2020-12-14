@@ -12,13 +12,13 @@ class SW100Widget(QWidget):
         self.none = QPushButton("none", checkable=True, checked=True)
         self.tx = QPushButton("TX", checkable=True)
 
-        with CVBoxLayout(self) as vbox:
-            with CHBoxLayout(vbox) as hbox:
-                hbox.addWidget(QLabel(""), 1)
-                hbox.addWidget(self.rx)
-                hbox.addWidget(self.none)
-                hbox.addWidget(self.tx)
-                hbox.addWidget(QLabel(""), 1)
+        with CVBoxLayout(self) as layout:
+            with layout.hbox():
+                layout.add(QLabel(""), 1)
+                layout.add(self.rx)
+                layout.add(self.none)
+                layout.add(self.tx)
+                layout.add(QLabel(""), 1)
 
     def connected(self, device):
         self.rx.clicked.connect(lambda: device.set_antenna("tx"))

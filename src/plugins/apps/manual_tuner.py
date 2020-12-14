@@ -41,7 +41,8 @@ class TunerButtons(QWidget):
             layout.add(self.bottom_right, 1, 1)
 
 
-class ManualTunerApp(QWidget):
+# class ManualTunerApp(QWidget):
+class ManualTuner(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         stylesheet = """
@@ -76,31 +77,31 @@ class ManualTunerApp(QWidget):
         self.inds.setStyleSheet(stylesheet)
 
         with CHBoxLayout(self) as layout:
-            with CVBoxLayout(layout) as vbox:
-                vbox.add(self.key)
-                vbox.addStretch(5)
-                vbox.add(HLine())
-                vbox.add(RadioInfo())
-                vbox.add(HLine())
-                vbox.add(MeterInfo())
+            with layout.vbox():
+                layout.add(self.key)
+                layout.addStretch(5)
+                layout.add(HLine())
+                layout.add(RadioInfo())
+                layout.add(HLine())
+                layout.add(MeterInfo())
             
             layout.add(VLine())
             
-            with CVBoxLayout(layout) as vbox:
-                with CHBoxLayout(vbox, 1) as hbox:
-                    hbox.add(RFSensorWidget())
-                    hbox.add(self.chart)
-                # vbox.add(RFSensorWidget())
-                # vbox.add(self.chart, 1)
-                # vbox.add(FlatRFSensorWidget(self))
+            with layout.vbox():
+                with layout.hbox(1):
+                    layout.add(RFSensorWidget())
+                    layout.add(self.chart)
+                # layout.add(RFSensorWidget())
+                # layout.add(self.chart, 1)
+                # layout.add(FlatRFSensorWidget(self))
                 
-                vbox.add(HLine())
-                with CHBoxLayout(vbox) as hbox:
-                    with CVBoxLayout(hbox) as vbox:
-                        vbox.add(self.caps)
-                        vbox.add(HLine())
-                        vbox.add(self.inds)
+                layout.add(HLine())
+                with layout.hbox():
+                    with layout.vbox():
+                        layout.add(self.caps)
+                        layout.add(HLine())
+                        layout.add(self.inds)
 
-                    hbox.add(VLine())
-                    hbox.add(TunerButtons(self))
+                    layout.add(VLine())
+                    layout.add(TunerButtons(self))
 

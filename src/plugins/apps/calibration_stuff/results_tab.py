@@ -16,14 +16,14 @@ class ResultsTab(QWidget):
         self.load = QPushButton('Load')
 
         with CVBoxLayout(self) as layout:
-            with layout.hbox() as layout:
+            with layout.hbox():
                 layout.add(QLabel(), 1)
                 layout.add(self.save)
                 layout.add(self.load)
-            with layout.hbox() as layout:
+            with layout.hbox():
                 layout.add(self.metadata)
                 layout.add(self.everything)
-            with layout.hbox() as layout:
+            with layout.hbox():
                 layout.add(self.data)
                 layout.add(self.header)
 
