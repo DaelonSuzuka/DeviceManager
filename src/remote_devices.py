@@ -216,6 +216,13 @@ class DeviceServer(QObject):
 
         self.commands = []
 
+        self.beacon = QUdpSocket(self)
+        self.beacon.bind(7755)
+        
+        self.update_timer = QTimer()
+        self.update_timer.timeout.connect(lambda: self.send_beacon())
+        self.update_timer.start(1000)
+
         self.server = QWebSocketServer('server-name', QWebSocketServer.NonSecureMode)
         self.client = None
         self.sockets = {}
@@ -226,6 +233,11 @@ class DeviceServer(QObject):
             self.log.info('Failed to start device server.')
         self.server.newConnection.connect(self.on_new_connection)
         self.server.newConnection.connect(lambda: self.log.info(f'socket connected'))
+
+    def send_beacon(self):
+        # print('beep')
+        print(self.beacon.writeDatagram(QByteArray(b'beep'), QHostAddress.Broadcast, 7755))
+        print(self.beacon.error())
 
     def on_new_connection(self):
         socket = self.server.nextPendingConnection()
