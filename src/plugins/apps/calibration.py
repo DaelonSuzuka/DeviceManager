@@ -62,7 +62,7 @@ class CalibrationApp(QWidget):
         self.setup.stop.setEnabled(False)
 
     def worker_finished(self, results):
-        if len(results['data']) == 0:
+        if len(results) == 0 or len(results['data']) == 0:
             return
 
         self.results_tab.display_results(results)

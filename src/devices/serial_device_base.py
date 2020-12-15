@@ -73,7 +73,7 @@ class SerialDeviceBase:
             return
 
         try:
-            self.ser = Serial(port=self.port, baudrate=self.baud, timeout=0)
+            self.ser = Serial(port=self.port, baudrate=self.baud, timeout=0, write_timeout=0)
             self.active = True
         except Exception as e:
             self.log.exception("PermissionError" + str(e))
