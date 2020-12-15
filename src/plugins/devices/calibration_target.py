@@ -36,18 +36,16 @@ class CalibrationTarget(JudiStandardMixin, SerialDevice):
         self.message_tree.merge(self.signals.message_tree)
         self.message_tree.merge(self.common_message_tree)
 
-        self.name = ""
-        self.guid = ""
-        self.firmware_version = ""
-        self.protocol_version = ""
-        self.port = ""
-
     @property
     def description(self):
         return {
+            "profile_name":self.profile_name,
+            "guid":self.guid,
+            "port":self.port,
+            "title":self.title,
             "product_name":self.name,
             "serial_number":self.guid,
-            "firmware_version":self.firmware_version,
-            "protocol_version":self.protocol_version,
+            # "firmware_version":self.firmware_version,
+            # "protocol_version":self.protocol_version,
             "port":self.port,
         }
