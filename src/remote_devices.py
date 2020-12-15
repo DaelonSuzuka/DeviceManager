@@ -115,6 +115,13 @@ class DeviceClient(QObject):
         self.linked_devices = {}
         self.remote_devices = {}
         self.remote_profiles = []
+
+        
+        self.watcher = QUdpSocket(self)
+        self.watcher.bind(QHostAddress('0.0.0.0'), 7755)
+        self.watcher.joinMulticastGroup(QHostAddress.Broadcast)
+        
+        self.watcher.readyRead.connect(self.on_ready)
         
         self.connect_on_startup = QSettings().value('connect_on_startup', False) == 'true'
         self.current_connection = QSettings().value('current_connection', '10.0.0.207')
@@ -131,6 +138,11 @@ class DeviceClient(QObject):
         self.socket.textMessageReceived.connect(self.process_message)
 
         self.socket.disconnected.connect(self.unlink_all_devices)
+
+    def on_ready(self):
+        if self.watcher.pendingDatagramSize() != -1:
+            data, address, port = self.watcher.readDatagram(self.watcher.pendingDatagramSize())
+            print(address, port, data)
 
     def on_subscribed(self):
         if self.connect_on_startup:
