@@ -81,7 +81,7 @@ class ServitorApp(QWidget):
                 layout.add(HLine())
                 layout.add(MeterInfo(self))
                 layout.add(HLine())
-                layout.add(RFSensorWidget(self))
+                layout.add(CalibrationTargetInfo(self))
 
             layout.add(VLine())
 
