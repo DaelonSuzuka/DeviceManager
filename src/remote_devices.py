@@ -115,13 +115,6 @@ class DeviceClient(QObject):
         self.linked_devices = {}
         self.remote_devices = {}
         self.remote_profiles = []
-
-        
-        self.watcher = QUdpSocket(self)
-        self.watcher.bind(QHostAddress('0.0.0.0'), 7755)
-        self.watcher.joinMulticastGroup(QHostAddress.Broadcast)
-        
-        self.watcher.readyRead.connect(self.on_ready)
         
         self.connect_on_startup = QSettings().value('connect_on_startup', False) == 'true'
         self.current_connection = QSettings().value('current_connection', '10.0.0.207')
@@ -138,11 +131,6 @@ class DeviceClient(QObject):
         self.socket.textMessageReceived.connect(self.process_message)
 
         self.socket.disconnected.connect(self.unlink_all_devices)
-
-    def on_ready(self):
-        if self.watcher.pendingDatagramSize() != -1:
-            data, address, port = self.watcher.readDatagram(self.watcher.pendingDatagramSize())
-            print(address, port, data)
 
     def on_subscribed(self):
         if self.connect_on_startup:
@@ -228,12 +216,8 @@ class DeviceServer(QObject):
 
         self.commands = []
 
-        self.beacon = QUdpSocket(self)
-        self.beacon.bind(7755)
-        
-        self.update_timer = QTimer()
-        self.update_timer.timeout.connect(lambda: self.send_beacon())
-        self.update_timer.start(1000)
+        self.beacon = DiscoveryBeacon(self)
+        self.watcher = DiscoveryWatcher(self)
 
         self.server = QWebSocketServer('server-name', QWebSocketServer.NonSecureMode)
         self.client = None
@@ -246,10 +230,6 @@ class DeviceServer(QObject):
         self.server.newConnection.connect(self.on_new_connection)
         self.server.newConnection.connect(lambda: self.log.info(f'socket connected'))
 
-    def send_beacon(self):
-        # print('beep')
-        print(self.beacon.writeDatagram(QByteArray(b'beep'), QHostAddress.Broadcast, 7755))
-        print(self.beacon.error())
 
     def on_new_connection(self):
         socket = self.server.nextPendingConnection()
@@ -309,3 +289,36 @@ class DeviceServer(QObject):
 
         if self.client:
             self.send_later(json.dumps({"device_removed":description}))
+
+
+class DiscoveryBeacon(QObject):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+
+        self.beacon = QUdpSocket(self)
+        self.beacon.bind(QHostAddress('255.255.255.255'), 7755)
+        self.beacon.joinMulticastGroup(QHostAddress.Broadcast)
+
+        self.update_timer = QTimer()
+        self.update_timer.timeout.connect(self.send_beacon)
+        self.update_timer.start(5000)
+
+    def send_beacon(self):
+        data = QByteArray(b'servitor')
+        self.beacon.writeDatagram(data, QHostAddress.Broadcast, 7755)
+
+
+class DiscoveryWatcher(QObject):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+
+        self.watcher = QUdpSocket(self)
+        self.watcher.bind(QHostAddress('0.0.0.0'), 7755)
+        self.watcher.joinMulticastGroup(QHostAddress.Broadcast)
+        
+        self.watcher.readyRead.connect(self.on_ready)
+
+    def on_ready(self):
+        if self.watcher.pendingDatagramSize() != -1:
+            data, address, port = self.watcher.readDatagram(self.watcher.pendingDatagramSize())
+            print(address, port, data)
