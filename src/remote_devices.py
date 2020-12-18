@@ -7,20 +7,7 @@ from urllib.parse import urlparse
 import qtawesome as qta
 from command_palette import CommandPalette, Command
 import time
-
-
-import socket
-def get_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        # doesn't even have to be reachable
-        s.connect(('10.255.255.255', 1))
-        IP = s.getsockname()[0]
-    except Exception:
-        IP = '127.0.0.1'
-    finally:
-        s.close()
-    return IP
+from networking import *
 
 
 class RemoteStatusWidget(QWidget):
@@ -313,73 +300,3 @@ class Host:
         if (time.time() - self.last_message_time) > self.timeout:
             self.active = False
         return self.active
-
-
-class DiscoveryService(QObject):
-    host_found = Signal(Host)
-    host_lost = Signal(Host)
-
-    def __init__(self, parent=None, beacon_port=7755, judi_port=43000):
-        super().__init__(parent=parent)
-        self.log = logging.getLogger(__name__ + '.discovery')
-        
-        self.port = beacon_port
-        self.hostname = socket.gethostname()
-        self.hosts = {}
-
-        self.beacon = QUdpSocket(self)
-        self.beacon.bind(QHostAddress(get_ip()), self.port, mode=QAbstractSocket.ShareAddress)
-
-        self.watcher = QUdpSocket(self)
-        self.watcher.bind(QHostAddress('0.0.0.0'), self.port, mode=QAbstractSocket.ShareAddress)
-        self.watcher.readyRead.connect(self.get_message)
-
-        self.beacon_timer = QTimer()
-        self.beacon_timer.timeout.connect(self.update)
-        self.beacon_timer.start(5000)
-        
-        msg = '{"hostname":"%s","judi_remote_port":"%s"}' % (self.hostname, str(judi_port))
-        self.beacon_message = QByteArray(msg.encode())
-
-        self.update()
-        self.log.info(f'starting discovery service')
-
-        self.host_found.connect(lambda h: print(h))
-
-    def close(self):
-        self.beacon_timer.stop()
-
-    def update(self):
-        self.beacon.writeDatagram(self.beacon_message, QHostAddress.Broadcast, self.port)
-
-        for _, host in self.hosts.items():
-            if host.active and not host.check_timeout():
-                self.log.info(f'host lost {host}')
-                self.host_lost.emit(host)
-                
-    def get_message(self):
-        if self.watcher.pendingDatagramSize() != -1:
-            dg = self.watcher.receiveDatagram(self.watcher.pendingDatagramSize())
-
-            address = dg.senderAddress().toString()
-            port = dg.senderPort()
-
-            # reject our own datagrams
-            if address == get_ip():
-                return
-
-            msg = bytes(dg.data()).decode()
-
-            self.log.debug(f'RX: [{address}:{port}] {msg}')
-
-            if address not in self.hosts:
-                self.hosts[address] = Host(address, msg)
-                self.log.info(f'host found {self.hosts[address]}')
-                self.host_found.emit(self.hosts[address])
-
-            if address in self.hosts:
-                if not self.hosts[address].active:
-                    self.log.info(f'host found {self.hosts[address]}')
-                    self.host_found.emit(self.hosts[address])
-
-                self.hosts[address].update()
