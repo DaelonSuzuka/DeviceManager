@@ -6,6 +6,7 @@ import json
 from urllib.parse import urlparse
 import qtawesome as qta
 from command_palette import CommandPalette, Command
+import time
 
 
 import socket
@@ -216,8 +217,7 @@ class DeviceServer(QObject):
 
         self.commands = []
 
-        self.beacon = DiscoveryBeacon(self)
-        self.watcher = DiscoveryWatcher(self)
+        self.discovery = DiscoveryService(self)
 
         self.server = QWebSocketServer('server-name', QWebSocketServer.NonSecureMode)
         self.client = None
@@ -291,54 +291,77 @@ class DeviceServer(QObject):
             self.send_later(json.dumps({"device_removed":description}))
 
 
-discovery_port = 7755
+class Host:
+    def __init__(self, address, timeout=10):
+        self.active = True
+        self.address = address
+        self.update()
+
+        self.timeout = timeout
+
+    def update(self):
+        self.active = True
+        self.last_message_time = time.time()
+
+    def check_timeout(self):
+        if (time.time() - self.last_message_time) > self.timeout:
+            self.active = False
+        return self.active
 
 
-class DiscoveryBeacon(QObject):
-    def __init__(self, parent=None):
+class DiscoveryService(QObject):
+    host_found = Signal(str)
+    host_lost = Signal(str)
+
+    def __init__(self, parent=None, port=7755):
         super().__init__(parent=parent)
+        self.log = logging.getLogger(__name__ + '.discovery')
+        self.port = port
 
         self.hostname = socket.gethostname()
 
         self.beacon = QUdpSocket(self)
-        self.beacon.bind(QHostAddress(get_ip()), discovery_port, mode=QAbstractSocket.ShareAddress)
-
-        self.update_timer = QTimer()
-        self.update_timer.timeout.connect(self.send_beacon)
-        self.update_timer.start(5000)
-
-    def send_beacon(self):
-        data = QByteArray(f'{self.hostname}'.encode())
-        self.beacon.writeDatagram(data, QHostAddress.Broadcast, discovery_port)
-
-
-class DiscoveryWatcher(QObject):
-    def __init__(self, parent=None):
-        super().__init__(parent=parent)
+        self.beacon.bind(QHostAddress(get_ip()), self.port, mode=QAbstractSocket.ShareAddress)
 
         self.watcher = QUdpSocket(self)
-        self.watcher.bind(QHostAddress('0.0.0.0'), discovery_port, mode=QAbstractSocket.ShareAddress)
+        self.watcher.bind(QHostAddress('0.0.0.0'), self.port, mode=QAbstractSocket.ShareAddress)
         self.watcher.readyRead.connect(self.get_message)
 
         self.known_hosts = {}
 
+        self.update_timer = QTimer()
+        self.update_timer.timeout.connect(self.update)
+        self.update_timer.start(5000)
+        
+        self.update()
+
+        self.log.info(f'starting discovery service')
+
+    def update(self):
+        data = QByteArray(f'{self.hostname}'.encode())
+        self.beacon.writeDatagram(data, QHostAddress.Broadcast, self.port)
+
+        for _, host in self.known_hosts.items():
+            if host.active and not host.check_timeout():
+                self.log.info(f'host lost ({host.address})')
+                self.host_lost.emit(host.address)
+                
     def get_message(self):
         if self.watcher.pendingDatagramSize() != -1:
             dg = self.watcher.receiveDatagram(self.watcher.pendingDatagramSize())
 
-            if dg.senderAddress().toString() == get_ip():
+            address = dg.senderAddress().toString() 
+            if address == get_ip():
                 return
 
-            print(f'[{dg.senderAddress().toString()}:{dg.senderPort()}] {dg.data()}')
+            if address not in self.known_hosts:
+                self.known_hosts[address] = Host(address)
+                self.log.info(f'host found ({address})')
+                self.host_found.emit(address)
 
-            # if datagram.senderPort() != discovery_port:
-            #     return
+            if address in self.known_hosts:
+                if not self.known_hosts[address].active:
+                    self.log.info(f'host found ({address})')
+                    self.host_found.emit(address)
 
-            # data, addr, port = self.watcher.readDatagram(self.watcher.pendingDatagramSize())
-            # address = addr.toString()
-
-            # if address != get_ip():
-            #     print(f'{address}:{port} {data}')
-
-            # if address not in self.known_hosts:
-            #     self.known_hosts[address] = data
+                self.known_hosts[address].update()
