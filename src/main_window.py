@@ -111,6 +111,7 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         self.dm.close()
+        self.discovery.close()
 
         for app in self.apps:
             app.close()

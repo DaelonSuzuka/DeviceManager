@@ -11,14 +11,14 @@ class Host:
         host_data = json.loads(beacon_message)
 
         self.hostname = host_data['hostname']
-        self.judi_control_port = host_data['judi_remote_port']
+        self.judi_remote_port = host_data['judi_remote_port']
         self.address = address
         self.update()
 
         self.timeout = timeout
 
     def __repr__(self):
-        return f'<{self.hostname}@{self.address}:{self.judi_control_port}>'
+        return f'<{self.hostname}@{self.address}:{self.judi_remote_port}>'
 
     def update(self):
         self.active = True
@@ -69,6 +69,11 @@ class DiscoveryService(QObject):
         self.log.info(f'stopping discovery service')
         self.beacon_timer.stop()
         self.watcher.readyRead.disconnect(self.get_message)
+
+    def close(self):
+        self.stop()
+        self.beacon.abort()
+        self.watcher.abort()
 
     def update(self):
         self.beacon.writeDatagram(self.beacon_message, QHostAddress.Broadcast, self.port)
