@@ -292,12 +292,18 @@ class DeviceServer(QObject):
 
 
 class Host:
-    def __init__(self, address, timeout=10):
-        self.active = True
+    def __init__(self, address, beacon_message, timeout=10):
+        host_data = json.loads(beacon_message)
+
+        self.hostname = host_data['hostname']
+        self.judi_control_port = host_data['judi_remote_port']
         self.address = address
         self.update()
 
         self.timeout = timeout
+
+    def __repr__(self):
+        return f'<{self.hostname}@{self.address}:{self.judi_control_port}>'
 
     def update(self):
         self.active = True
@@ -310,15 +316,16 @@ class Host:
 
 
 class DiscoveryService(QObject):
-    host_found = Signal(str)
-    host_lost = Signal(str)
+    host_found = Signal(Host)
+    host_lost = Signal(Host)
 
-    def __init__(self, parent=None, port=7755):
+    def __init__(self, parent=None, beacon_port=7755, judi_port=43000):
         super().__init__(parent=parent)
         self.log = logging.getLogger(__name__ + '.discovery')
-        self.port = port
-
+        
+        self.port = beacon_port
         self.hostname = socket.gethostname()
+        self.hosts = {}
 
         self.beacon = QUdpSocket(self)
         self.beacon.bind(QHostAddress(get_ip()), self.port, mode=QAbstractSocket.ShareAddress)
@@ -327,41 +334,52 @@ class DiscoveryService(QObject):
         self.watcher.bind(QHostAddress('0.0.0.0'), self.port, mode=QAbstractSocket.ShareAddress)
         self.watcher.readyRead.connect(self.get_message)
 
-        self.known_hosts = {}
-
-        self.update_timer = QTimer()
-        self.update_timer.timeout.connect(self.update)
-        self.update_timer.start(5000)
+        self.beacon_timer = QTimer()
+        self.beacon_timer.timeout.connect(self.update)
+        self.beacon_timer.start(5000)
         
-        self.update()
+        msg = '{"hostname":"%s","judi_remote_port":"%s"}' % (self.hostname, str(judi_port))
+        self.beacon_message = QByteArray(msg.encode())
 
+        self.update()
         self.log.info(f'starting discovery service')
 
-    def update(self):
-        data = QByteArray(f'{self.hostname}'.encode())
-        self.beacon.writeDatagram(data, QHostAddress.Broadcast, self.port)
+        self.host_found.connect(lambda h: print(h))
 
-        for _, host in self.known_hosts.items():
+    def close(self):
+        self.beacon_timer.stop()
+
+    def update(self):
+        self.beacon.writeDatagram(self.beacon_message, QHostAddress.Broadcast, self.port)
+
+        for _, host in self.hosts.items():
             if host.active and not host.check_timeout():
-                self.log.info(f'host lost ({host.address})')
-                self.host_lost.emit(host.address)
+                self.log.info(f'host lost {host}')
+                self.host_lost.emit(host)
                 
     def get_message(self):
         if self.watcher.pendingDatagramSize() != -1:
             dg = self.watcher.receiveDatagram(self.watcher.pendingDatagramSize())
 
-            address = dg.senderAddress().toString() 
+            address = dg.senderAddress().toString()
+            port = dg.senderPort()
+
+            # reject our own datagrams
             if address == get_ip():
                 return
 
-            if address not in self.known_hosts:
-                self.known_hosts[address] = Host(address)
-                self.log.info(f'host found ({address})')
-                self.host_found.emit(address)
+            msg = bytes(dg.data()).decode()
 
-            if address in self.known_hosts:
-                if not self.known_hosts[address].active:
-                    self.log.info(f'host found ({address})')
-                    self.host_found.emit(address)
+            self.log.debug(f'RX: [{address}:{port}] {msg}')
 
-                self.known_hosts[address].update()
+            if address not in self.hosts:
+                self.hosts[address] = Host(address, msg)
+                self.log.info(f'host found {self.hosts[address]}')
+                self.host_found.emit(self.hosts[address])
+
+            if address in self.hosts:
+                if not self.hosts[address].active:
+                    self.log.info(f'host found {self.hosts[address]}')
+                    self.host_found.emit(self.hosts[address])
+
+                self.hosts[address].update()
