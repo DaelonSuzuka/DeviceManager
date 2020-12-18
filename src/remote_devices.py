@@ -204,8 +204,6 @@ class DeviceServer(QObject):
 
         self.commands = []
 
-        self.discovery = DiscoveryService(self)
-
         self.server = QWebSocketServer('server-name', QWebSocketServer.NonSecureMode)
         self.client = None
         self.sockets = {}
@@ -276,27 +274,3 @@ class DeviceServer(QObject):
 
         if self.client:
             self.send_later(json.dumps({"device_removed":description}))
-
-
-class Host:
-    def __init__(self, address, beacon_message, timeout=10):
-        host_data = json.loads(beacon_message)
-
-        self.hostname = host_data['hostname']
-        self.judi_control_port = host_data['judi_remote_port']
-        self.address = address
-        self.update()
-
-        self.timeout = timeout
-
-    def __repr__(self):
-        return f'<{self.hostname}@{self.address}:{self.judi_control_port}>'
-
-    def update(self):
-        self.active = True
-        self.last_message_time = time.time()
-
-    def check_timeout(self):
-        if (time.time() - self.last_message_time) > self.timeout:
-            self.active = False
-        return self.active

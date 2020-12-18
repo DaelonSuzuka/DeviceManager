@@ -7,6 +7,7 @@ from remote_devices import DeviceClient, DeviceServer, RemoteStatusWidget
 from command_palette import CommandPalette, Command
 from device_controls import DeviceControlsDockWidget
 from log_monitor import LogMonitorDockWidget
+from networking import DiscoveryService
 
 from plugins.apps import *
 
@@ -27,6 +28,8 @@ class MainWindow(QMainWindow):
         self.client = DeviceClient(self)
         self.remote_widget = RemoteStatusWidget(self, client=self.client, server=self.server)
         self.device_controls = DeviceControlsDockWidget(self)
+
+        self.discovery = DiscoveryService(self)
 
         self.setContentsMargins(QMargins(3, 3, 3, 0))
 

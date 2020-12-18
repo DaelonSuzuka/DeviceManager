@@ -7,7 +7,7 @@ import socket
 
 
 class Host:
-    def __init__(self, address, beacon_message, timeout=10):
+    def __init__(self, address, beacon_message, timeout=30):
         host_data = json.loads(beacon_message)
 
         self.hostname = host_data['hostname']
@@ -34,11 +34,14 @@ class DiscoveryService(QObject):
     host_found = Signal(Host)
     host_lost = Signal(Host)
 
-    def __init__(self, parent=None, beacon_port=7755, judi_port=43000):
+    def __init__(self, parent=None, port=7755, speed=5000, timeout=30, judi_port=43000):
         super().__init__(parent=parent)
-        self.log = logging.getLogger(__name__ + '.discovery')
+        self.log = logging.getLogger(__name__)
         
-        self.port = beacon_port
+        self.beacon_speed = speed
+        self.timeout = timeout
+
+        self.port = port
         self.hostname = socket.gethostname()
         self.hosts = {}
 
@@ -59,7 +62,7 @@ class DiscoveryService(QObject):
     def start(self):
         self.log.info(f'starting discovery service')
         self.update()
-        self.beacon_timer.start(5000)
+        self.beacon_timer.start(self.beacon_speed)
         self.watcher.readyRead.connect(self.get_message)
 
     def stop(self):
@@ -88,10 +91,10 @@ class DiscoveryService(QObject):
 
             msg = bytes(dg.data()).decode()
 
-            self.log.debug(f'RX: [{address}:{port}] {msg}')
+            # self.log.debug(f'RX: [{address}:{port}] {msg}')
 
             if address not in self.hosts:
-                self.hosts[address] = Host(address, msg)
+                self.hosts[address] = Host(address, msg, timeout=self.timeout)
                 self.log.info(f'host found {self.hosts[address]}')
                 self.host_found.emit(self.hosts[address])
 
