@@ -14,7 +14,11 @@ class NetworkStatusWidget(QWidget):
 
         self.server = QApplication.instance().server
 
-            
+        self.hosts = []
+        disc = QApplication.instance().discovery
+        disc.host_found.connect(lambda h: self.hosts.append(h))
+        disc.host_lost.connect(lambda h: self.hosts.remove(h))
+
         self.commands = [
             Command('Device Client: Connect to', triggered=self.open_address_prompt),
         ]
@@ -49,10 +53,13 @@ class NetworkStatusWidget(QWidget):
         menu.addAction(connect_to)
         menu.addAction(disconnect)
         
-        if self.client:
-            menu.addSeparator()
-            for address in self.client.previous_connections:
-                menu.addAction(QAction(address, self, triggered=lambda a=address: self.connect_client(a)))
+        menu.addSeparator()
+        for host in self.hosts:
+            menu.addAction(QAction(host.hostname, self, triggered=lambda a=host.address: self.connect_client(a)))
+
+        # menu.addSeparator()
+        # for address in self.client.previous_connections:
+        #     menu.addAction(QAction(address, self, triggered=lambda a=address: self.connect_client(a)))
         
         menu.addSeparator()
         menu.addAction(startup)
