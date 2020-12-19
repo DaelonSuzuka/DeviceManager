@@ -75,10 +75,9 @@ class NetworkStatusWidget(QWidget):
         self.icon.setPixmap(self.icon_off)
 
     def connect_client(self, address=None):
-        if self.client:
-            self.status.setText("Connecting...")
-            self.client.disconnect_from_remote()
-            self.client.connect_to_remote(address)
+        self.status.setText("Connecting...")
+        self.client.disconnect_from_remote()
+        self.client.connect_to_remote(address)
 
     def disconnect_client(self):
         self.client.disconnect_from_remote()
