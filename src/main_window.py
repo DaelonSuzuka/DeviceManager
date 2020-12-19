@@ -1,13 +1,10 @@
 from qt import *
 import qtawesome as qta
 
-from device_manager import DeviceManager
-from remote_devices import DeviceClient, DeviceServer, RemoteStatusWidget
-
+from networking import NetworkStatusWidget
 from command_palette import CommandPalette, Command
 from device_controls import DeviceControlsDockWidget
 from log_monitor import LogMonitorDockWidget
-from networking import DiscoveryService
 
 from plugins.apps import *
 
@@ -22,14 +19,9 @@ class MainWindow(QMainWindow):
 
         # init first so it can install on the root logger
         self.log_monitor = LogMonitorDockWidget(self)
-
-        self.dm = DeviceManager(self)
-        self.server = DeviceServer(self)
-        self.client = DeviceClient(self)
-        self.remote_widget = RemoteStatusWidget(self, client=self.client, server=self.server)
+        
+        self.network_status = NetworkStatusWidget(self)
         self.device_controls = DeviceControlsDockWidget(self)
-
-        self.discovery = DiscoveryService(self)
 
         self.setContentsMargins(QMargins(3, 3, 3, 0))
 
@@ -107,12 +99,9 @@ class MainWindow(QMainWindow):
         # spacer widget
         self.status.addWidget(QWidget(sizePolicy=QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)))
         
-        self.status.addWidget(self.remote_widget)
+        self.status.addWidget(self.network_status)
 
     def closeEvent(self, event):
-        self.dm.close()
-        self.discovery.close()
-
         for app in self.apps:
             app.close()
         

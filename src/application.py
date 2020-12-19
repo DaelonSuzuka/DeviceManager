@@ -4,6 +4,10 @@ from style import darkPalette
 import qtawesome as qta
 import logging
 
+from device_manager import DeviceManager
+from networking import DiscoveryService
+from networking import DeviceClient, DeviceServer
+
 
 class Application(QApplication):
     t = QElapsedTimer()
@@ -13,22 +17,31 @@ class Application(QApplication):
         # self.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 
         super().__init__()
-        
-        # org information
+
+        self.init_app_info()
+        self.init_app_style()
+
+        # instantiate application systems
+        self.device_manager = DeviceManager(self)
+        self.discovery = DiscoveryService(self)
+        self.server = DeviceServer(self)
+        self.client = DeviceClient(self)
+
+        # create window
+        self.window = MainWindow()
+        self.window.show()
+
+    def init_app_info(self):
         self.setOrganizationName("LDG Electronics")
         self.setOrganizationDomain("LDG Electronics")
         self.setApplicationName("Device Manager")
         self.setApplicationVersion("v0.1")
 
-        self.default_palette = QGuiApplication.palette()
+    def init_app_style(self):
         self.setStyle('Fusion')
         self.setPalette(darkPalette)
         self.setWindowIcon(qta.icon('mdi.card-text-outline'))
-        
         set_font_options(self, {'setPointSize': 10})
-
-        self.window = MainWindow()
-        self.window.show()
 
     # def notify(self, receiver, event):
     #     self.t.start()
