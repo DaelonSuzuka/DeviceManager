@@ -2,6 +2,7 @@ import logging
 from qt import *
 from collections import deque
 import json
+import time
 import qtawesome as qta
 from style import colors
 from command_palette import CommandPalette, Command
@@ -24,18 +25,88 @@ level_map = {
 }
 
 
+initial_sql = """CREATE TABLE IF NOT EXISTS log(
+                    TimeStamp TEXT,
+                    Source TEXT,
+                    LogLevel INT,
+                    LogLevelName TEXT,
+                    Message TEXT,
+                    Args TEXT,
+                    Module TEXT,
+                    FuncName TEXT,
+                    LineNo INT,
+                    Exception TEXT,
+                    Process INT,
+                    Thread TEXT,
+                    ThreadName TEXT
+               )"""
+
+insertion_sql = """INSERT INTO log(
+                    TimeStamp,
+                    Source,
+                    LogLevel,
+                    LogLevelName,
+                    Message,
+                    Args,
+                    Module,
+                    FuncName,
+                    LineNo,
+                    Exception,
+                    Process,
+                    Thread,
+                    ThreadName
+               )
+               VALUES (
+                    '%(dbtime)s',
+                    '%(name)s',
+                    %(levelno)d,
+                    '%(levelname)s',
+                    '%(msg)s',
+                    '%(args)s',
+                    '%(module)s',
+                    '%(funcName)s',
+                    %(lineno)d,
+                    '%(exc_text)s',
+                    %(process)d,
+                    '%(thread)s',
+                    '%(threadName)s'
+               );
+               """
+
+
 class LogMonitorHandler(logging.Handler):
     """A logging.Handler subclass that redirects log records to the LogMonitor
     """
     def __init__(self):
         super().__init__()
-        self.forward_record = None
+        self.record_added = None
         self.formatter = logging.Formatter("%(asctime)s")
+        
+        db = QSqlDatabase.addDatabase('QSQLITE')
+        db.setDatabaseName('log.db')
+        db.open()
+        db.exec_(initial_sql)
+
+    def format_time(self, record):
+        record.dbtime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(record.created))
 
     def emit(self, record):
         self.format(record)
-        if self.forward_record != None:
-            self.forward_record(record)
+        self.format_time(record)
+        
+        if record.exc_info:  # for exceptions
+            record.exc_text = logging._defaultFormatter.formatException(record.exc_info)
+        else:
+            record.exc_text = ""
+
+        # Insert the log record
+        sql = insertion_sql % record.__dict__
+        
+        db = QSqlDatabase.database()
+        db.exec_(sql)
+
+        if self.record_added != None:
+            self.record_added()
 
     def write(self, m):
         pass
@@ -353,6 +424,7 @@ class FilterControls(QStackedWidget):
             'global'
         ],
         'text': '',
+        'current_session_only': True,
     }
 
     default_settings = {
@@ -462,12 +534,7 @@ class FilterControls(QStackedWidget):
         self.current_profile['loggers'] = loggers
         self.current_profile['visible_loggers'] = visible_loggers
 
-        result = {
-            'text': text,
-            'loggers': loggers,
-            'visible_loggers': visible_loggers
-        }
-        self.filter_updated.emit(result)
+        self.filter_updated.emit(self.current_profile)
         self.save_settings()
 
 
@@ -545,101 +612,53 @@ class TableHeader(QObject):
         return len(self.visible_columns)
 
 
-class RecordModel(QAbstractTableModel):
-    def __init__(self, header, max_capacity=0):
-        super().__init__()
-        self.max_capacity = max_capacity
-        self.table_header = header
-        self.records = deque()
-        self.titles = ['logger', 'level', 'message']
+session_start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
-    def headerData(self, section, orientation=Qt.Horizontal, role=Qt.DisplayRole):
-        result = None
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            result = self.table_header[section].title
-        return result
 
-    def columnCount(self, index):
-        return self.table_header.column_count
+class Profile:    
+    def __init__(self):
+        self.columns = [
+            Column("TimeStamp", "Time", width=170, visible=True),
+            Column("Source", "Source", width=100, visible=True),
+            Column("LogLevel", "Level", width=100, visible=False),
+            Column("LogLevelName", "LevelName", width=80, visible=True),
+            Column("Message", "Message", width=100, visible=True),
+            Column("Args", "Args", width=100, visible=False),
+            Column("Module", "Module", width=100, visible=False),
+            Column("FuncName", "Func", width=100, visible=False),
+            Column("LineNo", "Line", width=100, visible=False),
+            Column("Exception", "Exception", width=100, visible=False),
+            Column("Process", "Process", width=100, visible=False),
+            Column("Thread", "Thread", width=100, visible=False),
+            Column("ThreadName" "ThreadName",width=100, visible=False),
+        ]
+        self.filter = {}
+        self.query_limit = 1000
 
-    def rowCount(self, index=INVALID_INDEX):
-        return len(self.records)
-    
-    def data(self, index, role=Qt.DisplayRole):
-        if not index.isValid():
-            return None
-
-        record = self.records[index.row()]
-        column_name = self.table_header[index.column()].name
+    def get_query_string(self):
+        query = "SELECT "
+        query += ', '.join([f'"{col.name}"' for col in self.columns if col.visible])
+        query += " FROM 'log'"
         
-        if role == Qt.DisplayRole:
-            return getattr(record, column_name, None)
-        elif role == Qt.ForegroundRole:
-            if self.table_header[index.column()].name == 'levelname':
-                return QColor(log_levels[record.levelname])
-            return None
+        # print(self.filter)
+
+        where = []
+        if self.filter['current_session_only']:
+            where.append(f"TimeStamp > '{session_start_time}'")
+
+        if self.filter['text']:
+            where.append(f"Message LIKE '%{self.filter['text']}%'")
         
-        elif role == Qt.SizeHintRole:
-            return QSize(50, 1)
+        if self.filter['visible_loggers']:
+            sources = [f'"{s}"' for s in self.filter['visible_loggers']]
+            where.append(f"Source IN ({', '.join(sources)})")
 
-    def add_record(self, record, internal=False):
-        if not internal:
-            self.trim_if_needed()
-        row = len(self.records)
-
-        self.beginInsertRows(INVALID_INDEX, row, row)
-        self.records.append(record)
-        self.endInsertRows()
-
-    def trim_if_needed(self):
-        if self.max_capacity == 0 or len(self.records) == 0:
-            return
-        diff = len(self.records) - self.max_capacity
-        if len(self.records) >= self.max_capacity:
-            self.beginRemoveRows(INVALID_INDEX, 0, diff)
-            while len(self.records) >= self.max_capacity:
-                self.records.popleft()
-            self.endRemoveRows()
-
-    def get_record(self, pos):
-        if type(pos) is QModelIndex:
-            pos = pos.row()
-        return self.records[pos]
-
-
-class RecordFilter(QSortFilterProxyModel):
-    def __init__(self, source_model=None):
-        super().__init__()
-        if source_model:
-            self.setSourceModel(source_model)
-
-        self.logger_filter = {}
-        self.visible_loggers = []
-        self.text_filter = ''
-
-    def filterAcceptsRow(self, sourceRow, sourceParent):
-        record = self.sourceModel().get_record(sourceRow)
-        if 'global' in self.logger_filter:
-            if record.levelname not in self.logger_filter['global']:
-                return False
-
-        if self.logger_filter:
-            if record.name not in self.visible_loggers:
-                return False
-            if record.levelname not in self.logger_filter[record.name]:
-                return False
-
-        if self.text_filter:
-            if self.text_filter not in record.message:
-                return False
-                
-        return True
-
-    def set_filter(self, new_filter):
-        self.text_filter = new_filter['text']
-        self.logger_filter = new_filter['loggers']
-        self.visible_loggers = new_filter['visible_loggers']
-        self.invalidateFilter()
+        if where:
+            query += f' WHERE ' + ' AND '.join(where)
+        
+        query += f" LIMIT {self.query_limit}"
+        # print(query)
+        return query
 
 
 class LogTableView(QTableView):
@@ -654,18 +673,33 @@ class LogTableView(QTableView):
         header.setContextMenuPolicy(Qt.CustomContextMenu)
         header.customContextMenuRequested.connect(self.header_menu)
 
-        self.table_header = TableHeader(self.horizontalHeader())
-        self.record_model = RecordModel(self.table_header)
+        self.profile = Profile()
 
-        self.filter_model = RecordFilter(source_model=self.record_model)
-        self.setModel(self.filter_model)
+        self.db_model = QSqlQueryModel(self)
 
-        self.set_columns_sizes()
+        self.setModel(self.db_model)
+        self.need_to_refresh = False
+        
+        self.scan_timer = QTimer()
+        self.scan_timer.timeout.connect(self.attempt_refresh)
+        self.scan_timer.start(250)
+    
+    def attempt_refresh(self):
+        if self.need_to_refresh:
+            self.refresh()
+            self.need_to_refresh = False
+
+    def refresh(self):
+        self.db_model.setQuery(self.profile.get_query_string())
+        while self.db_model.canFetchMore():
+            self.db_model.fetchMore()
+
+        self.scrollToBottom()
 
     def header_menu(self):
         menu = QMenu()
 
-        for column in self.table_header.columns:
+        for column in self.profile.columns:
             action = QAction(column.title, menu, checkable=True)
             action.setChecked(column.visible)
             action.triggered.connect(column.set_visibility)
@@ -673,39 +707,42 @@ class LogTableView(QTableView):
 
         menu.exec_(QCursor.pos())
 
-        self.table_header.regen_visible()
-        self.record_model.modelReset.emit()
-        self.set_columns_sizes()
+        # self.table_header.regen_visible()
+        # self.record_model.modelReset.emit()
+        # self.set_columns_sizes()
+        self.refresh()
 
-    def add_record(self, record):
-        pos = self.verticalScrollBar().value()
-        max = self.verticalScrollBar().maximum()
+    def db_changed(self):
+        self.need_to_refresh = True
 
-        self.record_model.add_record(record)
-
-        if pos == max:
-            self.scrollToBottom()
-
-    def set_columns_sizes(self):
-        cols = self.table_header.visible_columns
-        for i, col in enumerate(cols):
-            self.horizontalHeader().resizeSection(i, col.width)
+    def set_filter(self, filter):
+        self.profile.filter = filter
+        self.refresh()
 
 
 class LogMonitorWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
+        self.tab_name = "Log Monitor"
 
         self.commands = [
             Command("Log Monitor: Switch profile", triggered=self.open_profile_prompt),
         ]
 
-        log_handler.forward_record = self.add_record
-
         self.log_table = LogTableView()
+        log_handler.record_added = self.log_table.db_changed
+
         self.filter_controls = FilterControls()
-        self.filter_controls.filter_updated.connect(self.log_table.filter_model.set_filter)
+        self.filter_controls.filter_updated.connect(self.log_table.set_filter)
         self.filter_controls.update_filter()
+
+        # temporary
+        db = QSqlDatabase.database()
+        query = db.exec_("SELECT Source FROM 'log'")
+        loggers = set()
+        while query.next():
+            loggers.add(query.value(0))
+        self.filter_controls.logger_filter.register_loggers(loggers)
         
         hbox = QHBoxLayout(self)
 
@@ -729,10 +766,6 @@ class LogMonitorWidget(QWidget):
             cb=lambda result: print(result),
             completer=self.completer
         ))
-
-    def add_record(self, record):
-        self.log_table.add_record(record)
-        self.filter_controls.logger_filter.register_logger(record.name)
             
 
 class LogMonitorDockWidget(QDockWidget):
