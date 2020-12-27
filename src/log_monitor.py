@@ -639,8 +639,6 @@ class Profile:
         query = "SELECT "
         query += ', '.join([f'"{col.name}"' for col in self.columns if col.visible])
         query += " FROM 'log'"
-        
-        # print(self.filter)
 
         where = []
         if self.filter['current_session_only']:
@@ -650,14 +648,19 @@ class Profile:
             where.append(f"Message LIKE '%{self.filter['text']}%'")
         
         if self.filter['visible_loggers']:
-            sources = [f'"{s}"' for s in self.filter['visible_loggers']]
-            where.append(f"Source IN ({', '.join(sources)})")
+            sources = []
+
+            for logger in self.filter['visible_loggers']:
+                levels = ', '.join([f'"{l}"' for l in self.filter["loggers"][logger]])
+                s = f'(Source = "{logger}" AND LogLevelName IN ({levels}))'
+                sources.append(s)
+            
+            where.append(f"({' OR '.join(sources)})")
 
         if where:
             query += f' WHERE ' + ' AND '.join(where)
         
         query += f" LIMIT {self.query_limit}"
-        # print(query)
         return query
 
 
