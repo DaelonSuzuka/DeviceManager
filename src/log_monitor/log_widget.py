@@ -1,7 +1,7 @@
 from qt import *
 from .log_table_view import LogTableView
 from .log_filter_controls import FilterControls
-from .handler import log_handler
+from .log_database_handler import DatabaseHandler
 from command_palette import CommandPalette, Command
 
 
@@ -15,7 +15,7 @@ class LogMonitorWidget(QWidget):
         ]
 
         self.log_table = LogTableView()
-        log_handler.record_added = self.log_table.db_changed
+        DatabaseHandler.register_callback(self.log_table.db_changed)
 
         self.filter_controls = FilterControls()
         self.filter_controls.filter_updated.connect(self.log_table.set_filter)
