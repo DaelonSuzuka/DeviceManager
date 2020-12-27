@@ -329,6 +329,7 @@ class FilterControls(QStackedWidget):
         ],
         'text': '',
         'current_session_only': True,
+        'query_limit': 1000,
     }
 
     default_settings = {

@@ -15,7 +15,7 @@ class LogMonitorWidget(QWidget):
         ]
 
         self.log_table = LogTableView()
-        DatabaseHandler.register_callback(self.log_table.db_changed)
+        DatabaseHandler.register_callback(self.log_table.schedule_refresh)
 
         self.filter_controls = FilterControls()
         self.filter_controls.filter_updated.connect(self.log_table.set_filter)
