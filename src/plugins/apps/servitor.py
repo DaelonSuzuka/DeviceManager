@@ -27,6 +27,7 @@ class RadioControls(QWidget):
 
         self.timeout = TimeoutBar()
         self.key = RadioKeyButton()
+        self.link = RadioInterfaceLinkButton()
 
         self.time.toggled.connect(self.timeout.set_suppressed)
         self.key.toggled.connect(self.timeout.set_running)
@@ -44,7 +45,7 @@ class RadioControls(QWidget):
             with layout.vbox(2, margins=(0, 0, 0, 0)) as layout:
                 with layout.hbox(1, margins=(0, 0, 0, 0)) as layout:
                     layout.add(self.time)
-                    layout.add(QPushButton(disabled=True))
+                    layout.add(self.link)
                     layout.add(self.mode)
 
                 layout.add(self.key, 5)
