@@ -396,8 +396,9 @@ class FilterControls(QStackedWidget):
         # controls layout
         grid = CGridLayout(self.widget(0), margins=(0, 0, 0, 0))
         grid.add(self.profiles, 0, 0, 1, 5)
-        grid.add(self.text_filter, 1, 0, 1, 5)
-        grid.add(self.logger_filter, 2, 0, 1, 5)
+        grid.add(QCheckBox(self), 1, 0, 1, 5)
+        grid.add(self.text_filter, 2, 0, 1, 5)
+        grid.add(self.logger_filter, 3, 0, 1, 5)
 
         # editor layout
         grid = CGridLayout(self.widget(1), margins=(0, 0, 0, 0))
