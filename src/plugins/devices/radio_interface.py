@@ -3,23 +3,15 @@ from devices import SerialDevice, JudiStandardMixin
 
 
 class Signals(QObject):
-    input_high = Signal()
-    input_low = Signal()
-    output_high = Signal()
-    output_low = Signal()
+    input_changed = Signal(str)
+    output_changed = Signal(str)
 
     @property
     def message_tree(self):
         return {
             "update": {
-                "input": {
-                    "high": self.input_high.emit,
-                    "low": self.input_low.emit,
-                },
-                "output": {
-                    "high": self.input_high.emit,
-                    "low": self.input_low.emit,
-                },
+                "input": self.input_changed.emit,
+                "output": self.output_changed.emit,
             }
         }
 

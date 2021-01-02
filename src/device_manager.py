@@ -196,10 +196,12 @@ class DeviceManager(QObject):
                         self.ports.append(p)
             self.first_scan = False
 
-        for port in [p for p in new_ports if p not in self.ports]:            
-            self.log.debug(f"New device connected at ({port}), enumerating...")
-            device = UnknownDevice(port=port)
-            self.new_devices.append(device)
+        for port in [p for p in new_ports if p not in self.ports]:
+            # dumb work around for program crashing on my desktop
+            if port not in ['COM1', 'COM3']:
+                self.log.debug(f"New device connected at ({port}), enumerating...")
+                device = UnknownDevice(port=port)
+                self.new_devices.append(device)
 
         for port in [p for p in self.ports if p not in new_ports]:            
             self.log.debug(f"Existing device removed from ({port}), cleaning up...")
