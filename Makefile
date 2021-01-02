@@ -16,10 +16,13 @@ run: venv
 debug: venv
 	$(VENV_PYTHON) -m pdb src/main.py
 
-# build an executable using pyinstaller
+# build an executable using cx_Freeze
 build: venv
-	$(VENV_PYTHON) -m auto_py_to_exe -c build.json
+	$(VENV_PYTHON) setup.py build_exe
 
+# build a windows installer using cx_Freeze
+installer: venv
+	$(VENV_PYTHON) setup.py bdist_msi
 # remove pyinstaller's output
 clean:
 	echo cleaning build 

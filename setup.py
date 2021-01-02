@@ -1,7 +1,5 @@
 import sys
 import cx_Freeze
-from pathlib import Path
-
 
 base = None
 if (sys.platform == "win32"):
@@ -27,7 +25,24 @@ cx_Freeze.setup(
             'excludes': [
                 'tkinter'
             ],
-            "include_files": [f.as_posix() for f in Path('src').rglob('*.py')],
+            "include_files": [
+                'src/application.py',
+                'src/bundles.py',
+                'src/command_palette.py',
+                'src/device_controls.py',
+                'src/device_manager.py',
+                'src/main.py',
+                'src/main_window.py',
+                'src/style.py',
+                'src/serial_monitor.py',
+                "src/devices",
+                "src/log_monitor",
+                "src/networking",
+                "src/plugins/apps",
+                "src/plugins/devices",
+                "src/plugins/widgets",
+                "src/qt",
+            ],
             "includes": [
                 "dataclasses",
             ]
