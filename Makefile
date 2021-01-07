@@ -16,13 +16,18 @@ run: venv
 debug: venv
 	$(VENV_PYTHON) -m pdb src/main.py
 
-# build an executable using cx_Freeze
-build: venv
-	$(VENV_PYTHON) setup.py build_exe
+# build an one folder bundle 
+bundle: venv
+	$(VENV_PYINSTALLER) -y bundle.spec
 
-# build a windows installer using cx_Freeze
+# build a single file executable
+exe: venv
+	$(VENV_PYINSTALLER) -y onefile.spec
+
+# build an installer with inno
 installer: venv
-	$(VENV_PYTHON) setup.py bdist_msi
+	iscc "installer.iss"
+
 # remove pyinstaller's output
 clean:
 	echo cleaning build 
