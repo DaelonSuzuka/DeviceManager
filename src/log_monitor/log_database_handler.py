@@ -59,12 +59,12 @@ class DatabaseHandler(logging.Handler):
     callbacks = []
 
     """A logging.Handler subclass that redirects outbound records to a local sqlite3 database """
-    def __init__(self):
+    def __init__(self, database_name):
         super().__init__()
         self.formatter = logging.Formatter("%(asctime)s")
         
         db = QSqlDatabase.addDatabase('QSQLITE')
-        db.setDatabaseName('log.db')
+        db.setDatabaseName(database_name)
         db.open()
         db.exec_(initial_sql)
 

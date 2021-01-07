@@ -8,7 +8,7 @@ import log_monitor
 
 def run():
     # configure logging
-    log_monitor.install()
+    log_monitor.install('log.db')
     
     # Create the Qt Application
     app = Application()
