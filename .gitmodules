@@ -1,0 +1,3 @@
+[submodule "src/qt"]
+	path = src/qt
+	url = git@github.com:DaelonSuzuka/qtenv.git
