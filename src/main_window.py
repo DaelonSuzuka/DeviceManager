@@ -9,13 +9,10 @@ from log_monitor import LogMonitorWidget
 from plugins.apps import *
 
 
-class MainWindow(QMainWindow):
+class MainWindow(BaseMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        self.setObjectName("MainWindow")
         self.setWindowTitle("LDG Device Manager")
-
-        self.load_settings()
 
         # init first so it can install on the root logger
         self.log_monitor = LogMonitorWidget(self)
@@ -54,28 +51,17 @@ class MainWindow(QMainWindow):
         self.init_statusbar()
     
     def init_toolbar(self):
-        self.tool = QToolBar()
-        self.tool.setObjectName('toolbar')
-        self.tool.setMovable(False)
-        self.tool.setIconSize(QSize(40, 40))
+        self.tool = BaseToolbar(self, 'toolbar', location='left', size=40)
 
         self.tool.addAction(QAction(qta.icon('ei.adjust-alt', color='gray'), '', self.tool))
         self.tool.addAction(QAction(qta.icon('ei.check-empty', color='gray'), '', self.tool))
         self.tool.addAction(QAction(qta.icon('ei.lines', color='gray'), '', self.tool))
         self.tool.addAction(QAction(qta.icon('ei.random', color='gray'), '', self.tool))
 
-        empty = QWidget(self.tool)
-        empty.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding);
-        self.tool.addWidget(empty)
-
-        self.addToolBar(Qt.LeftToolBarArea, self.tool)
+        self.tool.add_spacer()
 
     def init_statusbar(self):
-        self.status = QToolBar()
-        self.status.setObjectName('statusbar')
-        self.status.setMovable(False)
-        self.status.setIconSize(QSize(30, 30))
-        self.addToolBar(Qt.BottomToolBarArea, self.status)
+        self.status = BaseToolbar(self, 'statusbar', location='bottom', size=30)
 
         # settings button
         settings_btn = QToolButton(self.status, icon=qta.icon('fa.gear', color='gray'))
@@ -97,25 +83,12 @@ class MainWindow(QMainWindow):
             statusTip='Exit application',
             triggered=self.close))
         
-        # spacer widget
-        self.status.addWidget(QWidget(sizePolicy=QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)))
-        
+        self.status.add_spacer()
+
         self.status.addWidget(self.network_status)
 
     def closeEvent(self, event):
         for app in self.apps:
             app.close()
-        
-        self.save_settings()
 
         super().closeEvent(event)
-
-    def save_settings(self):
-        QSettings().setValue("window_geometry", self.saveGeometry())
-        QSettings().setValue("window_state", self.saveState())
-
-    def load_settings(self):
-        if QSettings().value("window_geometry") is not None:
-            self.restoreGeometry(QSettings().value("window_geometry"))
-        if QSettings().value("window_state") is not None:
-            self.restoreState(QSettings().value("window_state"))
