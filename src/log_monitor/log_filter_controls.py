@@ -361,6 +361,8 @@ class FilterControls(QStackedWidget):
         self.text_filter.setPlaceholderText('filter by text')
 
         self.logger_filter = LoggerTreeWidget()
+        self.session_checkbox = QCheckBox()
+        self.query_limit = QLineEdit()
 
         # load settings and send filter components to widgets
         self.settings = QSettings().value('log_monitor', self.default_settings)
@@ -378,6 +380,8 @@ class FilterControls(QStackedWidget):
             self.logger_filter.register_logger(logger)
 
         self.logger_filter.set_visible_loggers(self.current_profile['visible_loggers'])
+        self.session_checkbox.setChecked(self.current_profile['current_session_only'])
+        self.query_limit.setText(str(self.current_profile['query_limit']))
 
         # connect signals
         self.logger_filter.filter_updated.connect(self.update_filter)
@@ -386,6 +390,7 @@ class FilterControls(QStackedWidget):
         self.profiles.added.connect(self.add_profile)
         self.profiles.removed.connect(self.remove_profile)
         self.profiles.edit.clicked.connect(lambda: self.setCurrentIndex(1))
+        self.session_checkbox.stateChanged.connect(self.update_filter)
 
         # send the filter to the model
         self.update_filter()
@@ -394,17 +399,25 @@ class FilterControls(QStackedWidget):
         self.addWidget(QWidget())
 
         # controls layout
-        grid = CGridLayout(self.widget(0), margins=(0, 0, 0, 0))
-        grid.add(self.profiles, 0, 0, 1, 5)
-        grid.add(QCheckBox(self), 1, 0, 1, 5)
-        grid.add(self.text_filter, 2, 0, 1, 5)
-        grid.add(self.logger_filter, 3, 0, 1, 5)
+        with CVBoxLayout(self.widget(0), margins=(0, 0, 0, 0)) as layout:
+            layout.add(self.profiles)
+            with layout.hbox() as layout:
+                layout.add(QLabel('Current Session:'))
+                layout.add(self.session_checkbox)
+                layout.add(QLabel(), 1)
+            with layout.hbox() as layout:
+                layout.add(QLabel('Query Limit:'))
+                layout.add(self.query_limit)
+                layout.add(QLabel(), 1)
+            layout.add(self.text_filter)
+            layout.add(self.logger_filter)
 
         # editor layout
-        grid = CGridLayout(self.widget(1), margins=(0, 0, 0, 0))
-        grid.add(QPushButton('X', maximumWidth=20, clicked=lambda: self.setCurrentIndex(0)), 0, 1)
-        grid.setRowStretch(1, 1)
-        grid.setColumnStretch(0, 1)
+        with CVBoxLayout(self.widget(1), margins=(0, 0, 0, 0)) as layout:
+            with layout.hbox() as layout:
+                layout.add(QLabel(), 1)
+                layout.add(QPushButton('X', maximumWidth=20, clicked=lambda: self.setCurrentIndex(0)))
+            layout.add(QLabel(), 1)
 
     def save_settings(self):
         QSettings().setValue('log_monitor', self.settings)
@@ -439,6 +452,8 @@ class FilterControls(QStackedWidget):
         self.current_profile['text'] = text
         self.current_profile['loggers'] = loggers
         self.current_profile['visible_loggers'] = visible_loggers
+        self.current_profile['current_session_only'] = self.session_checkbox.isChecked()
+        self.current_profile['query_limit'] = 1000
 
         self.filter_updated.emit(self.current_profile)
         self.save_settings()
