@@ -21,23 +21,11 @@ class LogMonitorWidget(QWidget):
         self.filter_controls.filter_updated.connect(self.log_table.set_filter)
         self.filter_controls.update_filter()
 
-        # temporary
-        db = QSqlDatabase.database()
-        query = db.exec_("SELECT Source FROM 'log'")
-        loggers = set()
-        while query.next():
-            loggers.add(query.value(0))
-        self.filter_controls.logger_filter.register_loggers(loggers)
-        
-        hbox = QHBoxLayout(self)
+        self.query_existing_loggers()
 
-        splitter = QSplitter(self)
-        hbox.addWidget(splitter)
-        # splitter.setContentsMargins(10, 10, 10, 10)
-        splitter.addWidget(self.filter_controls)
-        splitter.addWidget(self.log_table)
-        splitter.setStretchFactor(0, 1)
-        splitter.setStretchFactor(1, 10)
+        with CPersistentSplitter('log_monitor_splitter', self) as splitter:
+            splitter.add(self.filter_controls, 1)
+            splitter.add(self.log_table, 10)
 
     def open_profile_prompt(self):
         profiles = list(self.filter_controls.settings['profiles'].keys())
@@ -51,7 +39,15 @@ class LogMonitorWidget(QWidget):
             cb=lambda result: print(result),
             completer=self.completer
         ))
-            
+
+    def query_existing_loggers(self):
+        db = QSqlDatabase.database()
+        query = db.exec_("SELECT Source FROM 'log'")
+        loggers = set()
+        while query.next():
+            loggers.add(query.value(0))
+        self.filter_controls.logger_filter.register_loggers(loggers)
+
 
 class LogMonitorDockWidget(QDockWidget):
     def __init__(self, parent=None):
@@ -83,3 +79,39 @@ class LogMonitorDockWidget(QDockWidget):
         action = super().toggleViewAction()
         action.setShortcut('Ctrl+L')
         return action
+
+
+class LogMonitorDropdown(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+        self.setWindowFlags(Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setFocusPolicy(Qt.StrongFocus)
+
+        CHBoxLayout(self).add(LogMonitorWidget(self))
+        
+        self.commands = [
+            Command("Log Monitor: Show log monitor", triggered=self.show, shortcut='Ctrl+L'),
+            Command("Log Monitor: Hide log monitor", triggered=self.hide),
+        ]
+        
+        self.hide()
+
+    def toggleViewAction(self):
+        action = QAction("Toggle Log Monitor", self)
+        action.setShortcut('`')
+        action.triggered.connect(self.toggle_view)
+        return action
+
+    def toggle_view(self):
+        if self.isVisible():
+            self.hide()
+        else:
+            self.center_on_parent()
+            self.show()
+
+
+    def center_on_parent(self):
+        offset = 33
+        r = self.parent().frameGeometry()
+        rect = QRect(r.x(), r.y() + offset, r.width(), r.height() - offset)
+        self.setGeometry(rect)

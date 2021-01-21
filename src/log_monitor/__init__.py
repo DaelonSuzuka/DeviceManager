@@ -1,4 +1,4 @@
-from .log_widget import LogMonitorWidget
+from .log_widget import LogMonitorWidget, LogMonitorDockWidget, LogMonitorDropdown
 
 
 from .log_database_handler import DatabaseHandler
