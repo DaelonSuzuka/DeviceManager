@@ -1,5 +1,5 @@
 from qt import *
-from device_manager import DeviceManager
+from devices import DeviceManager
 from devices import SW4U
 
 

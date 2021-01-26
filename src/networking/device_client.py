@@ -1,7 +1,7 @@
 from qt import *
 from command_palette import Command
 from devices import profiles
-from device_manager import DeviceManager
+from devices import DeviceManager
 import logging
 from urllib.parse import urlparse
 import json

@@ -1,5 +1,5 @@
 from qt import *
-from device_manager import DeviceManager
+from devices import DeviceManager
 from functools import partial
 from.lock_button import LockButton
 

@@ -4,7 +4,7 @@ from style import darkPalette
 import qtawesome as qta
 import logging
 
-from device_manager import DeviceManager
+from devices import DeviceManager
 from networking import DiscoveryService
 from networking import DeviceClient, DeviceServer
 

@@ -1,5 +1,5 @@
 from qt import *
-from device_manager import DeviceManager
+from devices import DeviceManager
 from collections import deque
 from dataclasses import dataclass
 import numpy as np

@@ -3,7 +3,7 @@ import qtawesome as qta
 
 from networking import NetworkStatusWidget
 from command_palette import CommandPalette, Command
-from device_controls import DeviceControlsDockWidget
+from devices import DeviceControlsDockWidget
 from log_monitor import LogMonitorWidget, LogMonitorDropdown
 
 from plugins.apps import *
