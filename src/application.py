@@ -9,7 +9,7 @@ from networking import DiscoveryService
 from networking import DeviceClient, DeviceServer
 
 
-class Application(QApplication):
+class Application(BaseApplication):
     t = QElapsedTimer()
 
     def __init__(self) -> None:
