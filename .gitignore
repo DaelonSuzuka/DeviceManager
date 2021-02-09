@@ -19,3 +19,5 @@ log.txt
 settings-logviewer.json
 main.spec
 log.db
+
+debug.log
