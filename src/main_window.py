@@ -5,7 +5,6 @@ from networking import NetworkStatusWidget
 from command_palette import CommandPalette, Command
 from devices import DeviceControlsDockWidget
 from log_monitor import LogMonitorWidget, LogMonitorDropdown
-from flask_test import FlaskThread
 
 from plugins.apps import *
 
