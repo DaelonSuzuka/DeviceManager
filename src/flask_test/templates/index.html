@@ -1,0 +1,40 @@
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.min.js"></script>
+
+
+<script type=text/javascript>
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+    // register every button to send messages
+    $(function() {
+        $('button').bind('click', function() {
+            socket.emit('message', {
+                data: this.value
+              })
+        });
+    });
+
+    // register handlers for recieved messages
+    socket.on('message', function(msg) {
+        console.log(msg)
+        $('h3').remove()
+        $('div.message_holder').append( '<div>'+msg.data+'</div>' )
+    });
+
+</script>
+
+
+<html>
+
+<body>
+    <div>
+        <button value="on">On</button>
+        <button value="off">Off</button>
+    </div>
+    
+    <h3 style='color: #ccc;font-size: 30px;'>No message yet..</h3>
+    <div class="message_holder"></div>
+</body>
+
+
+</html>
