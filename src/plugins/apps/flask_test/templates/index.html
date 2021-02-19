@@ -12,10 +12,7 @@
     });
 
     socket.onmessage = function (event) {
-        // console.log(event.data)
-        $('h3').remove()
         $('div.message_holder').append( '<div>' + event.data + '</div>' )
-   
     }
 
 </script>
@@ -28,10 +25,8 @@
         <button value="on">On</button>
         <button value="off">Off</button>
     </div>
-    
-    <h3 style='color: #ccc;font-size: 30px;'>No message yet..</h3>
+
     <div class="message_holder"></div>
 </body>
-
 
 </html>
