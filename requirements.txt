@@ -1,5 +1,6 @@
 altgraph==0.17
 appdirs==1.4.4
+Flask==1.1.2
 future==0.18.2
 numpy==1.19.4
 pefile==2019.4.18
