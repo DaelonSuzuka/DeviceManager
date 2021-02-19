@@ -1,25 +1,22 @@
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.min.js"></script>
 
 
 <script type=text/javascript>
-    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    let socket = new WebSocket("ws://" + document.domain + ':' + '5001');
 
     // register every button to send messages
     $(function() {
         $('button').bind('click', function() {
-            socket.emit('message', {
-                data: this.value
-              })
+            socket.send(this.value)
         });
     });
 
-    // register handlers for recieved messages
-    socket.on('message', function(msg) {
-        console.log(msg)
+    socket.onmessage = function (event) {
+        // console.log(event.data)
         $('h3').remove()
-        $('div.message_holder').append( '<div>'+msg.data+'</div>' )
-    });
+        $('div.message_holder').append( '<div>' + event.data + '</div>' )
+   
+    }
 
 </script>
 

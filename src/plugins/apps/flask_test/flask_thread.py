@@ -1,42 +1,27 @@
 from flask import Flask, render_template
-from flask_socketio import SocketIO
-
+from urllib.parse import urlparse
 from qt import *
 
 
-
+# disable flask logging
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 
 class FlaskWorker(QObject):
-    message_recieved = Signal(str)
-
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        app = Flask(__name__)
-        socketio = SocketIO(app)
-        self.app = app
-        self.socketio = socketio
+    def run(self):
+        self.app = Flask(__name__)
 
-        @app.route('/')
-        @app.route('/index')
+        @self.app.route('/')
+        @self.app.route('/index')
         def index():
             return render_template('index.html')
 
-        @socketio.on('message')
-        def message_handler(msg, methods=['GET', 'POST']):
-            print('rx:', str(msg))
-            socketio.emit('message', msg)
-            self.message_recieved.emit(str(msg))
-
-        @socketio.on('connect')
-        def connect(sid, env, auth):
-            print('connected')
-
-
-    def run(self):
-        print('starting flask server')
-        self.socketio.run(self.app, debug=True, use_reloader=False)
+        self.app.run(debug=True, use_reloader=False)
 
 
 class FlaskApp(QWidget):
@@ -45,23 +30,50 @@ class FlaskApp(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.flask_thread = QThread()
-        self.flask_worker = FlaskWorker()
+        self.server = QWebSocketServer('flask', QWebSocketServer.NonSecureMode)
+        self.server.newConnection.connect(self.on_new_connection)
+        self.sockets = []
 
-        self.flask_worker.moveToThread(self.flask_thread)
-        
-        self.flask_thread.started.connect(self.flask_worker.run)
-        self.flask_worker.message_recieved.connect(lambda s: self.text.append(s))
+        if self.server.listen(address=QHostAddress.Any, port=5001):
+            print(f"Device server listening at: {self.server.serverAddress().toString()}:{str(self.server.serverPort())}")
+        else:
+            print('Failed to start device server.')
 
-        self.flask_thread.start()
+        self.thread = QThread()
+        self.worker = FlaskWorker()
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run)
+        self.thread.start()
 
         self.web_view = QWebEngineView()
         self.web_view.load(QUrl('http://localhost:5000'))
 
-        self.button = QPushButton()
         self.text = QTextEdit()
+        self.button = QPushButton()
+        self.button.clicked.connect(lambda: self.processTextMessage('beep'))
 
         with CVBoxLayout(self) as layout:
-            layout.add(self.button)
+            with layout.hbox() as layout:
+                layout.add(self.button)
+            layout.add(QLabel('Qt text widget:'))
             layout.add(self.text)
+            layout.add(QLabel('Web view:'))
             layout.add(self.web_view)
+
+    def on_new_connection(self):
+        socket = self.server.nextPendingConnection()
+        self.sockets.append(socket)
+        
+        url = urlparse(socket.resourceName())
+        print(url)
+
+        socket.textMessageReceived.connect(self.processTextMessage)
+        socket.disconnected.connect(lambda: print("socket disconnected"))
+        
+    def processTextMessage(self, message):
+        self.text.append(message)
+        self.send_later(message)
+
+    def send_later(self, message):
+        for socket in self.sockets:
+            QTimer.singleShot(10, lambda: socket.sendTextMessage(message))
