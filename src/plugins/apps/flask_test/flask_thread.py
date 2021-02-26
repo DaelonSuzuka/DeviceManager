@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+# from flask import Flask, render_template
 from urllib.parse import urlparse
 from qt import *
 from devices import SubscriptionManager
