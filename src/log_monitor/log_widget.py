@@ -113,5 +113,5 @@ class LogMonitorDropdown(QDialog):
     def center_on_parent(self):
         offset = 33
         r = self.parent().frameGeometry()
-        rect = QRect(r.x(), r.y() + offset, r.width(), r.height() - offset)
+        rect = QRect(r.x(), r.y() + offset, r.width(), r.height() - (offset * 2))
         self.setGeometry(rect)
