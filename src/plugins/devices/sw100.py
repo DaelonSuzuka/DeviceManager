@@ -26,7 +26,7 @@ class SW100(JudiStandardMixin, SerialDevice):
         self.request_antenna()
 
     def set_antenna(self, ant: str):
-        self.send('{"command":{"set_antenna":"%s"}}' % (ant))
+        self.send('{"command":"set_antenna", "antenna":"%s"}' % (ant))
 
     def request_antenna(self):
         self.send('{"request":"antenna"}')
