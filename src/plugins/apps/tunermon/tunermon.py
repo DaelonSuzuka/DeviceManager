@@ -1,5 +1,41 @@
 from qt import *
 from devices import DeviceManager
+import appdirs
+from pathlib import Path
+
+ex = {
+    "event":"match_tested",
+    "time":3685169,
+    "match":{
+        "#":164,
+        "relays":{
+            "caps":18,
+            "inds":5,
+            "z":1
+        },
+        "rf":{
+            "fwd":1152.97,
+            "rev":1655.31,
+            "swr":5880.61
+        }
+    }
+}
+
+
+initial_sql = """
+CREATE TABLE IF NOT EXISTS tuner(
+    DateTime TEXT,
+    EventType TEXT,
+    Time INT,
+    MatchNumber INT,
+    caps INT,
+    inds INT,
+    z INT,
+    fwd FLOAT,
+    rev FLOAT,
+    swr FLOAT,
+)
+"""
 
 
 @DeviceManager.subscribe
@@ -7,10 +43,15 @@ class TunerMonApp(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.tab_name = 'Tuner Monitor'
+        
+        db_path = appdirs.user_data_dir("Device Manager", "LDG Electronics")
+        Path(db_path).mkdir(parents=True, exist_ok=True)
+        db_name = db_path + '/tuner.db'
 
-        db = QSqlDatabase.addDatabase('QSQLITE')
-        db.setDatabaseName('tunerlog')
+        db = QSqlDatabase.addDatabase('QSQLITE', 'tuner')
+        db.setDatabaseName(db_name)
         db.open()
+
         # db.exec_(initial_sql)
 
         self.device_box = QComboBox(placeholderText="Select a device:")
