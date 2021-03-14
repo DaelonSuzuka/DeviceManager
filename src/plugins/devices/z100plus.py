@@ -13,10 +13,7 @@ class Z100Plus(JudiStandardMixin, SerialDevice):
         super().__init__(*args, **kwargs)
         self.signals = Signals()
         self.message_tree.merge(self.common_message_tree)
-        self.message_tree.merge({
-            "update": {
-                "event": self.event.emit
-            }
-        })
 
-        self.signals.event.connect(print)
+    def route_message(self, msg):
+        if 'event' in msg:
+            self.signals.event.emit(msg)
