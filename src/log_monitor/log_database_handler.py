@@ -3,6 +3,9 @@ from qt import *
 import time
 
 
+db_conn_name = 'logs'
+
+
 initial_sql = """
 CREATE TABLE IF NOT EXISTS log(
     TimeStamp TEXT,
@@ -63,7 +66,7 @@ class DatabaseHandler(logging.Handler):
         super().__init__()
         self.formatter = logging.Formatter("%(asctime)s")
         
-        db = QSqlDatabase.addDatabase('QSQLITE')
+        db = QSqlDatabase.addDatabase('QSQLITE', db_conn_name)
         db.setDatabaseName(database_name)
         db.open()
         db.exec_(initial_sql)
@@ -81,7 +84,9 @@ class DatabaseHandler(logging.Handler):
             record.exc_text = ""
 
         # Insert the log record
-        db = QSqlDatabase.database().exec_(insertion_sql % record.__dict__)
+        db = QSqlDatabase.database(db_conn_name)
+        db.open()
+        db.exec_(insertion_sql % record.__dict__)
 
         for cb in self.callbacks:
             cb()

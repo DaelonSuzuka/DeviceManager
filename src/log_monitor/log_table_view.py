@@ -2,6 +2,7 @@ from qt import *
 import time
 from .log_filter_controls import log_levels
 from .log_profile import LogProfile, Column, default_columns
+from .log_database_handler import db_conn_name
 
 
 session_start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
@@ -68,7 +69,7 @@ class LogTableView(QTableView):
         if self.verticalScrollBar().value() == self.verticalScrollBar().maximum():
             at_bottom = True
         
-        self.db_model.setQuery(self.profile.build_query())
+        self.db_model.setQuery(self.profile.build_query(), QSqlDatabase.database(db_conn_name))
         while self.db_model.canFetchMore():
             self.db_model.fetchMore()
 

@@ -1,7 +1,7 @@
 from qt import *
 from .log_table_view import LogTableView
 from .log_filter_controls import FilterControls
-from .log_database_handler import DatabaseHandler
+from .log_database_handler import DatabaseHandler, db_conn_name
 from command_palette import CommandPalette, Command
 
 
@@ -41,7 +41,7 @@ class LogMonitorWidget(QWidget):
         ))
 
     def query_existing_loggers(self):
-        db = QSqlDatabase.database()
+        db = QSqlDatabase.database(db_conn_name)
         query = db.exec_("SELECT Source FROM 'log'")
         loggers = set()
         while query.next():
