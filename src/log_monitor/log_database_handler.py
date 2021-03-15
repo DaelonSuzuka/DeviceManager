@@ -84,9 +84,10 @@ class DatabaseHandler(logging.Handler):
             record.exc_text = ""
 
         # Insert the log record
-        db = QSqlDatabase.database(db_conn_name)
-        db.open()
-        db.exec_(insertion_sql % record.__dict__)
+        try:
+            QSqlDatabase.database(db_conn_name).exec_(insertion_sql % record.__dict__)
+        except ValueError:
+            pass
 
         for cb in self.callbacks:
             cb()
