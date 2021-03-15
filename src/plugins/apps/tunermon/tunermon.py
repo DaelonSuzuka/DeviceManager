@@ -3,6 +3,8 @@ from devices import DeviceManager
 import appdirs
 from pathlib import Path
 from queue import Queue
+import pyqtgraph as pg
+
 
 ex = {
     "event":"match_tested",
@@ -55,7 +57,11 @@ class TunerMonApp(QWidget):
 
         # db.exec_(initial_sql)
 
-        self.events = Queue()
+        self.events = []
+        self.plot_layout = pg.GraphicsLayoutWidget()
+        title = 'Tuning Data'
+        labels = {'bottom':'Caps', 'left':'Inds'}
+        self.plot = self.plot_layout.addPlot(title=title, labels=labels)
 
         self.device_box = QComboBox(placeholderText="Select a device:")
         self.connect = QPushButton("Connect", clicked=self.connect_pressed)
@@ -65,12 +71,30 @@ class TunerMonApp(QWidget):
                 with layout.hbox():
                     layout.add(self.device_box, 1)
                     layout.add(self.connect)
+                layout.add(self.plot_layout)
+
+    def update_plot(self):
+        x = []
+        y = []
+
+        for e in self.events:
+            if 'match' in e:
+                if e['match']['relays']['z']:
+                    x.append(e['match']['relays']['caps'])
+                else:
+                    x.append(-e['match']['relays']['caps'])
+                y.append(e['match']['relays']['inds'])
+
+        self.plot.plot(x, y)             
 
     def event_recieved(self, msg):
         if msg['event'] == 'tune_start':
-            self.events.clear()
+            self.events = []
+            # self.plot_layout.clear()
+            # self.plot.plot([0, 132], [0, 0])
 
-        self.events.put(msg)
+        self.events.append(msg)
+        self.update_plot()
 
     def connect_pressed(self):
         guid = self.device_box.currentData()
@@ -79,6 +103,9 @@ class TunerMonApp(QWidget):
 
     def device_added(self, device):
         self.device_box.addItem(device.title, userData=device.guid)
+
+        if device.profile_name == 'Z-100Plus':
+            device.signals.event.connect(self.event_recieved)
 
     def device_removed(self, guid):
         for index in range(self.device_box.count()):
