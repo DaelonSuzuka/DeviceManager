@@ -1,5 +1,5 @@
 from qt import *
-from devices import DeviceManager
+from codex import DeviceManager
 from plugins.widgets import *
 from .constants import *
 from .graph_tab import GraphTab

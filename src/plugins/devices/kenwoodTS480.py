@@ -1,4 +1,4 @@
-from devices import SerialDevice, DelimiterFilter
+from codex import SerialDevice, DelimiterFilter
 from qt import *
 
 
@@ -54,7 +54,7 @@ class TS480(SerialDevice):
         string = string.rstrip(';') + ';'
         super().send(string)
 
-    def recieve(self, string):
+    def receive(self, string):
         self.log.debug(f"RX: {string}")
 
         key = string[:2]

@@ -1,4 +1,4 @@
-from devices import SerialDevice, JudiStandardMixin
+from codex import SerialDevice, JudiStandardMixin
 from qt import *
 
 
@@ -10,7 +10,7 @@ class Signals(QObject):
     reverse = Signal(float)
     swr = Signal(float)
     frequency = Signal(int)
-    handshake_recieved = Signal(dict)
+    handshake_received = Signal(dict)
 
     @property
     def message_tree(self):

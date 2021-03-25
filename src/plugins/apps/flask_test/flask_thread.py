@@ -1,7 +1,7 @@
 # from flask import Flask, render_template
 from urllib.parse import urlparse
 from qt import *
-from devices import SubscriptionManager
+from codex import SubscriptionManager
 
 
 # disable flask logging

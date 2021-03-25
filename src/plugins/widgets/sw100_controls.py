@@ -1,5 +1,5 @@
 from qt import *
-from devices import DeviceManager
+from codex import DeviceManager
 
 
 @DeviceManager.subscribe_to("SW-100")

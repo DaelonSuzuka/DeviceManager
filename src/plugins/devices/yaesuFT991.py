@@ -1,4 +1,4 @@
-from devices import SerialDevice
+from codex import SerialDevice
 from qt import *
 
 
@@ -65,7 +65,7 @@ class FT991(SerialDevice):
         string += ';'
         super().send(string)
 
-    def recieve(self, string):
+    def receive(self, string):
         self.log.debug(f"({self.port}:{self.__class__.__name__}) RX: {string}")
 
         key = string[:2]

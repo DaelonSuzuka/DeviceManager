@@ -1,5 +1,5 @@
 from qt import *
-from devices import DeviceManager
+from codex import DeviceManager
 from collections import deque
 from dataclasses import dataclass
 import numpy as np
@@ -125,7 +125,7 @@ class CalibrationWorker(QObject):
                 signals.reverse.connect(lambda x: self.data['t_rev_watts'].append(float(x)))
                 signals.swr.connect(lambda x: self.data['t_swr'].append(float(x)))
                 signals.frequency.connect(lambda x: self.data['t_freq'].append(float(x)))
-                signals.handshake_recieved.connect(lambda s: self.target_description_ready())
+                signals.handshake_received.connect(lambda s: self.target_description_ready())
 
         self.started.emit(len(self.points))
         

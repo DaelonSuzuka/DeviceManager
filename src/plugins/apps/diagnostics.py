@@ -1,5 +1,5 @@
 from qt import *
-from devices import DeviceManager
+from codex import DeviceManager
 from serial_monitor import SerialMonitorWidget
 
 

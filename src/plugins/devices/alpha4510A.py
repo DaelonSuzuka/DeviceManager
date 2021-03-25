@@ -1,4 +1,4 @@
-from devices import SerialDevice, DelimiterFilter
+from codex import SerialDevice, DelimiterFilter
 from qt import *
 
 
@@ -27,7 +27,7 @@ class Alpha4510A(SerialDevice):
 
         self.last_results = {}
 
-    def recieve(self, string):
+    def receive(self, string):
         results = string.split(",")[1:-1]
 
         if len(results) == 5:

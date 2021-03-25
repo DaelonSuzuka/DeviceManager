@@ -1,6 +1,6 @@
 from qt import *
-from devices import DeviceManager
-from devices import SW4U
+from codex import DeviceManager
+from codex import SW4U
 
 
 class SwitchControls(QWidget):

@@ -1,4 +1,4 @@
-from devices import SerialDevice, NewlineFilter
+from codex import SerialDevice, NewlineFilter
 from qt import *
 
 
@@ -24,5 +24,5 @@ class DTS4(SerialDevice):
     def read_antenna(self):
         self.send("ant read\r\n")
     
-    def recieve(self, string):
+    def receive(self, string):
         print(string)

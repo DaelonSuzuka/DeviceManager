@@ -1,5 +1,5 @@
 from qt import *
-from devices import DeviceManager
+from codex import DeviceManager
 import appdirs
 from pathlib import Path
 from queue import Queue
@@ -87,7 +87,7 @@ class TunerMonApp(QWidget):
 
         self.plot.plot(x, y)             
 
-    def event_recieved(self, msg):
+    def event_received(self, msg):
         if msg['event'] == 'tune_start':
             self.events = []
             # self.plot_layout.clear()
@@ -99,13 +99,13 @@ class TunerMonApp(QWidget):
     def connect_pressed(self):
         guid = self.device_box.currentData()
         if guid in self.devices:
-            self.devices[guid].signals.event.connect(self.event_recieved)
+            self.devices[guid].signals.event.connect(self.event_received)
 
     def device_added(self, device):
         self.device_box.addItem(device.title, userData=device.guid)
 
         if device.profile_name == 'Z-100Plus':
-            device.signals.event.connect(self.event_recieved)
+            device.signals.event.connect(self.event_received)
 
     def device_removed(self, guid):
         for index in range(self.device_box.count()):

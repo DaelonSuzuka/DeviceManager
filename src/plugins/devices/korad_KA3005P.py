@@ -1,4 +1,4 @@
-from devices import SerialDevice, NullFilter
+from codex import SerialDevice, NullFilter
 from qt import *
 import time
 

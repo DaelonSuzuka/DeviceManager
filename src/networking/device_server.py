@@ -1,6 +1,6 @@
 from qt import *
-from devices import profiles
-from devices import DeviceManager
+from codex import profiles
+from codex import DeviceManager
 import logging
 import json
 from urllib.parse import urlparse

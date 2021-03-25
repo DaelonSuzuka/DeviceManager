@@ -1,5 +1,5 @@
 from qt import *
-from devices import DeviceManager
+from codex import DeviceManager
 import qtawesome as qta
 from style import qcolors
 
