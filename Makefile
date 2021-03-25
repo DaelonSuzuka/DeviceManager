@@ -32,7 +32,11 @@ bundle: venv
 
 # run the bundled exe
 run_bundle:
+ifeq ($(OS),Windows_NT)
 	dist/$(AppName)/$(AppName).exe
+else
+	dist/$(AppName)/$(AppName)
+endif
 
 # **************************************************************************** #
 # Release Targets
