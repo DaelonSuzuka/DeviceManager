@@ -3,10 +3,10 @@
 block_cipher = None
 
 a = Analysis(
-    ['src\\main.py'],
-    pathex=['P:\\Octoprog'],
+    ['src/main.py'],
+    pathex=['./src'],
     binaries=[],
-    datas=[('resources/octoprog.ico', 'resources')],
+    datas=[('resources/deviceman.ico', 'resources')],
     hiddenimports=[],
     hookspath=[],
     runtime_hooks=[],
@@ -28,12 +28,12 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='Octoprog',
+    name='DeviceManager',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
-    icon='resources/octoprog.ico',
+    upx=False,
+    icon='resources/deviceman.ico',
     console=False 
 )
 
@@ -43,7 +43,7 @@ coll = COLLECT(
     a.zipfiles,
     a.datas,
     strip=False,
-    upx=True,
+    upx=False,
     upx_exclude=[],
-    name='Octoprog'
+    name='DeviceManager'
 )

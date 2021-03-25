@@ -6,9 +6,16 @@
 MAKEFLAGS += -s
 
 # **************************************************************************** #
-# Targets
 
-# run the application using the main venv
+# load the project variables
+include project.mk
+# export them for InnoSetup
+export
+
+# **************************************************************************** #
+# Development Targets
+
+# run the application
 run: venv
 	$(VENV_PYTHON) src/main.py
 
@@ -16,21 +23,32 @@ run: venv
 debug: venv
 	$(VENV_PYTHON) -m pdb src/main.py
 
-# build an one folder bundle 
+# **************************************************************************** #
+# Build Targets
+
+# build a one folder bundle 
 bundle: venv
 	$(VENV_PYINSTALLER) -y bundle.spec
 
-# build a single file executable
-exe: venv
-	$(VENV_PYINSTALLER) -y onefile.spec
+# run the bundled exe
+run_bundle:
+	dist/$(AppName)/$(AppName).exe
 
-# build an installer with inno
-installer: venv
+# **************************************************************************** #
+# Release Targets
+
+# wrap the bundle into a zip file
+zip:
+	$(PYTHON) -m zipfile -c dist/$(AppName)-$(AppVersion)-portable.zip dist/$(AppName)/
+
+# build an installer with InnoSetup
+installer:
 	iscc "installer.iss"
 
-# remove pyinstaller's output
+# remove the various build outputs
 clean:
-	echo cleaning build 
+	-@ $(RM) build
+	-@ $(RM) dist
 
 # **************************************************************************** #
 # python venv settings
@@ -41,11 +59,15 @@ ifeq ($(OS),Windows_NT)
 	VENV := $(VENV_DIR)\Scripts
 	PYTHON := python
 	VENV_PYTHON := $(VENV)\$(PYTHON)
+	VENV_PYINSTALLER := $(VENV)\pyinstaller
+	RM := rd /s /q 
 else
 	VENV_DIR := $(VENV_NAME)
 	VENV := $(VENV_DIR)/bin
 	PYTHON := python3
 	VENV_PYTHON := $(VENV)/$(PYTHON)
+	VENV_PYINSTALLER := $(VENV)/pyinstaller
+	RM := rm -rf 
 endif
 
 # Add this as a requirement to any make target that relies on the venv
@@ -58,13 +80,29 @@ $(VENV_DIR):
 	$(VENV_PYTHON) -m pip install --upgrade pip
 	$(VENV_PYTHON) -m pip install -r requirements.txt
 
+# If the first argument is "pip"...
+ifeq (pip,$(firstword $(MAKECMDGOALS)))
+  # use the rest as arguments for "pip"
+  RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  # ...and turn them into do-nothing targets
+  $(eval $(RUN_ARGS):;@:)
+endif
+
+# forward pip commands to the venv
+pip: venv
+	$(VENV_PYTHON) -m pip $(RUN_ARGS)
+
+# update requirements.txt to match the state of the venv
+freeze_reqs: venv
+	$(VENV_PYTHON) -m pip freeze > requirements.txt
+
+# try to update the venv - expirimental feature, don't rely on it
+update_venv: venv
+	$(VENV_PYTHON) -m pip install -r requirements.txt
+
 # deletes the venv
 clean_venv:
-ifeq ($(OS),Windows_NT)
-	rd /s /q $(VENV_DIR)
-else
-	rm -rf $(VENV_DIR)
-endif
+	$(RM) $(VENV_DIR)
 
 # deletes the venv and rebuilds it
 reset_venv: clean_venv venv
