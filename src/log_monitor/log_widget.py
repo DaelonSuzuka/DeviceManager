@@ -1,4 +1,4 @@
-from qt import *
+from qtstrap import *
 from .log_table_view import LogTableView
 from .log_filter_controls import FilterControls
 from .log_database_handler import DatabaseHandler, db_conn_name

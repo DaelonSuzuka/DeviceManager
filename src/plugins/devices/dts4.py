@@ -1,5 +1,5 @@
 from codex import SerialDevice, NewlineFilter
-from qt import *
+from qtstrap import *
 
 
 class Signals(QObject):

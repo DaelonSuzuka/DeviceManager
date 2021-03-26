@@ -1,4 +1,4 @@
-from qt import *
+from qtstrap import *
 import qtawesome as qta
 from style import qcolors
 

@@ -1,5 +1,5 @@
 from ctypes import alignment
-from qt import *
+from qtstrap import *
 from plugins.widgets import *
 
 

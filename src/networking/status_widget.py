@@ -1,4 +1,4 @@
-from qt import *
+from qtstrap import *
 from command_palette import CommandPalette, Command
 import qtawesome as qta
 

@@ -1,5 +1,5 @@
 from codex import SerialDevice
-from qt import *
+from qtstrap import *
 
 
 class RadioBuffer:

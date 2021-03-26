@@ -1,5 +1,5 @@
 import logging
-from qt import *
+from qtstrap import *
 import time
 
 

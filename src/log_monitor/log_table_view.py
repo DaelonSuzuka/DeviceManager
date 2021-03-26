@@ -1,4 +1,4 @@
-from qt import *
+from qtstrap import *
 import time
 from .log_filter_controls import log_levels
 from .log_profile import LogProfile, Column, default_columns

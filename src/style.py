@@ -1,4 +1,4 @@
-from qt import *
+from qtstrap import *
 
 
 darkPalette = QStyleFactory.create('fusion').standardPalette()

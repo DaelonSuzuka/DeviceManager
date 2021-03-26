@@ -1,4 +1,4 @@
-from qt import *
+from qtstrap import *
 from codex import DeviceManager
 from functools import partial
 from.lock_button import LockButton

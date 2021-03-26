@@ -1,4 +1,4 @@
-from qt import *
+from qtstrap import *
 from command_palette import Command
 from codex import profiles
 from codex import DeviceManager

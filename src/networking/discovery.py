@@ -1,4 +1,4 @@
-from qt import *
+from qtstrap import *
 import time
 import json
 import logging

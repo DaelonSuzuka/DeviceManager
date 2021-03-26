@@ -1,5 +1,5 @@
 from codex import SerialDevice, JudiStandardMixin
-from qt import *
+from qtstrap import *
 from functools import partial
 import logging
 

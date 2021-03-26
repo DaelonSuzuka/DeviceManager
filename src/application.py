@@ -1,4 +1,4 @@
-from qt import *
+from qtstrap import *
 from main_window import MainWindow
 from style import darkPalette
 import qtawesome as qta

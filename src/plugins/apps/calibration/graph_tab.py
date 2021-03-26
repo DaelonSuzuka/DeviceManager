@@ -1,4 +1,4 @@
-from qt import *
+from qtstrap import *
 from .constants import *
 import pyqtgraph as pg
 import numpy as np

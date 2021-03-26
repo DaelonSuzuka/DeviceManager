@@ -1,4 +1,4 @@
-from qt import *
+from qtstrap import *
 from codex import DeviceManager
 import appdirs
 from pathlib import Path

@@ -1,5 +1,5 @@
 from codex import SerialDevice, NullFilter
-from qt import *
+from qtstrap import *
 import time
 
 

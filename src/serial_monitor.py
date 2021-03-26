@@ -1,4 +1,4 @@
-from qt import *
+from qtstrap import *
 from pyte import Screen, Stream, HistoryScreen, modes
 from style import colors
 
