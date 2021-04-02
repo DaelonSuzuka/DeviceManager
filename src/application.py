@@ -18,7 +18,6 @@ class Application(BaseApplication):
 
         super().__init__()
 
-        self.init_app_info()
         self.init_app_style()
 
         # instantiate application systems
@@ -30,12 +29,6 @@ class Application(BaseApplication):
         # create window
         self.window = MainWindow()
         self.window.show()
-
-    def init_app_info(self):
-        self.setOrganizationName("LDG Electronics")
-        self.setOrganizationDomain("LDG Electronics")
-        self.setApplicationName("Device Manager")
-        self.setApplicationVersion("v0.1")
 
     def init_app_style(self):
         self.setStyle('Fusion')

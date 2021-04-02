@@ -1,26 +1,37 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-block_cipher = None
+import configparser
+
+
+with open('src/app_info.py') as f:
+    file_content = '[dummy_section]\n' + f.read()
+
+config = configparser.ConfigParser()
+config.read_string(file_content)
+
+app_name = config['dummy_section']['AppName'].replace('"', '')
+icon_file = config['dummy_section']['AppIconName'].replace('"', '')
+
 
 a = Analysis(
     ['src/main.py'],
     pathex=['./src'],
     binaries=[],
-    datas=[('resources/deviceman.ico', 'resources')],
+    datas=[(icon_file, 'resources')],
     hiddenimports=[],
     hookspath=[],
     runtime_hooks=[],
     excludes=[],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
-    cipher=block_cipher,
+    cipher=None,
     noarchive=False
 )
 
 pyz = PYZ(
     a.pure, 
     a.zipped_data,
-    cipher=block_cipher
+    cipher=None
 )
 
 exe = EXE(
@@ -28,12 +39,12 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='DeviceManager',
+    name=app_name,
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,
-    icon='resources/deviceman.ico',
+    icon=icon_file,
     console=False 
 )
 
@@ -45,5 +56,5 @@ coll = COLLECT(
     strip=False,
     upx=False,
     upx_exclude=[],
-    name='DeviceManager'
+    name=app_name
 )

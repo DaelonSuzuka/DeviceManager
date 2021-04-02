@@ -1,0 +1,6 @@
+AppName = "DeviceManager"
+AppVersion = "0.1"
+AppPublisher = "DaelonCo"
+AppExeName = "DeviceManager.exe"
+AppIconName = "resources/application.ico"
+AppId = "{{2aabf4e5-c3de-4fc7-b18f-81808fb4a710}"

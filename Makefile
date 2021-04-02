@@ -8,9 +8,20 @@ MAKEFLAGS += -s
 # **************************************************************************** #
 
 # load the project variables
-include project.mk
+ifneq (,$(wildcard src/app_info.py))
+include src/app_info.py
+
+# remove extra quotes
+AppName := $(patsubst "%",%,$(AppName))
+AppVersion := $(patsubst "%",%,$(AppVersion))
+AppPublisher := $(patsubst "%",%,$(AppPublisher))
+AppExeName := $(patsubst "%",%,$(AppExeName))
+AppIconName := $(patsubst "%",%,$(AppIconName))
+AppId := $(patsubst "%",%,$(AppId))
+
 # export them for InnoSetup
 export
+endif
 
 # **************************************************************************** #
 # Development Targets
@@ -26,11 +37,15 @@ debug: venv
 # **************************************************************************** #
 # Build Targets
 
+beep:
+	echo $(AppName)
+	echo $(AppVersion)
+
 # build a one folder bundle 
 bundle: venv
 	$(VENV_PYINSTALLER) -y bundle.spec
 
-# run the bundled exe
+# run the bundled executable
 run_bundle:
 ifeq ($(OS),Windows_NT)
 	dist/$(AppName)/$(AppName).exe
