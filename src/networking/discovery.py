@@ -1,4 +1,5 @@
 from qtstrap import *
+from qtpy.QtNetwork import *
 import time
 import json
 import logging

@@ -1,4 +1,6 @@
 from qtstrap import *
+from qtpy.QtNetwork import *
+from qtpy.QtWebSockets import *
 from codex import profiles
 from codex import DeviceManager
 import logging
