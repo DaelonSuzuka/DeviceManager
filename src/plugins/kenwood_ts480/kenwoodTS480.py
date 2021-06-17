@@ -2,7 +2,7 @@ from codex import SerialDevice, DelimiterFilter
 from qtstrap import *
 
 
-class Signals(QObject):
+class Signals(Adapter):
     swr = Signal(str)
     frequency = Signal(str)
     power = Signal(str)
