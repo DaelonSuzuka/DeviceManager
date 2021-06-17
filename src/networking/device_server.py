@@ -1,7 +1,6 @@
 from qtstrap import *
 from qtpy.QtNetwork import *
 from qtpy.QtWebSockets import *
-from codex import profiles
 from codex import DeviceManager
 import logging
 import json
@@ -67,7 +66,7 @@ class DeviceServer(QObject):
         if 'create_device' in msg.keys():
             profile = msg['create_device']['profile']
             port = msg['create_device']['port']
-            device = profiles[profile](port)
+            device = DeviceManager.profiles()[profile](port)
             self.signals.inject.emit(device)
 
         if 'remove_device' in msg.keys():

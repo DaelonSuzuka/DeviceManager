@@ -13,7 +13,7 @@ class MainWindow(BaseMainWindow):
         super().__init__(parent=parent)
         self.setWindowTitle("LDG Device Manager")
 
-        self.log_monitor = LogMonitorDropdown(self)
+        # self.log_monitor = LogMonitorDropdown(self)
         self.network_status = NetworkStatusWidget(self)
         self.device_controls = DeviceControlsDockWidget(self)
 
@@ -71,7 +71,7 @@ class MainWindow(BaseMainWindow):
         menu.addAction(self.command_palette.action)
         menu.addSeparator()
         menu.addAction(self.device_controls.toggleViewAction())
-        menu.addAction(self.log_monitor.toggleViewAction())
+        # menu.addAction(self.log_monitor.toggleViewAction())
 
         menu.addSeparator()
             

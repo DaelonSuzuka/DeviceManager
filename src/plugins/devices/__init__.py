@@ -29,4 +29,5 @@ for f in files:
         try:
             setattr(sys.modules[__name__], i.__name__, i)
         except AttributeError:
+            print(i)
             pass

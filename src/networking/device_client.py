@@ -1,7 +1,6 @@
 from qtstrap import *
 from qtpy.QtWebSockets import *
 from command_palette import Command
-from codex import profiles
 from codex import DeviceManager
 import logging
 from urllib.parse import urlparse
@@ -100,7 +99,7 @@ class DeviceClient(QObject):
         port = f"RemoteSerial:{address}/link?{device['port']}"
         profile = device['profile_name']
 
-        new_device = profiles[profile](port=port)
+        new_device = DeviceManager.profiles()[profile](port=port)
         self.linked_devices[guid] = new_device
         self.signals.add_device.emit(new_device)
 

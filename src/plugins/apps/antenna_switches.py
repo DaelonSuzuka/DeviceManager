@@ -1,6 +1,6 @@
 from qtstrap import *
 from codex import DeviceManager
-from codex import SW4U
+# from codex import SW4U
 
 
 class SwitchControls(QWidget):
@@ -19,7 +19,7 @@ class SwitchControls(QWidget):
             layout.add(self.label)
             layout.add(self.locate)
 
-    def connect_switch(self, switch: SW4U):
+    def connect_switch(self, switch):
         self.switch = switch
         self.guid = switch.guid
         self.label.setText(switch.title)

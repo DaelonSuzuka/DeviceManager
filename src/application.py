@@ -3,6 +3,7 @@ from main_window import MainWindow
 from style import darkPalette
 import qtawesome as qta
 import logging
+from plugin_loader import Plugins
 
 from codex import DeviceManager
 from networking import DiscoveryService
@@ -19,6 +20,8 @@ class Application(BaseApplication):
         super().__init__()
 
         self.init_app_style()
+
+        Plugins()
 
         # instantiate application systems
         self.device_manager = DeviceManager(self)

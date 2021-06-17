@@ -1,7 +1,6 @@
 from codex import SerialDevice, JudiStandardMixin
 from qtstrap import *
 from functools import partial
-import logging
 
 
 class Signals(QObject):

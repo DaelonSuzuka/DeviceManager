@@ -1,6 +1,7 @@
 from qtstrap import *
 from codex import DeviceManager
 from plugins.widgets import *
+from plugin_loader import Plugins
 
 
 class RadioControls(QWidget):
@@ -34,13 +35,15 @@ class RadioControls(QWidget):
         self.timeout.timeout.connect(lambda: self.key.click())
         self.time.setChecked(True)
 
+        self.stomp = Plugins().stomp5.Stomp5StatusWidget()
+
         with CHBoxLayout(self, margins=(0, 0, 0, 0)) as layout:
             layout.add(self.power_btns, 2)
             layout.add(VLine(), 1)
             layout.add(self.freq_btns, 2)
             layout.add(VLine(), 1)
-            # layout.add(self.dummy_load, 1)
-            # layout.add(VLine(), 1)
+            layout.add(self.dummy_load, 1)
+            layout.add(VLine(), 1)
 
             with layout.vbox(2, margins=(0, 0, 0, 0)) as layout:
                 with layout.hbox(1, margins=(0, 0, 0, 0)) as layout:
@@ -50,6 +53,8 @@ class RadioControls(QWidget):
 
                 layout.add(self.key, 5)
                 layout.add(self.timeout)
+
+                layout.add(self.stomp)
 
                 with layout.hbox(1, margins=(0, 0, 0, 0)) as layout:
                     layout.add(self.bypass)
