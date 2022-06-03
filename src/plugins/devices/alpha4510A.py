@@ -2,7 +2,7 @@ from codex import SerialDevice, DelimiterFilter
 from qtstrap import *
 
 
-class Signals(QObject):
+class Signals(Adapter):
     forward = Signal(float)
     reverse = Signal(float)
     swr = Signal(float)

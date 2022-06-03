@@ -6,6 +6,9 @@ from codex import DeviceManager
 class MeterInfo(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.meter = None
+
         self.forward = QLabel("  ?  ")
         self.reverse = QLabel("  ?  ")
         self.swr = QLabel("  ?  ")
@@ -29,11 +32,13 @@ class MeterInfo(QWidget):
                     layout.add(self.temperature)
 
     def connected(self, device):
-        device.signals.forward.connect(lambda x: self.forward.setText(f'{x:6.2f}'))
-        device.signals.reverse.connect(lambda x: self.reverse.setText(f'{x:6.2f}'))
-        device.signals.swr.connect(lambda x: self.swr.setText(f'{x:6.2f}'))
-        device.signals.frequency.connect(lambda x: self.frequency.setText(f'{x:6.2f}'))
-        device.signals.temperature.connect(lambda x: self.temperature.setText(f'{x:6.2f}'))
+        self.meter = device.signals.adapter()
+
+        self.meter.forward.connect(lambda x: self.forward.setText(f'{x:6.2f}'))
+        self.meter.reverse.connect(lambda x: self.reverse.setText(f'{x:6.2f}'))
+        self.meter.swr.connect(lambda x: self.swr.setText(f'{x:6.2f}'))
+        self.meter.frequency.connect(lambda x: self.frequency.setText(f'{x:6.2f}'))
+        self.meter.temperature.connect(lambda x: self.temperature.setText(f'{x:6.2f}'))
 
     def disconnected(self, guid):
         self.forward.setText("  ?  ")
