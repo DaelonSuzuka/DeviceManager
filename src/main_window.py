@@ -1,8 +1,8 @@
 from qtstrap import *
 from qtstrap.extras.log_monitor import LogMonitorDropdown
+from qtstrap.extras.command_palette import CommandPalette, Command
 import qtawesome as qta
 from networking import NetworkStatusWidget
-from command_palette import CommandPalette, Command
 from codex import DeviceControlsDockWidget
 
 from plugins.apps import *

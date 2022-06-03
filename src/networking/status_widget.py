@@ -1,5 +1,5 @@
 from qtstrap import *
-from command_palette import CommandPalette, Command
+from qtstrap.extras.command_palette import CommandPalette, Command
 import qtawesome as qta
 
 

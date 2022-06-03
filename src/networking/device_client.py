@@ -1,6 +1,6 @@
 from qtstrap import *
+from qtstrap.extras.command_palette import Command
 from qtpy.QtWebSockets import *
-from command_palette import Command
 from codex import DeviceManager
 import logging
 from urllib.parse import urlparse

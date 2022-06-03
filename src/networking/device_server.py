@@ -1,11 +1,11 @@
 from qtstrap import *
+from qtstrap.extras.command_palette import Command
 from qtpy.QtNetwork import *
 from qtpy.QtWebSockets import *
 from codex import DeviceManager
 import logging
 import json
 from urllib.parse import urlparse
-from command_palette import Command
 
 
 @DeviceManager.subscribe
