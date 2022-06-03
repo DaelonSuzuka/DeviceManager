@@ -61,6 +61,33 @@ class RadioControls(QWidget):
                     layout.add(self.full_tune)
 
 
+@DeviceManager.subscribe
+class ResultsInfo(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.meter = None
+
+        self.swr = QLabel("  ?  ")
+
+        with CVBoxLayout(self) as layout:
+            layout.add(QLabel('Tuning Results:'))
+            with layout.hbox():
+                with layout.vbox():
+                    layout.add(QLabel("SWR:"))
+
+                with layout.vbox():
+                    layout.add(self.swr)
+
+    def device_added(self, device):
+        if device.profile_name == 'Alpha4510A':
+            self.meter = device.signals.adapter()
+            self.meter.swr.connect(lambda x: self.swr.setText(f'{x:6.2f}'))
+    
+    def device_removed(self, guid):
+        pass
+
+
 class ServitorApp(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -86,7 +113,8 @@ class ServitorApp(QWidget):
                 layout.add(HLine())
                 layout.add(MeterInfo(self))
                 layout.add(HLine())
-                layout.add(CalibrationTargetInfo(self))
+                layout.add(ResultsInfo(self))
+                # layout.add(CalibrationTargetInfo(self))
 
             layout.add(VLine())
 
