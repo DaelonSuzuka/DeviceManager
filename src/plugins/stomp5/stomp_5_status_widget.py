@@ -56,9 +56,9 @@ class Stomp5StatusWidget(QWidget):
 
         if self.switch:
             if number == 2:
-                self.switch.set_antenna('1')
-            if number == 3:
                 self.switch.set_antenna('2')
+            if number == 3:
+                self.switch.set_antenna('3')
 
     def button_released(self, button):
         number = int(button) - 1
