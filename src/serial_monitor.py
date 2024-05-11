@@ -86,15 +86,15 @@ class SerialMonitorWidget(QWidget):
     def max_pos(self):
         return self.screen.cursor.y - self.visible_lines + 1
 
-    def sizeHint(self) -> PySide2.QtCore.QSize:
+    def sizeHint(self) -> QtCore.QSize:
         return QSize(600, 400)
 
-    def resizeEvent(self, event: PySide2.QtGui.QResizeEvent):
+    def resizeEvent(self, event: QtGui.QResizeEvent):
         super().resizeEvent(event)
         
         self.render_screen()
 
-    def eventFilter(self, watched: PySide2.QtCore.QObject, event: PySide2.QtCore.QEvent) -> bool:
+    def eventFilter(self, watched: QtCore.QObject, event: QtCore.QEvent) -> bool:
         if event.type() == QEvent.Type.KeyPress:
             key = event.text()
             if event.key() in key_map:
@@ -197,15 +197,15 @@ class HistorySerialMonitorWidget(QWidget):
     def visible_lines(self):
         return self.text.height() // self.text.fontMetrics().lineSpacing() - 1
 
-    def sizeHint(self) -> PySide2.QtCore.QSize:
+    def sizeHint(self) -> QtCore.QSize:
         return QSize(600, 400)
 
-    def resizeEvent(self, event: PySide2.QtGui.QResizeEvent):
+    def resizeEvent(self, event: QtGui.QResizeEvent):
         super().resizeEvent(event)
 
         self.render_screen()
 
-    def eventFilter(self, watched: PySide2.QtCore.QObject, event: PySide2.QtCore.QEvent) -> bool:
+    def eventFilter(self, watched: QtCore.QObject, event: QtCore.QEvent) -> bool:
         if event.type() == QEvent.Type.KeyPress:
             key = event.text()
 

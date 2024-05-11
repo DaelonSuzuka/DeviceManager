@@ -55,7 +55,7 @@ class VariableCapacitorWidget(QWidget):
                     hbox.add(QPushButton('128', clicked=lambda: self.set_relays.emit(128)))
                     hbox.add(QPushButton('255', clicked=lambda: self.set_relays.emit(255)))
 
-    def eventFilter(self, watched: PySide2.QtCore.QObject, event: PySide2.QtCore.QEvent) -> bool:
+    def eventFilter(self, watched: QtCore.QObject, event: QtCore.QEvent) -> bool:
         if watched == self.slider and event.type() == QEvent.MouseButtonRelease:
             self.set_relays.emit(self.slider.value())
         return False

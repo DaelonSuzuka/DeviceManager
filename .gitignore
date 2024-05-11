@@ -21,3 +21,5 @@ main.spec
 log.db
 
 debug.log
+
+src/.portable

@@ -52,7 +52,7 @@ class VariableInductorWidget(QWidget):
                     hbox.add(QPushButton('64', clicked=lambda: self.set_relays.emit(64)))
                     hbox.add(QPushButton('127', clicked=lambda: self.set_relays.emit(127)))
 
-    def eventFilter(self, watched: PySide2.QtCore.QObject, event: PySide2.QtCore.QEvent) -> bool:
+    def eventFilter(self, watched: QtCore.QObject, event: QtCore.QEvent) -> bool:
         if watched == self.slider and event.type() == QEvent.MouseButtonRelease:
             self.set_relays.emit(self.slider.value())
         return False

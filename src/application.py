@@ -1,4 +1,5 @@
 from qtstrap import *
+from qtstrap.extras import log_monitor
 from main_window import MainWindow
 from style import darkPalette
 import qtawesome as qta
@@ -18,6 +19,8 @@ class Application(BaseApplication):
         # self.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 
         super().__init__()
+
+        log_monitor.install()
 
         self.init_app_style()
 
