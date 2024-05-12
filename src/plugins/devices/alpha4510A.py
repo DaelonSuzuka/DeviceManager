@@ -9,7 +9,7 @@ class Signals(Adapter):
     temperature = Signal(float)
     frequency = Signal(float)
     mode = Signal(str)
-    update = Signal(str)
+    update = Signal(dict)
 
 
 class Alpha4510A(SerialDevice):
