@@ -1,4 +1,9 @@
 from qtstrap import *
+from qtstrap import (
+    QWidget,
+    CFormLayout,
+    QLabel,
+)
 from codex import DeviceManager
 
 
@@ -7,36 +12,18 @@ class CalibrationTargetInfo(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        
-        self.forward = QLabel("?")
-        self.reverse = QLabel("?")
-        self.swr = QLabel("?")
-        self.forward_volts = QLabel("?")
-        self.reverse_volts = QLabel("?")
-        self.match_quality = QLabel("?")
-        self.frequency = QLabel("?")
 
-        with CVBoxLayout(self) as layout:
-            layout.add(QLabel('CalibrationTarget:'))
-            with layout.hbox():
-                with layout.vbox():
-                    layout.add(QLabel("Forward:"))
-                    layout.add(QLabel("Reverse:"))
-                    layout.add(QLabel("SWR:"))
-                    layout.add(QLabel("Frequency:"))
-                    layout.add(QLabel())
-                    layout.add(QLabel("Forward Volts:"))
-                    layout.add(QLabel("Reverse Volts:"))
-                    layout.add(QLabel("Match Quality:"))
-                with layout.vbox():
-                    layout.add(self.forward)
-                    layout.add(self.reverse)
-                    layout.add(self.swr)
-                    layout.add(self.frequency)
-                    layout.add(QLabel())
-                    layout.add(self.forward_volts)
-                    layout.add(self.reverse_volts)
-                    layout.add(self.match_quality)
+        with CFormLayout(self) as layout:
+            layout += ('CalibrationTarget:', QLabel())
+
+            self.forward = layout + ("Forward:", QLabel("?"))
+            self.reverse = layout + ("Reverse:", QLabel("?"))
+            self.swr = layout + ("SWR:", QLabel("?"))
+            self.forward_volts = layout + ("Frequency:", QLabel("?"))
+            layout += ('', QLabel())
+            self.reverse_volts = layout + ("Forward Volts:", QLabel("?"))
+            self.match_quality = layout + ("Reverse Volts:", QLabel("?"))
+            self.frequency = layout + ("Match Quality:", QLabel("?"))
     
     def connected(self, device):
         device.signals.forward_volts.connect(lambda x: self.forward_volts.setText(f"{x:6.2f}"))

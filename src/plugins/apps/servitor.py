@@ -112,9 +112,10 @@ class ServitorApp(QWidget):
                 layout.add(RadioInfo(self))
                 layout.add(HLine())
                 layout.add(MeterInfo(self))
+                # layout.add(HLine())
+                # layout.add(ResultsInfo(self))
                 layout.add(HLine())
-                layout.add(ResultsInfo(self))
-                # layout.add(CalibrationTargetInfo(self))
+                layout.add(PhaseTunerInfo(self))
 
             layout.add(VLine())
 
