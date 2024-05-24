@@ -137,14 +137,13 @@ class RelayWorker(QObject):
             self.target.signals.handshake_received.connect(lambda s: self.target_description_ready())
 
     @Slot()
-    def start(self):
+    def start(self, points):
         if self.switch is None or self.meter is None or self.radio is None or self.target is None:
             self.log.info("can't start test, device missing")
             return
 
-        self.points = list(product([0, 1], range(1 << 5), range(1 << 5)))
-        # self.points = list(product([0], range(1 << 4), range(1 << 4)))
-        # self.points = list(product([0], range(32, 60), range(32, 60)))
+        self.points = points
+        
         self.results = []
         self.data.clear()
         self.log.info(f'starting test, collecting {len(self.points)} samples')
