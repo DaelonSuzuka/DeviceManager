@@ -1,5 +1,5 @@
 from qtstrap import *
-from qtstrap.extras.log_monitor import LogMonitorDropdown
+from qtstrap.extras.log_monitor import LogMonitorDockWidget
 from qtstrap.extras.command_palette import CommandPalette, Command
 import qtawesome as qta
 from networking import NetworkStatusWidget
@@ -13,7 +13,7 @@ class MainWindow(BaseMainWindow):
         super().__init__(parent=parent)
         self.setWindowTitle("LDG Device Manager")
 
-        self.log_monitor = LogMonitorDropdown(self)
+        self.log_monitor = LogMonitorDockWidget(self, shortcut='`')
         self.network_status = NetworkStatusWidget(self)
         self.device_controls = DeviceControlsDockWidget(self)
 
