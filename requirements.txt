@@ -20,7 +20,7 @@ pyte==0.8.0
 pywin32-ctypes==0.2.0
 QtAwesome==1.0.2
 QtPy==2.4.1
-qtstrap==0.5.3
+qtstrap==0.6.1
 regex==2021.3.17
 shiboken6==6.7.0
 six==1.15.0
