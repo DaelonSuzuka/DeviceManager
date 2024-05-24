@@ -13,6 +13,7 @@ from qtstrap import (
     CHBoxLayout,
     CVBoxLayout,
 )
+from qtstrap.extras.settings_model import SettingsModel
 from codex import DeviceManager
 from plugins.widgets import *
 from .worker import RelayWorker
@@ -46,19 +47,25 @@ class RelayControls(QWidget):
         self.hiz_btn.clicked.connect(lambda: device.set_relays(z=1))
         self.loz_btn.clicked.connect(lambda: device.set_relays(z=0))
 
+
+class PlanSettings(SettingsModel):
+    cap_min: int = 0
+    cap_max: int = 32
+    ind_min: int = 0
+    ind_max: int = 32
+    z_0: bool = True
+    z_1: bool = True
+
+    class Config:
+        prefix = 'automation/plan'
+
+
 class AutomationControls(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setStyleSheet('QProgressBar { border: 1px solid grey; }')
 
-        self.plan = {
-            'cap_min': 0,
-            'cap_max': 31,
-            'ind_min': 0,
-            'ind_max': 31,
-            'z_0': True,
-            'z_1': True,
-        }
+        self.plan = PlanSettings()
 
         with CHBoxLayout(self, margins=(0, 0, 0, 0)) as layout:
             with layout.vbox():
@@ -67,22 +74,14 @@ class AutomationControls(QWidget):
                     self.stop = layout + QPushButton('\nStop\n', enabled=False)
                 self.progress = layout + QProgressBar()
                 with layout.hbox():
-                    self.cap_min = layout + QSpinBox(maximum=255, valueChanged=lambda x: self.target_updated(x, 'cap_min'))
-                    self.cap_max = layout + QSpinBox(
-                        maximum=255,
-                        value=self.plan['cap_max'],
-                        valueChanged=lambda x: self.target_updated(x, 'cap_max'),
-                    )
+                    self.cap_min = layout + QSpinBox(maximum=255, value=self.plan.cap_min, valueChanged=lambda x: self.target_updated(x, 'cap_min'))
+                    self.cap_max = layout + QSpinBox(maximum=255, value=self.plan.cap_max, valueChanged=lambda x: self.target_updated(x, 'cap_max'))
                 with layout.hbox():
-                    self.ind_min = layout + QSpinBox(maximum=127, valueChanged=lambda x: self.target_updated(x, 'ind_min'))
-                    self.ind_max = layout + QSpinBox(
-                        maximum=127,
-                        value=self.plan['ind_max'],
-                        valueChanged=lambda x: self.target_updated(x, 'ind_max'),
-                    )
+                    self.ind_min = layout + QSpinBox(maximum=127, value=self.plan.ind_min, valueChanged=lambda x: self.target_updated(x, 'ind_min'))
+                    self.ind_max = layout + QSpinBox(maximum=127, value=self.plan.ind_max, valueChanged=lambda x: self.target_updated(x, 'ind_max'))
                 with layout.hbox():
-                    self.z_0 = layout + QPushButton('0', checkable=True, checked=True, toggled=lambda x: self.target_updated(x, 'z_0'))
-                    self.z_1 = layout + QPushButton('1', checkable=True, checked=True, toggled=lambda x: self.target_updated(x, 'z_1'))
+                    self.z_0 = layout + QPushButton('0', checkable=True, checked=self.plan.z_0, toggled=lambda x: self.target_updated(x, 'z_0'))
+                    self.z_1 = layout + QPushButton('1', checkable=True, checked=self.plan.z_1, toggled=lambda x: self.target_updated(x, 'z_1'))
                 with layout.hbox():
                     layout.add(QLabel('Points:'))
                     self.total_points = layout.add(QLabel('?'))
@@ -103,16 +102,16 @@ class AutomationControls(QWidget):
         self.update_total_points()
 
     def target_updated(self, value, field):
-        self.plan[field] = value
+        setattr(self.plan, field, value)
         self.update_total_points()
 
     def build_plan(self):
-        caps = range(self.plan['cap_min'], self.plan['cap_max'])
-        inds = range(self.plan['ind_min'], self.plan['ind_max'])
+        caps = range(self.plan.cap_min, self.plan.cap_max)
+        inds = range(self.plan.ind_min, self.plan.ind_max)
         z = []
-        if self.plan['z_0']:
+        if self.plan.z_0:
             z.append(0)
-        if self.plan['z_1']:
+        if self.plan.z_1:
             z.append(1)
         return list(product(z, caps, inds))
 
