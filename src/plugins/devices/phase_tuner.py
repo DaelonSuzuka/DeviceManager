@@ -46,6 +46,7 @@ class PhaseTuner(JudiStandardMixin, SerialDevice):
         self.signals = Signals()
         self.message_tree.merge(self.signals.message_tree)
         self.message_tree.merge(self.common_message_tree)
+        self.log.setLevel('INFO')
 
     @property
     def description(self):
