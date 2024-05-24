@@ -155,6 +155,7 @@ class RelayWorker(QObject):
             f.write('')
 
         self.current_point = 0
+        self.previous_point = 0
 
         self.started.emit(len(self.points))
 
