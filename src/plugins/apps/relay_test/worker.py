@@ -90,8 +90,10 @@ class RelayWorker(QObject):
 
         self.points = []
         self.current_point = 0
+        self.previous_point = 0
         self.results = []
         self.script = []
+        self.redo_count = 0
 
         fields = [
             'm_fwd',
@@ -105,7 +107,7 @@ class RelayWorker(QObject):
             't_sign',
             't_freq',
         ]
-        self.data = DataQueue(fields, stabilize={'m_fwd': 0.1}, maxlen=3)
+        self.data = DataQueue(fields, stabilize={'m_fwd': 0.1, 't_phase': 3}, maxlen=3)
 
     def meter_rf_received(self, rf_data):
         self.data['m_fwd'].append(int(rf_data.get('forward', 0)))
@@ -143,7 +145,7 @@ class RelayWorker(QObject):
             return
 
         self.points = points
-        
+
         self.results = []
         self.data.clear()
         self.log.info(f'starting test, collecting {len(self.points)} samples')
@@ -193,6 +195,18 @@ class RelayWorker(QObject):
 
         if self.data.is_ready():
             p = self.points[self.current_point]
+            prev = self.points[self.previous_point]
+
+            # always redo when the inductors reset to z
+            if (prev[1] != p[1] and p[1] == 0) or (prev[2] != p[2] and p[2] == 0):
+                if self.redo_count < 1:
+                    self.log.info('redo')
+                    self.redo_count += 1
+                    self.data.clear()
+                    return
+
+                self.redo_count = 0
+
             result = {
                 'relays': {
                     'caps': p[1],
@@ -202,11 +216,11 @@ class RelayWorker(QObject):
                 **self.data.get_data(),
             }
 
-            self.log.info(f'data ready: {result}')
             with open('data.jsonl', 'a') as f:
                 f.write(json.dumps(result) + '\n')
 
             self.results.append(result)
+            self.previous_point = self.current_point
             self.current_point += 1
 
             if self.current_point == len(self.points):
@@ -214,10 +228,6 @@ class RelayWorker(QObject):
                 return
 
             p = self.points[self.current_point]
-            self.target.set_relays(
-                p[1],
-                p[2],
-                p[0],
-            )
+            self.target.set_relays(p[1], p[2], p[0])
 
             self.data.clear()
