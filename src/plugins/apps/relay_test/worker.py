@@ -104,32 +104,23 @@ class RelayWorker(QObject):
             't_phase',
             't_sign',
             't_freq',
-            't_v_mag_volts',
-            't_c_mag_volts',
-            't_phase_deg',
-            't_phase_rad',
-            't_mod_z',
-            't_power',
-            't_swr',
         ]
-        self.data = DataQueue(fields, stabilize={'m_fwd': 0.01}, maxlen=3)
+        self.data = DataQueue(fields, stabilize={'m_fwd': 0.1}, maxlen=3)
 
-    def rf_received(self, rf_data):
+    def meter_rf_received(self, rf_data):
+        self.data['m_fwd'].append(int(rf_data.get('forward', 0)))
+        self.data['m_rev'].append(float(rf_data.get('reverse', 0.0)))
+        self.data['m_swr'].append(float(rf_data.get('swr', 0.0)))
+        self.data['m_freq'].append(float(rf_data.get('temperature', 0.0)))
+        self.data['m_temp'].append(int(rf_data.get('frequency', 0)))
+
+    def tuner_rf_received(self, rf_data):
         self.data['t_freq'].append(int(rf_data.get('freq', 0)))
 
         self.data['t_v_mag'].append(float(rf_data.get('vMag', 0.0)))
         self.data['t_c_mag'].append(float(rf_data.get('cMag', 0.0)))
         self.data['t_phase'].append(float(rf_data.get('phase', 0.0)))
         self.data['t_sign'].append(int(rf_data.get('sign', 0)))
-
-        self.data['t_v_mag_volts'].append(float(rf_data.get('vMagVolts', 0.0)))
-        self.data['t_c_mag_volts'].append(float(rf_data.get('cMagVolts', 0.0)))
-
-        self.data['t_phase_deg'].append(float(rf_data.get('pDeg', 0.0)))
-        self.data['t_phase_rad'].append(float(rf_data.get('pRad', 0.0)))
-        self.data['t_mod_z'].append(float(rf_data.get('modZ', 0.0)))
-        self.data['t_power'].append(float(rf_data.get('pow', 0.0)))
-        self.data['t_swr'].append(int(rf_data.get('swr', 0)))
 
     def device_added(self, device):
         if device.profile_name == 'DTS-6':
@@ -138,18 +129,12 @@ class RelayWorker(QObject):
             self.radio = device
         if device.profile_name == 'Alpha4510A':
             self.meter = device
-            signals = device.signals
-            signals.forward.connect(lambda x: self.data['m_fwd'].append(float(x)))
-            signals.reverse.connect(lambda x: self.data['m_rev'].append(float(x)))
-            signals.swr.connect(lambda x: self.data['m_swr'].append(float(x)))
-            signals.frequency.connect(lambda x: self.data['m_freq'].append(float(x)))
-            signals.temperature.connect(lambda x: self.data['m_temp'].append(float(x)))
+            self.meter.signals.update.connect(self.meter_rf_received)
         if device.profile_name == 'PhaseTuner':
             self.target = device
-            signals = device.signals
-            signals.rf_received.connect(self.rf_received)
-            signals.frequency.connect(lambda x: self.data['t_freq'].append(float(x)))
-            signals.handshake_received.connect(lambda s: self.target_description_ready())
+            self.target.signals.rf_received.connect(self.tuner_rf_received)
+            self.target.signals.frequency.connect(lambda x: self.data['t_freq'].append(x))
+            self.target.signals.handshake_received.connect(lambda s: self.target_description_ready())
 
     @Slot()
     def start(self):
@@ -159,6 +144,7 @@ class RelayWorker(QObject):
 
         self.points = list(product([0, 1], range(1 << 5), range(1 << 5)))
         # self.points = list(product([0], range(1 << 4), range(1 << 4)))
+        # self.points = list(product([0], range(32, 60), range(32, 60)))
         self.results = []
         self.data.clear()
         self.log.info(f'starting test, collecting {len(self.points)} samples')
