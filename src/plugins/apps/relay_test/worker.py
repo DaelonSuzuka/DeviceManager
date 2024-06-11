@@ -199,7 +199,7 @@ class RelayWorker(QObject):
             prev = self.points[self.previous_point]
 
             # always redo when the inductors reset to z
-            if (prev[1] != p[1] and p[1] == 0) or (prev[2] != p[2] and p[2] == 0):
+            if (prev[1] != p[1] and p[1] == 0) or (prev[2] != p[2] and p[2] == 0) or self.current_point == 0:
                 if self.redo_count < 1:
                     self.log.info('redo')
                     self.redo_count += 1
