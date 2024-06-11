@@ -1,7 +1,7 @@
 altgraph==0.17
 appdirs==1.4.4
 click==7.1.2
-codex-engine-pyqt==0.1.1
+codex-engine-pyqt==0.2.0
 future==0.18.2
 numpy==1.26.4
 packaging==24.0
@@ -20,7 +20,7 @@ pyte==0.8.0
 pywin32-ctypes==0.2.0
 QtAwesome==1.0.2
 QtPy==2.4.1
-qtstrap==0.6.1
+qtstrap==0.6.2
 regex==2021.3.17
 shiboken6==6.7.0
 six==1.15.0

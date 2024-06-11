@@ -13,7 +13,7 @@ class MainWindow(BaseMainWindow):
         super().__init__(parent=parent)
         self.setWindowTitle("LDG Device Manager")
 
-        self.log_monitor = LogMonitorDockWidget(self, shortcut='`')
+        self.log_monitor = LogMonitorDockWidget(self)
         self.network_status = NetworkStatusWidget(self)
         self.device_controls = DeviceControlsDockWidget(self)
 
