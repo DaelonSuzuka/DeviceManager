@@ -51,8 +51,10 @@ class RelayControls(QWidget):
 class PlanSettings(SettingsModel):
     cap_min: int = 0
     cap_max: int = 32
+    cap_step: int = 1
     ind_min: int = 0
     ind_max: int = 32
+    ind_step: int = 1
     z_0: bool = True
     z_1: bool = True
 
@@ -76,9 +78,11 @@ class AutomationControls(QWidget):
                 with layout.hbox():
                     self.cap_min = layout + QSpinBox(maximum=255, value=self.plan.cap_min, valueChanged=lambda x: self.target_updated(x, 'cap_min'))
                     self.cap_max = layout + QSpinBox(maximum=255, value=self.plan.cap_max, valueChanged=lambda x: self.target_updated(x, 'cap_max'))
+                    self.cap_step = layout + QSpinBox(maximum=255, value=self.plan.cap_step, valueChanged=lambda x: self.target_updated(x, 'cap_step'))
                 with layout.hbox():
                     self.ind_min = layout + QSpinBox(maximum=127, value=self.plan.ind_min, valueChanged=lambda x: self.target_updated(x, 'ind_min'))
                     self.ind_max = layout + QSpinBox(maximum=127, value=self.plan.ind_max, valueChanged=lambda x: self.target_updated(x, 'ind_max'))
+                    self.ind_step = layout + QSpinBox(maximum=127, value=self.plan.ind_step, valueChanged=lambda x: self.target_updated(x, 'ind_step'))
                 with layout.hbox():
                     self.z_0 = layout + QPushButton('0', checkable=True, checked=self.plan.z_0, toggled=lambda x: self.target_updated(x, 'z_0'))
                     self.z_1 = layout + QPushButton('1', checkable=True, checked=self.plan.z_1, toggled=lambda x: self.target_updated(x, 'z_1'))
@@ -106,8 +110,8 @@ class AutomationControls(QWidget):
         self.update_total_points()
 
     def build_plan(self):
-        caps = range(self.plan.cap_min, self.plan.cap_max)
-        inds = range(self.plan.ind_min, self.plan.ind_max)
+        caps = range(self.plan.cap_min, self.plan.cap_max + 1, self.plan.cap_step)
+        inds = range(self.plan.ind_min, self.plan.ind_max + 1, self.plan.ind_step)
         z = []
         if self.plan.z_0:
             z.append(0)
