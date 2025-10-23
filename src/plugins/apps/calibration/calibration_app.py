@@ -1,10 +1,13 @@
-from qtstrap import *
 from codex import DeviceManager
+from qtstrap import *
+from qtstrap import QThread, QWidget, QProgressBar, PersistentTabWidget, CVBoxLayout
+
 from plugins.widgets import *
+
 from .constants import *
 from .graph_tab import GraphTab
-from .run_tab import RunTab
 from .results_tab import ResultsTab
+from .run_tab import RunTab
 from .worker import CalibrationWorker
 
 
@@ -21,10 +24,10 @@ class CalibrationApp(QWidget):
             } 
         """)
 
-        self.thread = QThread()
+        self._thread = QThread()
         self.worker = CalibrationWorker()
-        self.worker.moveToThread(self.thread)
-        self.thread.start()
+        self.worker.moveToThread(self._thread)
+        self._thread.start()
         self.worker.started.connect(self.worker_started)
         self.worker.stopped.connect(self.worker_stopped)
         self.worker.finished.connect(self.worker_finished)
@@ -49,7 +52,8 @@ class CalibrationApp(QWidget):
 
     def close(self):
         self.worker.stop()
-        self.thread.terminate()
+        self._thread.terminate()
+        return True
 
     def start_worker(self):
         self.worker.start(self.setup.get_script())
