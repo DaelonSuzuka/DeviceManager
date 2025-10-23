@@ -110,7 +110,7 @@ class RelayWorker(QObject):
         self.data = DataQueue(fields, stabilize={'m_fwd': 0.1, 't_phase': 3}, maxlen=3)
 
     def meter_rf_received(self, rf_data):
-        self.data['m_fwd'].append(int(rf_data.get('forward', 0)))
+        self.data['m_fwd'].append(float(rf_data.get('forward', 0.0)))
         self.data['m_rev'].append(float(rf_data.get('reverse', 0.0)))
         self.data['m_swr'].append(float(rf_data.get('swr', 0.0)))
         self.data['m_freq'].append(float(rf_data.get('temperature', 0.0)))
