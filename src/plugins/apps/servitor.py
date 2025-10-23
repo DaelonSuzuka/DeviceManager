@@ -114,8 +114,9 @@ class ServitorApp(QWidget):
                 layout.add(MeterInfo(self))
                 # layout.add(HLine())
                 # layout.add(ResultsInfo(self))
-                layout.add(HLine())
-                layout.add(PhaseTunerInfo(self))
+                # layout.add(HLine())
+                # layout.add(MC200Info(self))
+                # layout.add(PhaseTunerInfo(self))
 
             layout.add(VLine())
 
