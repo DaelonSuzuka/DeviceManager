@@ -6,39 +6,40 @@ from qtstrap import (
 )
 from codex import DeviceManager
 
+from plugins.devices.calibration_target import CalibrationTarget
 
-@DeviceManager.subscribe_to("CalibrationTarget")
+
+@DeviceManager.subscribe_to('CalibrationTarget')
 class CalibrationTargetInfo(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
+        self.fields = {
+            'fwdV:': QLabel('?'),
+            'revV:': QLabel('?'),
+            'matchQ:': QLabel('?'),
+            'fwd:': QLabel('?'),
+            'rev:': QLabel('?'),
+            'swr:': QLabel('?'),
+            'freq:': QLabel('?'),
+        }
+
         with CFormLayout(self) as layout:
             layout += ('CalibrationTarget:', QLabel())
+            layout += self.fields
 
-            self.forward = layout + ("Forward:", QLabel("?"))
-            self.reverse = layout + ("Reverse:", QLabel("?"))
-            self.swr = layout + ("SWR:", QLabel("?"))
-            self.forward_volts = layout + ("Frequency:", QLabel("?"))
-            layout += ('', QLabel())
-            self.reverse_volts = layout + ("Forward Volts:", QLabel("?"))
-            self.match_quality = layout + ("Reverse Volts:", QLabel("?"))
-            self.frequency = layout + ("Match Quality:", QLabel("?"))
-    
-    def connected(self, device):
-        device.signals.forward_volts.connect(lambda x: self.forward_volts.setText(f"{x:6.2f}"))
-        device.signals.reverse_volts.connect(lambda x: self.reverse_volts.setText(f"{x:6.2f}"))
-        device.signals.match_quality.connect(lambda x: self.match_quality.setText(f"{x:6.2f}"))
-        device.signals.forward.connect(lambda x: self.forward.setText(f"{x:6.2f}"))
-        device.signals.reverse.connect(lambda x: self.reverse.setText(f"{x:6.2f}"))
-        device.signals.swr.connect(lambda x: self.swr.setText(f"{x:6.2f}"))
-        device.signals.frequency.connect(lambda x: self.frequency.setText(f"{x}"))
+    def target_rf_received(self, rf_data: dict[str, float | int]):
+        for name, value in rf_data.items():
+            if name + ':' in self.fields:
+                if isinstance(value, int):
+                    self.fields[name + ':'].setText(f'{value}')
+                if isinstance(value, float):
+                    self.fields[name + ':'].setText(f'{value:6.2f}')
+
+    def connected(self, device: CalibrationTarget):
+        device.signals.rf_received.connect(self.target_rf_received)
 
     def disconnected(self, guid):
-        self.forward.setText("?")
-        self.reverse.setText("?")
-        self.swr.setText("?")
-        self.forward_volts.setText("?")
-        self.reverse_volts.setText("?")
-        self.match_quality.setText("?")
-        self.frequency.setText("?")
+        for label, field in self.fields.items():
+            field.setText('?')

@@ -1,8 +1,16 @@
-from qtstrap import *
-from codex import DeviceManager
+import json
 from collections import deque
+from copy import deepcopy
 from dataclasses import dataclass
+
 import numpy as np
+from codex import DeviceManager
+from qtstrap import *
+
+from plugins.devices.alpha4510A import Alpha4510A
+from plugins.devices.calibration_target import CalibrationTarget
+from plugins.devices.dts6 import DTS6
+from plugins.kenwood_ts480.kenwoodTS480 import TS480
 
 
 @dataclass
@@ -12,11 +20,11 @@ class Point:
 
 
 class DataQueue:
-    def __init__(self, keys, stabilize=[], maxlen=10):
-        self._data = {}
-        self.stabilize=stabilize
+    def __init__(self, keys, stabilize: dict[str, float] = {}, maxlen=10):
+        self.stabilize = stabilize
         self.reject_count = 0
 
+        self._data: dict[str, deque] = {}
         for key in keys:
             self._data[key] = deque(maxlen=maxlen)
 
@@ -29,22 +37,18 @@ class DataQueue:
         self.reject_count = 0
 
     def is_ready(self):
-        for _, queue in self._data.items():
-            if len(queue) != queue.maxlen:
-                return False
-        return True
-
-    def is_ready(self):
         for name, queue in self._data.items():
             if len(queue) == queue.maxlen:
                 if name in self.stabilize:
-                    if ((max(queue) - min(queue)) / np.median(queue)) > self.stabilize[name]:
-                        queue.popleft()
-                        self.reject_count += 1
-                        return False
+                    x = np.median(queue)
+                    if x != 0:
+                        if ((max(queue) - min(queue)) / x) > self.stabilize[name]:
+                            queue.popleft()
+                            self.reject_count += 1
+                            return False
             else:
                 return False
-            
+
         return True
 
     def get_data(self):
@@ -62,17 +66,17 @@ class CalibrationWorker(QObject):
     started = Signal(int)
     stopped = Signal()
     updated = Signal(int)
-    finished = Signal(list)
+    finished = Signal(dict)
 
     def __init__(self):
         super().__init__()
 
-        self.switch = None
-        self.meter = None
-        self.radio = None
-        self.target = None
+        self.switch: DTS6
+        self.meter: Alpha4510A
+        self.radio: TS480
+        self.target: CalibrationTarget
         self.target_description = {}
-        
+
         self.timer = QTimer()
         self.timer.timeout.connect(lambda: self.update())
 
@@ -82,11 +86,50 @@ class CalibrationWorker(QObject):
         self.script = []
 
         fields = [
-            'm_fwd', 'm_rev', 'm_swr', 'm_freq', 'm_temp',
-            't_fwd_volts', 't_rev_volts', 't_mq', 
-            't_fwd_watts', 't_rev_watts', 't_swr', 't_freq',
+            # meter
+            'm_fwd',
+            'm_rev',
+            'm_swr',
+            'm_freq',
+            'm_temp',
+            # target
+            't_fwd_volts',
+            't_rev_volts',
+            't_mq',
+            't_fwd_watts',
+            't_rev_watts',
+            't_swr',
+            't_freq',
         ]
-        self.data = DataQueue(fields, stabilize={'m_freq':0.01})
+        self.data = DataQueue(fields, stabilize={'m_fwd': 0.1, 'm_rev': 0.05, 't_fwd': 0.1})
+
+    def alpha_rf_received(self, rf_data):
+        self.data['m_fwd'].append(float(rf_data.get('forward', 0.0)))
+        self.data['m_rev'].append(float(rf_data.get('reverse', 0.0)))
+        self.data['m_swr'].append(float(rf_data.get('swr', 0.0)))
+        self.data['m_freq'].append(float(rf_data.get('temperature', 0.0)))
+        self.data['m_temp'].append(int(rf_data.get('frequency', 0)))
+
+    def target_rf_received(self, rf_data):
+        self.data['t_fwd_volts'].append(float(rf_data.get('fwdV', 0.0)))
+        self.data['t_rev_volts'].append(float(rf_data.get('revV', 0.0)))
+        self.data['t_mq'].append(float(rf_data.get('matchQ', 0.0)))
+        self.data['t_fwd_watts'].append(float(rf_data.get('fwd', 0.0)))
+        self.data['t_rev_watts'].append(float(rf_data.get('rev', 0.0)))
+        self.data['t_swr'].append(float(rf_data.get('swr', 0.0)))
+        self.data['t_freq'].append(float(rf_data.get('freq', 0.0)))
+
+    def device_added(self, device):
+        if device.profile_name == 'DTS-6':
+            self.switch = device
+        if device.profile_name == 'TS-480':
+            self.radio = device
+        if device.profile_name == 'Alpha4510A':
+            self.meter = device
+            self.meter.signals.update.connect(self.alpha_rf_received)
+        if device.profile_name == 'CalibrationTarget':
+            self.target = device
+            self.target.signals.rf_received.connect(self.target_rf_received)
 
     @Slot()
     def start(self, script):
@@ -102,43 +145,15 @@ class CalibrationWorker(QObject):
 
         self.current_point = 0
 
-        for _, device in self.devices.items():
-            if device.profile_name == 'DTS-6':
-                self.switch = device
-            if device.profile_name == 'TS-480':
-                self.radio = device
-            if device.profile_name == 'Alpha4510A':
-                self.meter = device
-                signals = device.signals
-                self.meter.signals.forward.connect(lambda x: self.data['m_fwd'].append(float(x)))
-                self.meter.signals.reverse.connect(lambda x: self.data['m_rev'].append(float(x)))
-                self.meter.signals.swr.connect(lambda x: self.data['m_swr'].append(float(x)))
-                self.meter.signals.frequency.connect(lambda x: self.data['m_freq'].append(float(x)))
-                self.meter.signals.temperature.connect(lambda x: self.data['m_temp'].append(float(x)))
-            if device.profile_name == 'CalibrationTarget':
-                self.target = device
-                signals = device.signals
-                signals.forward_volts.connect(lambda x: self.data['t_fwd_volts'].append(float(x)))
-                signals.reverse_volts.connect(lambda x: self.data['t_rev_volts'].append(float(x)))
-                signals.match_quality.connect(lambda x: self.data['t_mq'].append(float(x)))
-                signals.forward.connect(lambda x: self.data['t_fwd_watts'].append(float(x)))
-                signals.reverse.connect(lambda x: self.data['t_rev_watts'].append(float(x)))
-                signals.swr.connect(lambda x: self.data['t_swr'].append(float(x)))
-                signals.frequency.connect(lambda x: self.data['t_freq'].append(float(x)))
-                signals.handshake_received.connect(lambda s: self.target_description_ready())
-
         self.started.emit(len(self.points))
-        
-        self.target.send('version -j\n')
-        self.target.send('calibrate\n')
+
+        # self.target.send('version -j\n')
+        # self.target.send('calibrate\n')
         self.switch.set_antenna(1)
         self.radio.set_vfoA_frequency(int(self.points[self.current_point].freq))
         self.radio.set_power_level(int(self.points[self.current_point].power))
         self.radio.key()
         self.data.clear()
-
-    def target_description_ready(self):
-        self.target_description = self.target.description
 
     @Slot()
     def stop(self):
@@ -150,20 +165,18 @@ class CalibrationWorker(QObject):
         if self.target:
             self.target.send('\03')
 
-        self.switch = None
-        self.meter = None
-        self.radio = None
-        self.target = None
-
         self.stopped.emit()
 
-        results = {}
-        results['data'] = self.results
-        results['script'] = self.script
-        results['device'] = self.target_description
+        self.final = {}
+        self.final['data'] = deepcopy(self.results)
+        self.final['script'] = deepcopy(self.script)
+        self.final['device'] = {}
         self.target_description = {}
 
-        self.finished.emit(results)
+        with open('calibration.json', 'w') as f:
+            json.dump(self.final, f)
+
+        self.finished.emit(self.final)
 
     def update(self):
         self.updated.emit(self.current_point)
@@ -172,10 +185,10 @@ class CalibrationWorker(QObject):
             result = self.data.get_data()
             result['freq'] = self.points[self.current_point].freq
             result['power'] = self.points[self.current_point].power
-            
+
             self.results.append(result)
             self.current_point += 1
-            
+
             if self.current_point == len(self.points):
                 self.stop()
                 return
